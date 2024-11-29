@@ -1,0 +1,132 @@
+{
+  "originHash" : "22cecd74f83b16c11cb9c496fd6e5035ac298de47d43f5c7db261720383a0ffb",
+  "pins" : [
+    {
+      "identity" : "isvimagescrollview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yuriiik/ISVImageScrollView",
+      "state" : {
+        "branch" : "master",
+        "revision" : "1202f148508c5498e0d8948b803083e2a091de82"
+      }
+    },
+    {
+      "identity" : "loremipsum",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lukaskubanek/LoremIpsum",
+      "state" : {
+        "branch" : "master",
+        "revision" : "3c739014fd11bcf0a3b2263b95b89d12f1257579"
+      }
+    },
+    {
+      "identity" : "skeletonview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Juanpe/SkeletonView",
+      "state" : {
+        "branch" : "main",
+        "revision" : "30c92f0992888e7b249e788405ac31e2103f5c69"
+      }
+    },
+    {
+      "identity" : "snapkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SnapKit/SnapKit",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "3b5120fa082a847059bc0ca02f99561d6be25c5d"
+      }
+    },
+    {
+      "identity" : "sqlite.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stephencelis/SQLite.swift.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "96a2f8a0fa41e9e09af4585e2724c4e825410b91",
+        "version" : "1.6.2"
+      }
+    },
+    {
+      "identity" : "swiftgraph",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NickTheFreak97/SwiftGraph",
+      "state" : {
+        "branch" : "msa",
+        "revision" : "615085465d81f7a7ff176f13029b19f873773409"
+      }
+    },
+    {
+      "identity" : "ztron-routing-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NickTheFreak97/ztron-routing-kit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "b2806b68f199c6a5f51572da90c6357f5a09dd3f"
+      }
+    },
+    {
+      "identity" : "ztroncarouselcore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
+      "state" : {
+        "branch" : "main",
+        "revision" : "4ea59794e3adcb46d9e169d4dd921fc4bb3942d4"
+      }
+    },
+    {
+      "identity" : "ztrondatamodel",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
+      "state" : {
+        "branch" : "main",
+        "revision" : "2aeca99b0e0fdace5ee4539fa59218752bf11e0e"
+      }
+    },
+    {
+      "identity" : "ztronobservation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronObservation",
+      "state" : {
+        "branch" : "bugfix/threadSafety",
+        "revision" : "06bf4666bddc39fc88725d1e231e652bf92abec5"
+      }
+    },
+    {
+      "identity" : "ztronrouter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronRouter",
+      "state" : {
+        "branch" : "main",
+        "revision" : "99c3dee492c5619e86ea3d846b05d2f16f0b916c"
+      }
+    },
+    {
+      "identity" : "ztronserializable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronSerializable",
+      "state" : {
+        "branch" : "main",
+        "revision" : "eb0c8d67cb1c4db96117feb80f2580853b6b62af"
+      }
+    },
+    {
+      "identity" : "ztronvideoplayer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NiccoloBargioni/ZTronVideoPlayer",
+      "state" : {
+        "branch" : "main",
+        "revision" : "267f2cbea40241878b205a21df05c80f098bd1de"
+      }
+    }
+  ],
+  "version" : 3
+}
