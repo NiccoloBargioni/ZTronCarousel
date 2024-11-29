@@ -1,5 +1,5 @@
 {
-  "originHash" : "22cecd74f83b16c11cb9c496fd6e5035ac298de47d43f5c7db261720383a0ffb",
+  "originHash" : "6032e94e2cc490078154eb792763f882d0f90eaa39ac2bf018272b3d27fd8bde",
   "pins" : [
     {
       "identity" : "isvimagescrollview",
@@ -62,6 +62,15 @@
       "state" : {
         "branch" : "msa",
         "revision" : "615085465d81f7a7ff176f13029b19f873773409"
+      }
+    },
+    {
+      "identity" : "swiftsvg",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mchoe/SwiftSVG",
+      "state" : {
+        "branch" : "master",
+        "revision" : "88b9ee086b29019e35f6f49c8e30e5552eb8fa9d"
       }
     },
     {
