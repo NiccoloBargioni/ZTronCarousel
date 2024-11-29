@@ -21,7 +21,7 @@ public final class BoundingCircleInteractionsManager: MSAInteractionsManager, @u
                 }
             }
         } else {
-            Task(priority: .userInitiated) {
+            Task(priority: .userInitiated) { @MainActor in 
                 if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
                     self.mediator?.signalInterest(owner, to: pinnedBottomBar)
                 }
