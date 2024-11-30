@@ -43,6 +43,8 @@ import ZTronObservation
     private var bottomBarView: (any AnyBottomBar)!
     private var captionView: (any AnyCaptionView)!
     
+    private var suspendLayoutUpdates: Bool = false
+    
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
@@ -227,6 +229,11 @@ import ZTronObservation
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
+        guard !self.suspendLayoutUpdates else {
+            self.view.superview?.invalidateIntrinsicContentSize()
+            return
+        }
+        
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
@@ -254,6 +261,10 @@ import ZTronObservation
     }
     
     override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        if #unavailable(iOS 16) {
+            self.suspendLayoutUpdates = true
+        }
+        
         super.viewWillTransition(to: size, with: coordinator)
         
         coordinator.animate { _ in
@@ -298,6 +309,10 @@ import ZTronObservation
                 }
             } completion: { @MainActor ended in
                 self.view.setNeedsLayout()
+                
+                if #unavailable(iOS 16) {
+                    self.suspendLayoutUpdates = false
+                }
             }
         }
     }
