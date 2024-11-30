@@ -99,6 +99,13 @@ import ZTronObservation
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    override public func viewSafeAreaInsetsDidChange() {
+        UIView.animate(withDuration: 1) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     override public func viewDidLoad() {
         super.viewDidLoad()
         
