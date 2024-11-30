@@ -100,11 +100,13 @@ import ZTronObservation
     }
     
     
+    /*
     override public func viewSafeAreaInsetsDidChange() {
         UIView.animate(withDuration: 1) {
             self.view.layoutIfNeeded()
         }
     }
+    */
     
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -304,7 +306,14 @@ import ZTronObservation
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                self.view.setNeedsLayout()
+                if #unavailable(iOS 16) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.view.superview?.invalidateIntrinsicContentSize()
+                        self.view.setNeedsLayout()
+                    }
+                } else {
+                    self.view.setNeedsLayout()
+                }
             }
         }
     }
