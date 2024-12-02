@@ -258,11 +258,15 @@ import ZTronObservation
                 }
                 
                 self.pgvcHeight.isActive = false
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
-                self.pgvcHeight.isActive = true
-                
                 self.pgvcWidth.isActive = false
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
+                if size.width / size.height >= 16.0/9.0 {
+                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
+                } else {
+                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
+                }
+                self.pgvcHeight.isActive = true
                 self.pgvcWidth.isActive = true
                 
                 if UIDevice.current.orientation.isValidInterfaceOrientation {
