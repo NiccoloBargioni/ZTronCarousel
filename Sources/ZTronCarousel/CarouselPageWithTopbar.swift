@@ -229,6 +229,8 @@ import ZTronObservation
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
+            self.updateScrollViewContentSize()
+            
             curWidth = myContainerView.frame.width
             
             // cannot directly change a constraint multiplier, so
