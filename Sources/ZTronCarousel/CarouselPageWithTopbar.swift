@@ -300,7 +300,6 @@ import ZTronObservation
             } completion: { @MainActor ended in
                 self.view.layoutIfNeeded()
                 self.updateScrollViewContentSize()
-                self.view.layoutIfNeeded()
             }
         }
     }
@@ -317,6 +316,8 @@ import ZTronObservation
             origin: self.wrappingScrollView.frame.origin,
             size: .init(width: self.wrappingScrollView.bounds.size.width, height: contentHeight)
         )
+        
+        self.view.layoutIfNeeded()
     }
 }
 
