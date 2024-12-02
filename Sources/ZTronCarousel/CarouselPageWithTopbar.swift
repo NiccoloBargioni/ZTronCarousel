@@ -263,7 +263,7 @@ import ZTronObservation
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
                     self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.topAnchor)
+                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.scrollViewContent.safeAreaLayoutGuide.topAnchor)
                     self.pgvcTop.isActive = true
                 } else {
                                         
