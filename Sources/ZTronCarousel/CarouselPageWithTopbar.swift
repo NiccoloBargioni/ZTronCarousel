@@ -108,8 +108,7 @@ import ZTronObservation
         self.view.addSubview(self.wrappingScrollView)
         self.wrappingScrollView.addSubview(self.scrollViewContent)
         
-        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
-        
+        self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             self.wrappingScrollView.topAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.topAnchor),
             self.wrappingScrollView.rightAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.rightAnchor),
