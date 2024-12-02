@@ -248,8 +248,6 @@ import ZTronObservation
             
             // cannot directly change a constraint multiplier, so
             //    deactivate / create new / reactivate
-            let size = CGSize.sizeThatFits(containerSize: self.myContainerView.superview!.bounds.size, containedAR: 16.0/9.0)
-            
             self.pgvcHeight.isActive = false
             self.pgvcWidth.isActive = false
             if myContainerView.superview!.frame.width / myContainerView.superview!.frame.height >= 16.0/9.0 {
@@ -261,9 +259,10 @@ import ZTronObservation
             }
             self.pgvcHeight.isActive = true
             self.pgvcWidth.isActive = true
+            
+            self.topbarView.view.invalidateIntrinsicContentSize()
         }
         
-        self.topbarView.view.invalidateIntrinsicContentSize()
     }
     
     override public func viewIsAppearing(_ animated: Bool) {
@@ -344,9 +343,6 @@ import ZTronObservation
                         self.captionView.isHidden = true
                         self.captionView.superview?.isHidden = true
                     }
-                    
-                    self.viewLayoutMarginsDidChange()
-                    self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
                 print("LIFECYCLE viewWillTransition(to:with:) completion")
