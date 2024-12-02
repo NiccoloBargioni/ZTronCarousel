@@ -226,7 +226,7 @@ import ZTronObservation
         }
         
         self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
-        self.wrappingScrollView.frame = CGRect(origin: .zero, size: self.wrappingScrollView.contentSize)
+        self.wrappingScrollView.frame = self.view.bounds
         
         // only execute this code block if the view frame has changed
         //    such as on device rotation
