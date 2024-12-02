@@ -305,62 +305,60 @@ import ZTronObservation
         super.viewWillTransition(to: size, with: coordinator)
         print("LIFECYCLE \(#function)")
         
-        self.limitDidLayoutSubviews = Int.max / 2 - 1
-        self.limitWillLayoutSubviews = 1
-        self.limitMarginsWillChange = 3
+        self.limitDidLayoutSubviews = Int.max
+        self.limitWillLayoutSubviews = Int.max
+        self.limitMarginsWillChange = Int.max
 
         coordinator.animate { _ in
-            UIView.animate(withDuration: 0.25) {
-                if size.width > size.height {
-                    self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
-                    self.pgvcTop.isActive = true
+            if size.width > size.height {
+                self.pgvcTop.isActive = false
+                self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
+                self.pgvcTop.isActive = true
+            } else {
+                                    
+                self.pgvcTop.isActive = false
+                self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.bottomAnchor)
+                self.pgvcTop.isActive = true
+            }
+            
+            self.pgvcHeight.isActive = false
+            self.pgvcWidth.isActive = false
+            if size.width / size.height >= 16.0/9.0 {
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
+            } else {
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
+            }
+            self.pgvcHeight.isActive = true
+            self.pgvcWidth.isActive = true
+            
+            if UIDevice.current.orientation.isValidInterfaceOrientation {
+                if UIDevice.current.orientation.isPortrait {
+                    self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
+                    self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
+                    self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
+                    self.topbarView.view.isHidden = false
+                    self.bottomBarView.isHidden = false
+                    self.captionView.isHidden = false
+                    self.captionView.superview?.isHidden = false
                 } else {
-                                        
-                    self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.bottomAnchor)
-                    self.pgvcTop.isActive = true
+                    self.navigationItem.searchController = nil
+                    self.topbarView.view.isHidden = true
+                    self.bottomBarView.isHidden = true
+                    self.captionView.isHidden = true
+                    self.captionView.superview?.isHidden = true
                 }
                 
-                self.pgvcHeight.isActive = false
-                self.pgvcWidth.isActive = false
-                if size.width / size.height >= 16.0/9.0 {
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
-                } else {
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
-                }
-                self.pgvcHeight.isActive = true
-                self.pgvcWidth.isActive = true
-                
-                if UIDevice.current.orientation.isValidInterfaceOrientation {
-                    if UIDevice.current.orientation.isPortrait {
-                        self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
-                        self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
-                        self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
-                        self.topbarView.view.isHidden = false
-                        self.bottomBarView.isHidden = false
-                        self.captionView.isHidden = false
-                        self.captionView.superview?.isHidden = false
-                    } else {
-                        self.navigationItem.searchController = nil
-                        self.topbarView.view.isHidden = true
-                        self.bottomBarView.isHidden = true
-                        self.captionView.isHidden = true
-                        self.captionView.superview?.isHidden = true
-                    }
-                    
-                    self.view.layoutIfNeeded()
-                }
-            } completion: { @MainActor ended in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    print("LIFECYCLE viewWillTransition(to:with:) completion")
-                    self.limitDidLayoutSubviews = Int.max
-                    self.limitWillLayoutSubviews = Int.max
-                    self.limitWillLayoutSubviews = Int.max
-                    self.view.setNeedsLayout()
-                }
+                self.view.layoutIfNeeded()
+            }
+        } completion: { @MainActor _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                print("LIFECYCLE viewWillTransition(to:with:) completion")
+                self.limitDidLayoutSubviews = Int.max
+                self.limitWillLayoutSubviews = Int.max
+                self.limitWillLayoutSubviews = Int.max
+                self.view.setNeedsLayout()
             }
         }
     }
