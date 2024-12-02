@@ -37,8 +37,6 @@ import ZTronObservation
     
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
-    private(set) public var wrappingScrollView: UIScrollView = UIScrollView(frame: .zero)
-    private(set) public var scrollViewContent: UIView = UIView(frame: .zero)
     
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
@@ -105,21 +103,9 @@ import ZTronObservation
         // so we can see the view / page view controller framing
         view.backgroundColor = .systemBackground
         
-        self.view.addSubview(self.wrappingScrollView)
-        self.wrappingScrollView.addSubview(self.scrollViewContent)
-        
-        self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            self.wrappingScrollView.topAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.topAnchor),
-            self.wrappingScrollView.rightAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.rightAnchor),
-            self.wrappingScrollView.bottomAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.bottomAnchor),
-            self.wrappingScrollView.leftAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.leftAnchor)
-        ])
-        
-        
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
-        self.scrollViewContent.addSubview(self.topbarView.view)
+        self.view.addSubview(self.topbarView.view)
         
         self.topbarView.view.snp.makeConstraints { make in
             make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
@@ -135,10 +121,11 @@ import ZTronObservation
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
 
         // add myContainerView
-        self.scrollViewContent.addSubview(myContainerView)
+        myContainerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(myContainerView)
         
         myContainerView.snp.makeConstraints { make in
-            make.centerX.equalTo(self.myContainerView.superview!.safeAreaLayoutGuide)
+            make.centerX.equalTo(self.view.safeAreaLayoutGuide)
         }
 
             
@@ -162,7 +149,10 @@ import ZTronObservation
         addChild(thePageVC)
         
         // set the "data"
-                
+        
+        // we need to re-size the page view controller's view to fit our container view
+        thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
+        
         // add the page VC's view to our container view
         myContainerView.addSubview(thePageVC.view)
         
@@ -172,7 +162,7 @@ import ZTronObservation
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         
-        self.scrollViewContent.addSubview(self.bottomBarView)
+        self.view.addSubview(self.bottomBarView)
 
         self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC.view)
@@ -188,8 +178,9 @@ import ZTronObservation
         self.captionView = componentsFactory.makeCaptionView()
         
         let captionViewContainer = BottomSeparatedUIView()
-        self.scrollViewContent.addSubview(captionViewContainer)
+        self.view.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
+        
         
         captionViewContainer.snp.makeConstraints { make in
             make.top.equalTo(self.bottomBarView.snp.bottom)
@@ -219,10 +210,6 @@ import ZTronObservation
             self.interactionsManagersFactory
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
-        
-        self.view.layoutIfNeeded()
-
-        self.updateScrollViewContentSize()
     }
     
     override open func viewDidLayoutSubviews() {
@@ -244,8 +231,6 @@ import ZTronObservation
             pgvcWidth.isActive = false
             pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
             pgvcWidth.isActive = true
-            
-            self.updateScrollViewContentSize()
         }
         
         self.topbarView.view.invalidateIntrinsicContentSize()
@@ -259,13 +244,11 @@ import ZTronObservation
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        let sizeThatFits = CGSize.sizeThatFits(containerSize: size, containedAR: 16.0/9.0)
-        
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
                     self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.scrollViewContent.safeAreaLayoutGuide.topAnchor)
+                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
                     self.pgvcTop.isActive = true
                 } else {
                                         
@@ -275,11 +258,11 @@ import ZTronObservation
                 }
                 
                 self.pgvcHeight.isActive = false
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: sizeThatFits.height)
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
                 self.pgvcHeight.isActive = true
                 
                 self.pgvcWidth.isActive = false
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: sizeThatFits.width)
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
                 self.pgvcWidth.isActive = true
                 
                 if UIDevice.current.orientation.isValidInterfaceOrientation {
@@ -302,29 +285,9 @@ import ZTronObservation
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                self.view.layoutIfNeeded()
-                self.updateScrollViewContentSize()
+                self.view.setNeedsLayout()
             }
         }
-    }
-    
-    public final func updateScrollViewContentSize() {
-        let contentHeight = self.scrollViewContent.subviews.reduce(0) { partialMaxHeight, subview in
-            return max(partialMaxHeight, subview.frame.maxY)
-        }
-        
-        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: max(self.view.bounds.size.height, contentHeight))
-        self.wrappingScrollView.frame = CGRect(
-            origin: .init(x: self.view.safeAreaInsets.left, y: self.view.safeAreaInsets.top),
-            size: .init(width: self.view.bounds.size.width, height: self.view.bounds.size.height)
-        )
-        
-        self.scrollViewContent.frame = CGRect(
-            origin: self.wrappingScrollView.frame.origin,
-            size: .init(width: self.wrappingScrollView.bounds.size.width, height: max(self.view.bounds.size.height, contentHeight))
-        )
-        
-        self.view.layoutIfNeeded()
     }
 }
 
