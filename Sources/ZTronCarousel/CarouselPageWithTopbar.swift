@@ -239,6 +239,13 @@ import ZTronObservation
         
         super.viewDidLayoutSubviews()
 
+        defer {
+            if self.limitDidLayoutSubviews <= Int.max / 2 - 1 {
+                Task.detached(priority: .userInitiated) {
+                    await self.view.setNeedsLayout()
+                }
+            }
+        }
         
         self.limitDidLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
@@ -248,6 +255,7 @@ import ZTronObservation
             
             // cannot directly change a constraint multiplier, so
             //    deactivate / create new / reactivate
+            
             self.pgvcHeight.isActive = false
             self.pgvcWidth.isActive = false
             if myContainerView.superview!.frame.width / myContainerView.superview!.frame.height >= 16.0/9.0 {
@@ -259,10 +267,9 @@ import ZTronObservation
             }
             self.pgvcHeight.isActive = true
             self.pgvcWidth.isActive = true
-            
-            self.topbarView.view.invalidateIntrinsicContentSize()
         }
         
+        self.topbarView.view.invalidateIntrinsicContentSize()
     }
     
     override public func viewIsAppearing(_ animated: Bool) {
@@ -343,10 +350,12 @@ import ZTronObservation
                         self.captionView.isHidden = true
                         self.captionView.superview?.isHidden = true
                     }
+                    
+                    self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
                 print("LIFECYCLE viewWillTransition(to:with:) completion")
-                self.limitDidLayoutSubviews = Int.max
+                self.limitDidLayoutSubviews = Int.max / 2 - 1
                 self.limitWillLayoutSubviews = Int.max
                 self.limitWillLayoutSubviews = Int.max
                 self.view.setNeedsLayout()
