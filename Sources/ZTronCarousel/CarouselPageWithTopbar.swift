@@ -241,8 +241,8 @@ import ZTronObservation
 
         defer {
             if self.limitDidLayoutSubviews <= Int.max / 2 - 1 {
-                Task.detached(priority: .userInitiated) {
-                    await self.view.setNeedsLayout()
+                DispatchQueue.main.async { @Sendable in
+                    self.view.setNeedsLayout()
                 }
             }
         }
@@ -305,7 +305,7 @@ import ZTronObservation
         super.viewWillTransition(to: size, with: coordinator)
         print("LIFECYCLE \(#function)")
         
-        self.limitDidLayoutSubviews = 1
+        self.limitDidLayoutSubviews = Int.max / 2 - 1
         self.limitWillLayoutSubviews = 1
         self.limitMarginsWillChange = 3
 
@@ -354,11 +354,13 @@ import ZTronObservation
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                print("LIFECYCLE viewWillTransition(to:with:) completion")
-                self.limitDidLayoutSubviews = Int.max / 2 - 1
-                self.limitWillLayoutSubviews = Int.max
-                self.limitWillLayoutSubviews = Int.max
-                self.view.setNeedsLayout()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    print("LIFECYCLE viewWillTransition(to:with:) completion")
+                    self.limitDidLayoutSubviews = Int.max
+                    self.limitWillLayoutSubviews = Int.max
+                    self.limitWillLayoutSubviews = Int.max
+                    self.view.setNeedsLayout()
+                }
             }
         }
     }
