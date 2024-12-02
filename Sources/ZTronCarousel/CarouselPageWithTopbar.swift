@@ -215,9 +215,10 @@ import ZTronObservation
     }
     
     override open func viewDidLayoutSubviews() {
+        guard self.limitLayoutSubviews > 0 else { return }
+        
         super.viewDidLayoutSubviews()
                 
-        guard self.limitLayoutSubviews > 0 else { return }
         
         self.limitLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
