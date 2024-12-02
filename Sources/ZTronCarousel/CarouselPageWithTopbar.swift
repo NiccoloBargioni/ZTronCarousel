@@ -49,7 +49,7 @@ import ZTronObservation
         componentsFactory: (any ZTronComponentsFactory)? = nil,
         interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
     ) {
-        
+        print("LIFECYCLE \(#function)")
         self.componentsFactory = componentsFactory ?? DefaultZtronComponentsFactory()
         self.interactionsManagersFactory = interactionsManagersFactory ?? DefaultZTronInteractionsManagerFactory()
         
@@ -98,6 +98,7 @@ import ZTronObservation
     }
     
     override open func viewDidLoad() {
+        print("LIFECYCLE \(#function)")
         super.viewDidLoad()
         
         self.navigationItem.title = "Memory Charms"
@@ -214,11 +215,22 @@ import ZTronObservation
         )
     }
     
+    override public func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print("LIFECYCLE \(#function)")
+    }
+    
+    override open func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        print("LIFECYCLE \(#function)")
+    }
+    
     override open func viewDidLayoutSubviews() {
         guard self.limitLayoutSubviews > 0 else { return }
         
         super.viewDidLayoutSubviews()
-                
+        print("LIFECYCLE \(#function)")
+
         
         self.limitLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
@@ -246,6 +258,26 @@ import ZTronObservation
         self.topbarView.view.invalidateIntrinsicContentSize()
     }
     
+    override public func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+        print("LIFECYCLE \(#function)")
+    }
+    
+    override public func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("LIFECYCLE \(#function)")
+    }
+    
+    override public func viewLayoutMarginsDidChange() {
+        super.viewLayoutMarginsDidChange()
+        print("LIFECYCLE \(#function)")
+    }
+    
+    
+    override public func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        print("LIFECYCLE \(#function)")
+    }
     
     public final func computeContentSizeThatFits() -> CGSize {
         return CGSize.sizeThatFits(containerSize: self.view.safeAreaLayoutGuide.layoutFrame.size, containedAR: 16.0/9.0)
@@ -253,6 +285,7 @@ import ZTronObservation
     
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+        print("LIFECYCLE \(#function)")
         
         self.limitLayoutSubviews = 1
         coordinator.animate { _ in
@@ -304,6 +337,16 @@ import ZTronObservation
                 self.view.setNeedsLayout()
             }
         }
+    }
+    
+    override public func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        print("LIFECYCLE \(#function)")
+    }
+    
+    override public func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        print("LIFECYCLE \(#function)")
     }
 }
 
