@@ -221,9 +221,13 @@ import ZTronObservation
     override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        self.wrappingScrollView.contentSize = self.view.bounds.size
-        self.wrappingScrollView.frame = self.view.bounds
-                
+        let contentHeight = self.wrappingScrollView.subviews.reduce(0) { partialMaxHeight, subview in
+            return max(partialMaxHeight, subview.frame.maxY)
+        }
+        
+        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
+        self.wrappingScrollView.frame = CGRect(origin: .zero, size: self.wrappingScrollView.contentSize)
+        
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
