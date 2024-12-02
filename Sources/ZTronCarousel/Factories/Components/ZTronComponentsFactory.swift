@@ -4,6 +4,8 @@ import ZTronObservation
 import ZTronSerializable
 
 @MainActor public protocol ZTronComponentsFactory: AnyObject, Sendable {
+    func makeViewModel() -> any AnyViewModel 
+    
     func makeDBLoader(with foreignKeys: SerializableGalleryForeignKeys) -> any AnyDBLoader
     
     /// - Pinned to left, top and right of this component

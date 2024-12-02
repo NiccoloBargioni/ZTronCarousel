@@ -1,8 +1,8 @@
 import Foundation
 import ZTronObservation
 
-public final class CarouselWithTopbarViewModel: Component, @unchecked Sendable {
-    public var id: String = "memory charms viewModel"
+public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendable {
+    public let id: String = "memory charms viewModel"
     weak public var viewModel: CarouselPageWithTopbar?
     private var delegate: (any MSAInteractionsManager)? {
         willSet {

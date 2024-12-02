@@ -4,6 +4,10 @@ import ZTronObservation
 import ZTronSerializable
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
+    public func makeViewModel() -> any AnyViewModel {
+        return CarouselWithTopbarViewModel()
+    }
+    
     public func makeDBLoader(with foreignKeys: SerializableGalleryForeignKeys) -> any AnyDBLoader {
         return DBCarouselLoader(with: foreignKeys)
     }

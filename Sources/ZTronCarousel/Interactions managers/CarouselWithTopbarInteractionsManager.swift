@@ -2,10 +2,10 @@ import ZTronObservation
 import ZTronCarouselCore
 
 public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager, @unchecked Sendable {
-    weak private var owner: CarouselWithTopbarViewModel?
+    weak private var owner: (any AnyViewModel)?
     weak private var mediator: MSAMediator?
     
-    public init(owner: CarouselWithTopbarViewModel? = nil, mediator: MSAMediator? = nil) {
+    public init(owner: any AnyViewModel, mediator: MSAMediator) {
         self.owner = owner
         self.mediator = mediator
     }

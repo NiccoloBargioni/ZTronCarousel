@@ -182,7 +182,6 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     
     public func dismantle() {
-        print("dismantle \(self.id)")
         self.setDelegate(nil)
     }
 }

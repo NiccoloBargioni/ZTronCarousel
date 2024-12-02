@@ -150,7 +150,6 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
             } else {
                 if page.lastAction == .animationEnded {
                     if let currentMediaDescriptor = owner.currentMediaDescriptor {
-                        print("LAST ACTION: \(page.lastAction) THEREFORE REPLACING MEDIA")
                         owner.replaceMedia(with: currentMediaDescriptor, at: owner.currentPage)
                         owner.view.isUserInteractionEnabled = true
                     }

@@ -28,7 +28,6 @@ public final class UIVariantChangedForwardAnimation: UIView, PlaceableView, Vari
     
     
     public init(target: String, bundle: Bundle?, initialNormalizedAABB: CGRect, completion: (((_ ended: Bool) -> Void))? = nil) {
-        print("ANIMATION \(#function)")
         self.initialNormalizedAABB = initialNormalizedAABB
         
         guard let image = UIImage(named: target, in: bundle, with: nil) else { fatalError() }
@@ -84,7 +83,6 @@ public final class UIVariantChangedForwardAnimation: UIView, PlaceableView, Vari
         self.parentViewController?.view.layer.removeAllAnimations()
         self.parentViewController?.view.layoutIfNeeded()
         
-        print("FORWARD ANIMATION STARTED \(parentImage) --> \(self.target)")
         UIView.animate(withDuration: 0.25) {
             self.hostedImageLeftConstraint?.isActive = false
             self.hostedImageLeftConstraint = self.hostedImage.leftAnchor.constraint(

@@ -243,7 +243,6 @@ public final class CircleView: UIView, PlaceableColoredView, @preconcurrency Com
     }
     
     public final func toggle() {
-        print("Toggling \(self.id)")
         UIView.animate(withDuration: 0.25) {
             if self.alpha <= 0 {
                 self.isHidden.toggle()
@@ -262,7 +261,6 @@ public final class CircleView: UIView, PlaceableColoredView, @preconcurrency Com
     }
     
     public func dismantle() {
-        print("Dismantle \(self.id)")
         self.setDelegate(nil)
     }
 }

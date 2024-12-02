@@ -35,10 +35,7 @@ public final class BoundingCircleInteractionsManager: MSAInteractionsManager, @u
     
     public func notify(args: ZTronObservation.BroadcastArgs) {
         guard let owner = self.owner else { return }
-        
-        print(self.mediator!.toDOT())
-        print(self.mediator!.MSAToDOT(for: args.getSource()))
-                
+                        
         if let colorPicker = args.getSource() as? PlaceableColorPicker {
             Task(priority: .userInitiated) { @MainActor in 
                 owner.setStrokeColor(colorPicker.getSelectedColor().cgColor)

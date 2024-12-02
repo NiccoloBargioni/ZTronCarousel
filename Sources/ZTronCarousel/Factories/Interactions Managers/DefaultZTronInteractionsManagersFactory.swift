@@ -1,7 +1,7 @@
 import ZTronObservation
 import ZTronCarouselCore
 
-public final class DefaultZTronInteractionsManagerFactory: ZTronInteractionsManagersFactory {
+public final class DefaultZTronInteractionsManagerFactory: ZTronInteractionsManagersFactory {    
     public func makeCarouselComponentInteractionsManager(owner: CarouselComponent, mediator: ZTronObservation.MSAMediator) -> any ZTronObservation.MSAInteractionsManager {
         return CarouselInteractionsManger(owner: owner, mediator: mediator)
     }
@@ -18,7 +18,7 @@ public final class DefaultZTronInteractionsManagerFactory: ZTronInteractionsMana
         return CaptionViewInteractionsManager(captionView: owner, mediator: mediator)
     }
     
-    public func makeCarouselInteractionsManager(owner: CarouselWithTopbarViewModel, mediator: ZTronObservation.MSAMediator) -> any ZTronObservation.MSAInteractionsManager {
+    public func makeCarouselInteractionsManager(owner: any AnyViewModel, mediator: ZTronObservation.MSAMediator) -> any ZTronObservation.MSAInteractionsManager {
         return CarouselWithTopbarInteractionsManager(owner: owner, mediator: mediator)
     }
 }

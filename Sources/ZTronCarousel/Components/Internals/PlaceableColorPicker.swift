@@ -162,7 +162,6 @@ internal final class PlaceableColorPicker: UIView, PlaceableView, @preconcurrenc
         
         switch sender.state {
         case .ended:
-            print(#function)
             if let parentViewController = self.parentViewController {
                 self.isUserInteractionEnabled = false
                 self.colorPicker.delegate = self
@@ -204,7 +203,6 @@ internal final class PlaceableColorPicker: UIView, PlaceableView, @preconcurrenc
     }
     
     public func dismantle() {
-        print("Dismantle \(self.id)")
         self.setDelegate(nil)
     }
     

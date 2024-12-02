@@ -6,16 +6,13 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 
-@MainActor public final class CarouselPageWithTopbar: UIViewController {
+@MainActor open class CarouselPageWithTopbar: UIViewController {
     private let pageFactory: any MediaFactory
-    private let medias: [any VisualMediaDescriptor]
-    
+    private let dbLoader: any AnyDBLoader
+    private let carouselModel: (any AnyViewModel)
+
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
-    
-    private let mediator: MSAMediator = .init()
-    private let dbLoader: any AnyDBLoader
-    private let carouselModel = CarouselWithTopbarViewModel()
 
     // this will hold the page view controller
     private let myContainerView: UIView = {
@@ -25,7 +22,7 @@ import ZTronObservation
     }()
     
     // we will add a UIPageViewController as a child VC
-    private(set) internal var thePageVC: CarouselComponent!
+    private(set) public var thePageVC: CarouselComponent!
     
     // this will be used to change the page view controller height based on
     //    view width-to-height (portrait/landscape)
@@ -35,13 +32,15 @@ import ZTronObservation
     private var pgvcTop: NSLayoutConstraint!
     private var topbarWidth: NSLayoutConstraint!
     
-    
     // track current view width
     private var curWidth: CGFloat = 0.0
     
-    private let topbarView: UIViewController
-    private var bottomBarView: (any AnyBottomBar)!
-    private var captionView: (any AnyCaptionView)!
+    private(set) public var bottomBarView: (any AnyBottomBar)!
+    private(set) public var captionView: (any AnyCaptionView)!
+    
+    public let mediator: MSAMediator = .init()
+    public let medias: [any VisualMediaDescriptor]
+    public let topbarView: UIViewController
     
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
@@ -54,6 +53,7 @@ import ZTronObservation
         self.componentsFactory = componentsFactory ?? DefaultZtronComponentsFactory()
         self.interactionsManagersFactory = interactionsManagersFactory ?? DefaultZTronInteractionsManagerFactory()
         
+        self.carouselModel = self.componentsFactory.makeViewModel()
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
         self.medias = medias
@@ -71,35 +71,34 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        DispatchQueue.main.asyncAfter(deadline: .now()) {
-            Task(priority: .userInitiated) {
-                self.carouselModel.viewModel = self
-                
-                self.carouselModel.setDelegate(
-                    self.interactionsManagersFactory
-                        .makeCarouselInteractionsManager(owner: self.carouselModel, mediator: self.mediator)
-                )
-                self.dbLoader.setDelegate(
-                    self.interactionsManagersFactory
-                        .makeDBLoaderInteractionsManager(owner: self.dbLoader, mediator: self.mediator)
-                )
-                
-                if let pgFactory = pageFactory as? any Notifiable {
-                    pgFactory.setMediator(self.mediator)
-                }
-                
-                Task(priority: .high) {
-                    try self.dbLoader.loadFirstLevelGalleries()
-                }
+        Task(priority: .userInitiated) {
+            self.carouselModel.viewModel = self
+            
+            self.carouselModel.setDelegate(
+                self.interactionsManagersFactory
+                    .makeCarouselInteractionsManager(owner: self.carouselModel, mediator: self.mediator)
+            )
+            
+            self.dbLoader.setDelegate(
+                self.interactionsManagersFactory
+                    .makeDBLoaderInteractionsManager(owner: self.dbLoader, mediator: self.mediator)
+            )
+            
+            if let pgFactory = pageFactory as? any Notifiable {
+                pgFactory.setMediator(self.mediator)
+            }
+            
+            Task(priority: .high) {
+                try self.dbLoader.loadFirstLevelGalleries()
             }
         }
     }
     
-    required internal init?(coder: NSCoder) {
+    required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override public func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
         
         self.navigationItem.title = "Memory Charms"
@@ -115,9 +114,6 @@ import ZTronObservation
             make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
             make.height.equalTo(self.topbarView.view.intrinsicContentSize.height)
         }
-
-        print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
-        
         
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             if !UIDevice.current.orientation.isPortrait {
@@ -176,12 +172,7 @@ import ZTronObservation
             make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
             make.height.equalTo(44)
         }
-        
-        /*
-        if UIDevice.current.orientation != .portrait {
-            self.bottomBarView.isHidden = true
-        }*/
-        
+                
         self.bottomBarView.setDelegate(
             self.interactionsManagersFactory
                 .makeBottomBarInteractionsManager(owner: self.bottomBarView, mediator: self.mediator)
@@ -224,7 +215,7 @@ import ZTronObservation
         )
     }
     
-    override public func viewDidLayoutSubviews() {
+    override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
                 
         // only execute this code block if the view frame has changed
@@ -249,11 +240,11 @@ import ZTronObservation
     }
     
     
-    final func computeContentSizeThatFits() -> CGSize {
+    public final func computeContentSizeThatFits() -> CGSize {
         return CGSize.sizeThatFits(containerSize: self.view.safeAreaLayoutGuide.layoutFrame.size, containedAR: 16.0/9.0)
     }
     
-    override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
         coordinator.animate { _ in

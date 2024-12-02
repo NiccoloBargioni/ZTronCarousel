@@ -13,7 +13,6 @@ internal extension UIColor {
         let b: CGFloat = components?[2] ?? 0.0
 
         let hexString = String.init(format: "#%02lX%02lX%02lX", lroundf(Float(r * 255)), lroundf(Float(g * 255)), lroundf(Float(b * 255)))
-        print(hexString)
         return hexString
      }
 
@@ -21,7 +20,6 @@ internal extension UIColor {
         var colorString = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
         colorString = colorString.replacingOccurrences(of: "#", with: "").uppercased()
 
-        print(colorString)
         let alpha: CGFloat = 1.0
         let red: CGFloat = Self.colorComponentFrom(colorString: colorString, start: 0, length: 2)
         let green: CGFloat = Self.colorComponentFrom(colorString: colorString, start: 2, length: 2)

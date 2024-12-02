@@ -27,7 +27,6 @@ public final class ImagePageInteractionsManager: MSAInteractionsManager, @unchec
         
         if let loader = args.getSource() as? (any AnyDBLoader) {
             if loader.lastAction == .variantLoadedForward || loader.lastAction == .variantLoadedBackward {
-                print("Last action in DBCarouselLoader: \(loader.lastAction)")
                 if let variantLoadedMessage = ((args as? MSAArgs)?.getPayload() as? VariantLoadedEventMessage) {
                     Task(priority: .userInitiated) { @MainActor in
                         

@@ -78,16 +78,13 @@ public final class UIVariantChangeGoBackAnimation: UIView, PlaceableView, Varian
 
     
     public final func start() {
-        
         self.makeTheAnimation()
 
-        print("BACKWARD ANIMATION STARTED  \(slave) --> \(master)")
         self.theAnimation?.startAnimation()
         
         let startTime = DispatchTime.now()
         self.theAnimation?.addCompletion { animation in
             if animation == .end {
-                print("BACKWARD ANIMATION ENDED \(self.slave) --> \(self.master) WITH COMPLETION AFTER \(startTime.distance(to: .now()))")
                 self.status = .completed
                 self.completion?(animation == .end)
             }
