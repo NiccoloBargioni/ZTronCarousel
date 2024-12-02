@@ -37,6 +37,7 @@ import ZTronObservation
     
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
+    private(set) public var wrappingScrollView: UIScrollView = UIScrollView(frame: .zero)
     
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
@@ -103,9 +104,14 @@ import ZTronObservation
         // so we can see the view / page view controller framing
         view.backgroundColor = .systemBackground
         
+        self.view.addSubview(self.wrappingScrollView)
+        
+        self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = true
+        self.wrappingScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
-        self.view.addSubview(self.topbarView.view)
+        self.wrappingScrollView.addSubview(self.topbarView.view)
         
         self.topbarView.view.snp.makeConstraints { make in
             make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
@@ -122,10 +128,10 @@ import ZTronObservation
 
         // add myContainerView
         myContainerView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(myContainerView)
+        self.wrappingScrollView.addSubview(myContainerView)
         
         myContainerView.snp.makeConstraints { make in
-            make.centerX.equalTo(self.view.safeAreaLayoutGuide)
+            make.centerX.equalTo(self.myContainerView.superview!.safeAreaLayoutGuide)
         }
 
             
@@ -162,7 +168,7 @@ import ZTronObservation
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         
-        self.view.addSubview(self.bottomBarView)
+        self.wrappingScrollView.addSubview(self.bottomBarView)
 
         self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC.view)
@@ -178,7 +184,7 @@ import ZTronObservation
         self.captionView = componentsFactory.makeCaptionView()
         
         let captionViewContainer = BottomSeparatedUIView()
-        self.view.addSubview(captionViewContainer)
+        self.wrappingScrollView.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
         
         
@@ -214,6 +220,8 @@ import ZTronObservation
     
     override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
+        self.wrappingScrollView.contentSize = self.view.bounds.size
                 
         // only execute this code block if the view frame has changed
         //    such as on device rotation
