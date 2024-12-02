@@ -38,7 +38,10 @@ import ZTronObservation
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
     
-    private var limitLayoutSubviews: Int = Int.max
+    private var limitDidLayoutSubviews: Int = Int.max
+    private var limitWillLayoutSubviews: Int = Int.max
+    private var limitMarginsWillChange: Int = Int.max
+    
     
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
@@ -223,16 +226,20 @@ import ZTronObservation
     override open func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         print("LIFECYCLE \(#function)")
+        guard self.limitWillLayoutSubviews > 0 else { return }
+        
+        self.limitWillLayoutSubviews -= 1
     }
     
+    
     override open func viewDidLayoutSubviews() {
-        guard self.limitLayoutSubviews > 0 else { return }
+        guard self.limitDidLayoutSubviews > 0 else { return }
         
         super.viewDidLayoutSubviews()
         print("LIFECYCLE \(#function)")
 
         
-        self.limitLayoutSubviews -= 1
+        self.limitDidLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
@@ -270,7 +277,10 @@ import ZTronObservation
     
     override public func viewLayoutMarginsDidChange() {
         super.viewLayoutMarginsDidChange()
+        
+        guard self.limitMarginsWillChange > 0 else { return }
         print("LIFECYCLE \(#function)")
+        self.limitMarginsWillChange -= 1
     }
     
     
@@ -287,7 +297,10 @@ import ZTronObservation
         super.viewWillTransition(to: size, with: coordinator)
         print("LIFECYCLE \(#function)")
         
-        self.limitLayoutSubviews = 1
+        self.limitDidLayoutSubviews = 1
+        self.limitWillLayoutSubviews = 1
+        self.limitWillLayoutSubviews = 3
+
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
@@ -333,7 +346,10 @@ import ZTronObservation
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                self.limitLayoutSubviews = Int.max
+                print("LIFECYCLE viewWillTransition(to:with:) completion")
+                self.limitDidLayoutSubviews = Int.max
+                self.limitWillLayoutSubviews = Int.max
+                self.limitWillLayoutSubviews = Int.max
                 self.view.setNeedsLayout()
             }
         }
