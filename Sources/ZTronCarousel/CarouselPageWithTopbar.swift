@@ -311,12 +311,12 @@ import ZTronObservation
             return max(partialMaxHeight, subview.frame.maxY)
         }
         
-        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
+        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: max(self.view.bounds.size.height, contentHeight))
         self.wrappingScrollView.frame = self.view.bounds
         
         self.scrollViewContent.frame = CGRect(
             origin: self.wrappingScrollView.frame.origin,
-            size: .init(width: self.wrappingScrollView.bounds.size.width, height: contentHeight)
+            size: .init(width: self.wrappingScrollView.bounds.size.width, height: max(self.view.bounds.size.height, contentHeight))
         )
         
         self.view.layoutIfNeeded()
