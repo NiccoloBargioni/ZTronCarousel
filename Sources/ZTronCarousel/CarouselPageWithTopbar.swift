@@ -118,9 +118,6 @@ import ZTronObservation
         ])
         
         
-        self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = true
-        self.wrappingScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
         self.scrollViewContent.addSubview(self.topbarView.view)
