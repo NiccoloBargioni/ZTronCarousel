@@ -301,7 +301,7 @@ import ZTronObservation
         
         self.limitDidLayoutSubviews = 1
         self.limitWillLayoutSubviews = 1
-        self.limitWillLayoutSubviews = 3
+        self.limitMarginsWillChange = 3
 
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
@@ -345,6 +345,7 @@ import ZTronObservation
                         self.captionView.superview?.isHidden = true
                     }
                     
+                    self.viewLayoutMarginsDidChange()
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
