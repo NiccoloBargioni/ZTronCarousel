@@ -39,15 +39,13 @@ import ZTronObservation
     private(set) public var captionView: (any AnyCaptionView)!
     
     public let mediator: MSAMediator = .init()
-    public let medias: [any VisualMediaDescriptor]
     public let topbarView: UIViewController
     
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory)? = nil,
-        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil,
-        medias: [any VisualMediaDescriptor]
+        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
     ) {
         
         self.componentsFactory = componentsFactory ?? DefaultZtronComponentsFactory()
@@ -56,9 +54,8 @@ import ZTronObservation
         self.carouselModel = self.componentsFactory.makeViewModel()
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
-        self.medias = medias
         self.pageFactory = pageFactory ?? BasicMediaFactory()
-        self.thePageVC = .init(with: self.pageFactory, medias: medias)
+        self.thePageVC = .init(with: self.pageFactory, medias: [])
         
         thePageVC.view.layer.cornerRadius = 5.0;
         thePageVC.view.layer.masksToBounds = false
