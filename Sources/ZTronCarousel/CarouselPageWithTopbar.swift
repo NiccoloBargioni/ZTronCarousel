@@ -108,9 +108,15 @@ import ZTronObservation
         self.view.addSubview(self.wrappingScrollView)
         self.wrappingScrollView.addSubview(self.scrollViewContent)
         
-        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = true
-        self.scrollViewContent.autoresizingMask = [.flexibleWidth]
-        self.scrollViewContent.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            self.wrappingScrollView.topAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.topAnchor),
+            self.wrappingScrollView.rightAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.rightAnchor),
+            self.wrappingScrollView.bottomAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.bottomAnchor),
+            self.wrappingScrollView.leftAnchor.constraint(equalTo: self.wrappingScrollView.superview!.safeAreaLayoutGuide.leftAnchor)
+        ])
+        
         
         self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = true
         self.wrappingScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
