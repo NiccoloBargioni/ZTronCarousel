@@ -38,6 +38,7 @@ import ZTronObservation
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
     private(set) public var wrappingScrollView: UIScrollView = UIScrollView(frame: .zero)
+    private(set) public var scrollViewContent: UIView = UIView(frame: .zero)
     
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
@@ -105,13 +106,24 @@ import ZTronObservation
         view.backgroundColor = .systemBackground
         
         self.view.addSubview(self.wrappingScrollView)
+        self.wrappingScrollView.addSubview(self.scrollViewContent)
+        
+        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            self.scrollViewContent.topAnchor.constraint(equalTo: self.wrappingScrollView.topAnchor),
+            self.scrollViewContent.leftAnchor.constraint(equalTo: self.wrappingScrollView.leftAnchor),
+            self.scrollViewContent.rightAnchor.constraint(equalTo: self.wrappingScrollView.rightAnchor)
+        ])
+        
+        self.scrollViewContent.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
         self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = true
         self.wrappingScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
-        self.wrappingScrollView.addSubview(self.topbarView.view)
+        self.scrollViewContent.addSubview(self.topbarView.view)
         
         self.topbarView.view.snp.makeConstraints { make in
             make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
@@ -128,7 +140,7 @@ import ZTronObservation
 
         // add myContainerView
         myContainerView.translatesAutoresizingMaskIntoConstraints = false
-        self.wrappingScrollView.addSubview(myContainerView)
+        self.scrollViewContent.addSubview(myContainerView)
         
         myContainerView.snp.makeConstraints { make in
             make.centerX.equalTo(self.myContainerView.superview!.safeAreaLayoutGuide)
@@ -168,7 +180,7 @@ import ZTronObservation
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         
-        self.wrappingScrollView.addSubview(self.bottomBarView)
+        self.scrollViewContent.addSubview(self.bottomBarView)
 
         self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC.view)
@@ -184,9 +196,8 @@ import ZTronObservation
         self.captionView = componentsFactory.makeCaptionView()
         
         let captionViewContainer = BottomSeparatedUIView()
-        self.wrappingScrollView.addSubview(captionViewContainer)
+        self.scrollViewContent.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
-        
         
         captionViewContainer.snp.makeConstraints { make in
             make.top.equalTo(self.bottomBarView.snp.bottom)
@@ -219,12 +230,7 @@ import ZTronObservation
         
         self.view.layoutIfNeeded()
 
-        let contentHeight = self.wrappingScrollView.subviews.reduce(0) { partialMaxHeight, subview in
-            return max(partialMaxHeight, subview.frame.maxY)
-        }
-        
-        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
-        self.wrappingScrollView.frame = self.view.bounds
+        self.updateScrollViewContentSize()
     }
     
     override open func viewDidLayoutSubviews() {
@@ -301,17 +307,19 @@ import ZTronObservation
                 }
             } completion: { @MainActor ended in
                 self.view.layoutIfNeeded()
-                
-                let contentHeight = self.wrappingScrollView.subviews.reduce(0) { partialMaxHeight, subview in
-                    return max(partialMaxHeight, subview.frame.maxY)
-                }
-                
-                self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
-                self.wrappingScrollView.frame = self.view.bounds
-
+                self.updateScrollViewContentSize()
                 self.view.layoutIfNeeded()
             }
         }
+    }
+    
+    public final func updateScrollViewContentSize() {
+        let contentHeight = self.scrollViewContent.subviews.reduce(0) { partialMaxHeight, subview in
+            return max(partialMaxHeight, subview.frame.maxY)
+        }
+        
+        self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
+        self.wrappingScrollView.frame = self.view.bounds
     }
 }
 
