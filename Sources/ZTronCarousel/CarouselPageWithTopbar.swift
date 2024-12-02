@@ -222,15 +222,19 @@ import ZTronObservation
             
             // cannot directly change a constraint multiplier, so
             //    deactivate / create new / reactivate
-            let size = self.computeContentSizeThatFits()
+            let size = CGSize.sizeThatFits(containerSize: self.myContainerView.superview!.bounds.size, containedAR: 16.0/9.0)
             
-            pgvcHeight.isActive = false
-            pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
-            pgvcHeight.isActive = true
-            
-            pgvcWidth.isActive = false
-            pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
-            pgvcWidth.isActive = true
+            self.pgvcHeight.isActive = false
+            self.pgvcWidth.isActive = false
+            if size.width / size.height >= 16.0/9.0 {
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
+            } else {
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
+            }
+            self.pgvcHeight.isActive = true
+            self.pgvcWidth.isActive = true
         }
         
         self.topbarView.view.invalidateIntrinsicContentSize()
