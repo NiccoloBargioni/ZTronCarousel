@@ -108,14 +108,8 @@ import ZTronObservation
         self.view.addSubview(self.wrappingScrollView)
         self.wrappingScrollView.addSubview(self.scrollViewContent)
         
-        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            self.scrollViewContent.topAnchor.constraint(equalTo: self.wrappingScrollView.topAnchor),
-            self.scrollViewContent.leftAnchor.constraint(equalTo: self.wrappingScrollView.leftAnchor),
-            self.scrollViewContent.rightAnchor.constraint(equalTo: self.wrappingScrollView.rightAnchor)
-        ])
-        
+        self.scrollViewContent.translatesAutoresizingMaskIntoConstraints = true
+        self.scrollViewContent.autoresizingMask = [.flexibleWidth]
         self.scrollViewContent.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
         self.wrappingScrollView.translatesAutoresizingMaskIntoConstraints = true
@@ -139,7 +133,6 @@ import ZTronObservation
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
 
         // add myContainerView
-        myContainerView.translatesAutoresizingMaskIntoConstraints = false
         self.scrollViewContent.addSubview(myContainerView)
         
         myContainerView.snp.makeConstraints { make in
@@ -167,10 +160,7 @@ import ZTronObservation
         addChild(thePageVC)
         
         // set the "data"
-        
-        // we need to re-size the page view controller's view to fit our container view
-        thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
-        
+                
         // add the page VC's view to our container view
         myContainerView.addSubview(thePageVC.view)
         
@@ -320,6 +310,8 @@ import ZTronObservation
         
         self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
         self.wrappingScrollView.frame = self.view.bounds
+        
+        self.scrollViewContent.bounds = CGRect(x: 0, y: 0, width: self.wrappingScrollView.bounds.size.width, height: contentHeight)
     }
 }
 
