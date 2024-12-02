@@ -259,6 +259,8 @@ import ZTronObservation
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
+        let sizeThatFits = CGSize.sizeThatFits(containerSize: size, containedAR: 16.0/9.0)
+        
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
@@ -273,11 +275,11 @@ import ZTronObservation
                 }
                 
                 self.pgvcHeight.isActive = false
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: sizeThatFits.height)
                 self.pgvcHeight.isActive = true
                 
                 self.pgvcWidth.isActive = false
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: sizeThatFits.width)
                 self.pgvcWidth.isActive = true
                 
                 if UIDevice.current.orientation.isValidInterfaceOrientation {
