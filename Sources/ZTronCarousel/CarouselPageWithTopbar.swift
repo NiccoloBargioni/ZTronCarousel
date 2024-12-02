@@ -224,19 +224,20 @@ import ZTronObservation
     }
     
     override open func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
         print("LIFECYCLE \(#function)")
         guard self.limitWillLayoutSubviews > 0 else { return }
+
+        super.viewWillLayoutSubviews()
         
         self.limitWillLayoutSubviews -= 1
     }
     
     
     override open func viewDidLayoutSubviews() {
+        print("LIFECYCLE \(#function)")
         guard self.limitDidLayoutSubviews > 0 else { return }
         
         super.viewDidLayoutSubviews()
-        print("LIFECYCLE \(#function)")
 
         
         self.limitDidLayoutSubviews -= 1
@@ -276,10 +277,11 @@ import ZTronObservation
     }
     
     override public func viewLayoutMarginsDidChange() {
+        print("LIFECYCLE \(#function)")
+        guard self.limitMarginsWillChange > 0 else { return }
+
         super.viewLayoutMarginsDidChange()
         
-        guard self.limitMarginsWillChange > 0 else { return }
-        print("LIFECYCLE \(#function)")
         self.limitMarginsWillChange -= 1
     }
     
