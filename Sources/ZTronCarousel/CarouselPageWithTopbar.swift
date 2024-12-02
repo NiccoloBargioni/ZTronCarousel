@@ -226,7 +226,7 @@ import ZTronObservation
             
             self.pgvcHeight.isActive = false
             self.pgvcWidth.isActive = false
-            if size.width / size.height >= 16.0/9.0 {
+            if myContainerView.superview!.frame.width / myContainerView.superview!.frame.height >= 16.0/9.0 {
                 self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
                 self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
             } else {
