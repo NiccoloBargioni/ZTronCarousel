@@ -222,6 +222,7 @@ import ZTronObservation
         super.viewDidLayoutSubviews()
         
         self.wrappingScrollView.contentSize = self.view.bounds.size
+        self.wrappingScrollView.frame = self.view.bounds
                 
         // only execute this code block if the view frame has changed
         //    such as on device rotation
