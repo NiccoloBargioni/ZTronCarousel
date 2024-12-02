@@ -311,7 +311,10 @@ import ZTronObservation
         self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
         self.wrappingScrollView.frame = self.view.bounds
         
-        self.scrollViewContent.bounds = CGRect(x: 0, y: 0, width: self.wrappingScrollView.bounds.size.width, height: contentHeight)
+        self.scrollViewContent.frame = CGRect(
+            origin: self.wrappingScrollView.frame.origin,
+            size: .init(width: self.wrappingScrollView.bounds.size.width, height: contentHeight)
+        )
     }
 }
 
