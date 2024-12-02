@@ -309,6 +309,10 @@ import ZTronObservation
         self.limitWillLayoutSubviews = Int.max
         self.limitMarginsWillChange = Int.max
 
+        if #unavailable(iOS 16) {
+            UIView.setAnimationsEnabled(false)
+        }
+        
         coordinator.animate { _ in
             if size.width > size.height {
                 self.pgvcTop.isActive = false
@@ -358,6 +362,10 @@ import ZTronObservation
                 self.limitDidLayoutSubviews = Int.max
                 self.limitWillLayoutSubviews = Int.max
                 self.limitWillLayoutSubviews = Int.max
+                if #unavailable(iOS 16) {
+                    UIView.setAnimationsEnabled(true)
+                }
+
                 self.view.setNeedsLayout()
             }
         }
