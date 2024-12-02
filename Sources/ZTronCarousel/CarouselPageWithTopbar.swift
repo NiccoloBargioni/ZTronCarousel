@@ -216,18 +216,20 @@ import ZTronObservation
             self.interactionsManagersFactory
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
-    }
-    
-    override open func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
         
+        self.view.layoutIfNeeded()
+
         let contentHeight = self.wrappingScrollView.subviews.reduce(0) { partialMaxHeight, subview in
             return max(partialMaxHeight, subview.frame.maxY)
         }
         
         self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
         self.wrappingScrollView.frame = self.view.bounds
-        
+    }
+    
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+                
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
@@ -298,7 +300,16 @@ import ZTronObservation
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                self.view.setNeedsLayout()
+                self.view.layoutIfNeeded()
+                
+                let contentHeight = self.wrappingScrollView.subviews.reduce(0) { partialMaxHeight, subview in
+                    return max(partialMaxHeight, subview.frame.maxY)
+                }
+                
+                self.wrappingScrollView.contentSize = CGSize(width: self.view.bounds.size.width, height: contentHeight)
+                self.wrappingScrollView.frame = self.view.bounds
+
+                self.view.layoutIfNeeded()
             }
         }
     }
