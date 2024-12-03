@@ -149,6 +149,12 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         if let mediator = self.mediator {
             self.setDelegate(ImagePageInteractionsManager(owner: self, mediator: mediator))
         }
+        
+        self.makePlaceablesConstraintsIfNeeded()
+        
+        self.overlays.forEach {
+            self.view.bringSubviewToFront($0)
+        }
     }
     
     override open func viewWillDisappear(_ animated: Bool) {
@@ -164,20 +170,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         self.setDelegate(nil)
     }
      
-    
-    override public func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-                
-        if self.currentWidth != self.view.bounds.size.width {
-            self.currentWidth = self.view.bounds.size.width 
-            self.makePlaceablesConstraintsIfNeeded()
             
-            self.overlays.forEach {
-                self.view.bringSubviewToFront($0)
-            }
-        }
-    }
-        
     
     private final func makePlaceablesConstraintsIfNeeded() {
         let sizeThatFits = CGSize.sizeThatFits(containerSize: super.scrollView.bounds.size, containedAR: 16.0/9.0)
