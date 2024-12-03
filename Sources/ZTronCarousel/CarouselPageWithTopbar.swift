@@ -326,6 +326,9 @@ import ZTronObservation
             UIView.setAnimationsEnabled(false)
         }
         
+        self.thePageVC.willMove(toParent: nil)
+        self.thePageVC.removeFromParent()
+        self.thePageVC.didMove(toParent: nil)
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
@@ -372,6 +375,11 @@ import ZTronObservation
                 self.view.layoutIfNeeded()
             } completion: { @MainActor _ in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    self.thePageVC.willMove(toParent: self)
+                    self.addChild(self.thePageVC)
+                    self.thePageVC.didMove(toParent: self)
+
+                    
                     print("LIFECYCLE viewWillTransition(to:with:) completion")
                     self.limitDidLayoutSubviews = Int.max
                     self.limitWillLayoutSubviews = Int.max
