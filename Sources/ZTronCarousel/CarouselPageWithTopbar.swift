@@ -251,14 +251,6 @@ import ZTronObservation
         guard self.limitDidLayoutSubviews > 0 else { return }
         
         super.viewDidLayoutSubviews()
-
-        defer {
-            if self.limitDidLayoutSubviews <= Int.max / 2 - 1 {
-                DispatchQueue.main.async { @Sendable in
-                    self.view.setNeedsLayout()
-                }
-            }
-        }
         
         self.limitDidLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
@@ -318,13 +310,14 @@ import ZTronObservation
         super.viewWillTransition(to: size, with: coordinator)
         print("LIFECYCLE \(#function)")
         
-        self.limitDidLayoutSubviews = Int.max
-        self.limitWillLayoutSubviews = Int.max
-        self.limitMarginsWillChange = Int.max
+        self.limitDidLayoutSubviews = 1
+        self.limitWillLayoutSubviews = 1
+        self.limitMarginsWillChange = 1
 
+        /*
         if #unavailable(iOS 16) {
             UIView.setAnimationsEnabled(false)
-        }
+        }*/
         
         self.thePageVC.willMove(toParent: nil)
         self.thePageVC.removeFromParent()
@@ -384,9 +377,12 @@ import ZTronObservation
                     self.limitDidLayoutSubviews = Int.max
                     self.limitWillLayoutSubviews = Int.max
                     self.limitWillLayoutSubviews = Int.max
+                    
+                    /*
                     if #unavailable(iOS 16) {
                         UIView.setAnimationsEnabled(true)
                     }
+                     */
 
                     self.view.setNeedsLayout()
                 }
