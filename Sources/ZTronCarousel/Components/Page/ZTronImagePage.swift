@@ -151,9 +151,17 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         }
         
         self.makePlaceablesConstraintsIfNeeded()
+    }
+    
+    override public func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
         
-        self.overlays.forEach {
-            self.view.bringSubviewToFront($0)
+        if self.currentWidth != self.view.bounds.size.width {
+            self.currentWidth = self.view.bounds.size.width
+            
+            self.overlays.forEach {
+                self.view.bringSubviewToFront($0)
+            }
         }
     }
     
@@ -231,6 +239,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
 
         } completion: { _ in
             self.animation?.viewWillTransitionTo(size: self.view.bounds.size, with: coordinator)
+            self.makePlaceablesConstraintsIfNeeded()
         }
     }
     
