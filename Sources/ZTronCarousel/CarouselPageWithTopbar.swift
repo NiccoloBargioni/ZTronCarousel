@@ -23,7 +23,7 @@ import ZTronObservation
     
     // we will add a UIPageViewController as a child VC
     // private(set) public var thePageVC: CarouselComponent!
-    private(set) public var thePageVC: UIViewController
+    private(set) public var thePageVC: CarouselComponent!
     
     
     // this will be used to change the page view controller height based on
@@ -62,17 +62,13 @@ import ZTronObservation
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
-        self.thePageVC = UIViewController()
-        
-        
-        /* self.thePageVC = .init(with: self.pageFactory, medias: [])
+        self.thePageVC = CarouselComponent(with: self.pageFactory, medias: [])
         thePageVC.view.layer.cornerRadius = 5.0;
         thePageVC.view.layer.masksToBounds = false
         thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
         thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
         thePageVC.view.layer.shadowRadius = 3
         thePageVC.view.layer.shadowOpacity = 0.4
-         */
         
         self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
         self.bottomBarView = nil
@@ -169,17 +165,11 @@ import ZTronObservation
         myContainerView.addSubview(thePageVC.view)
         // myContainerView.addSubview(thePageVC)
         
-        let containedImageView = UIImageView(image: UIImage(named: "caves.recreational.area.sign.billiard.ball", in: .main, with: nil))
-        thePageVC.view.addSubview(containedImageView)
-        
-        containedImageView.snp.makeConstraints { make in
-            make.left.top.right.bottom.equalToSuperview()
-        }
-        
         thePageVC.view.snp.makeConstraints { make in
             make.left.top.right.bottom.equalTo(thePageVC.view.superview!.safeAreaLayoutGuide)
         }
-        /*thePageVC.snp.makeConstraints { make in
+        /*
+        thePageVC.snp.makeConstraints { make in
             make.left.top.right.bottom.equalTo(thePageVC.superview!.safeAreaLayoutGuide)
         }*/
         
@@ -192,7 +182,8 @@ import ZTronObservation
             make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
             make.height.equalTo(44)
         }
-        /*self.bottomBarView.snp.makeConstraints { make in
+        /*
+        self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC)
             make.top.equalTo(thePageVC.snp.bottom).offset(5)
             make.height.equalTo(44)
@@ -234,12 +225,10 @@ import ZTronObservation
         thePageVC.didMove(toParent: self)
         self.topbarView.didMove(toParent: self)
         
-        /*
         self.thePageVC.setDelegate(
             self.interactionsManagersFactory
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
-         */
     }
     
     override public func viewWillAppear(_ animated: Bool) {
