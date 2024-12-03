@@ -18,6 +18,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     private let mediator: MSAMediator?
     
     private var animation: (any VariantAnimation)? = nil
+    private var currentWidth: CGFloat = .zero
         
     init(
         imageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor,
@@ -167,10 +168,13 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
                 
-        self.makePlaceablesConstraintsIfNeeded()
-
-        self.overlays.forEach {
-            self.view.bringSubviewToFront($0)
+        if self.currentWidth != self.view.bounds.size.width {
+            self.currentWidth = self.view.bounds.size.width 
+            self.makePlaceablesConstraintsIfNeeded()
+            
+            self.overlays.forEach {
+                self.view.bringSubviewToFront($0)
+            }
         }
     }
         

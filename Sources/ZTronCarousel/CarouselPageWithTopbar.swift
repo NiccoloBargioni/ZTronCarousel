@@ -378,11 +378,9 @@ import ZTronObservation
                     self.limitWillLayoutSubviews = Int.max
                     self.limitWillLayoutSubviews = Int.max
                     
-                    /*
                     if #unavailable(iOS 16) {
                         UIView.setAnimationsEnabled(true)
                     }
-                     */
 
                     self.view.setNeedsLayout()
                 }
