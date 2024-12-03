@@ -23,7 +23,7 @@ import ZTronObservation
     
     // we will add a UIPageViewController as a child VC
     // private(set) public var thePageVC: CarouselComponent!
-    private(set) public var thePageVC: UIImageView!
+    private(set) public var thePageVC: UIViewController
     
     
     // this will be used to change the page view controller height based on
@@ -62,7 +62,9 @@ import ZTronObservation
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
-        self.thePageVC = UIImageView(image: UIImage(named: "caves.recreational.area.sign.billiard.ball", in: .main, with: nil))
+        self.thePageVC = UIViewController()
+        
+        
         /* self.thePageVC = .init(with: self.pageFactory, medias: [])
         thePageVC.view.layer.cornerRadius = 5.0;
         thePageVC.view.layer.masksToBounds = false
@@ -154,40 +156,47 @@ import ZTronObservation
         }
         
         pgvcTop.isActive = true
-        //self.thePageVC.willMove(toParent: self)
-        // addChild(thePageVC)
+        self.thePageVC.willMove(toParent: self)
+        addChild(thePageVC)
         
         // set the "data"
         
         // we need to re-size the page view controller's view to fit our container view
-        // thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
-        thePageVC.translatesAutoresizingMaskIntoConstraints = false
+        thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
+        // thePageVC.translatesAutoresizingMaskIntoConstraints = false
         
         // add the page VC's view to our container view
-        // myContainerView.addSubview(thePageVC.view)
-        myContainerView.addSubview(thePageVC)
+        myContainerView.addSubview(thePageVC.view)
+        // myContainerView.addSubview(thePageVC)
         
-        /*thePageVC.view.snp.makeConstraints { make in
-            make.left.top.right.bottom.equalTo(thePageVC.view.superview!.safeAreaLayoutGuide)
-        }*/
-        thePageVC.snp.makeConstraints { make in
-            make.left.top.right.bottom.equalTo(thePageVC.superview!.safeAreaLayoutGuide)
+        let containedImageView = UIImageView(image: UIImage(named: "caves.recreational.area.sign.billiard.ball", in: .main, with: nil))
+        thePageVC.view.addSubview(containedImageView)
+        
+        containedImageView.snp.makeConstraints { make in
+            make.left.top.right.bottom.equalToSuperview()
         }
+        
+        thePageVC.view.snp.makeConstraints { make in
+            make.left.top.right.bottom.equalTo(thePageVC.view.superview!.safeAreaLayoutGuide)
+        }
+        /*thePageVC.snp.makeConstraints { make in
+            make.left.top.right.bottom.equalTo(thePageVC.superview!.safeAreaLayoutGuide)
+        }*/
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         
         self.view.addSubview(self.bottomBarView)
 
-        /*self.bottomBarView.snp.makeConstraints { make in
+        self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC.view)
             make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
             make.height.equalTo(44)
-        }*/
-        self.bottomBarView.snp.makeConstraints { make in
+        }
+        /*self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC)
             make.top.equalTo(thePageVC.snp.bottom).offset(5)
             make.height.equalTo(44)
-        }
+        }*/
                 
         self.bottomBarView.setDelegate(
             self.interactionsManagersFactory
@@ -222,7 +231,7 @@ import ZTronObservation
         )
         
         
-        // thePageVC.didMove(toParent: self)
+        thePageVC.didMove(toParent: self)
         self.topbarView.didMove(toParent: self)
         
         /*
