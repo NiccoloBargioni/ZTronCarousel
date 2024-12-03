@@ -151,6 +151,9 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         }
         
         self.makePlaceablesConstraintsIfNeeded()
+        
+        self.currentWidth = .zero
+        self.view.setNeedsLayout()
     }
     
     override public func viewDidLayoutSubviews() {
