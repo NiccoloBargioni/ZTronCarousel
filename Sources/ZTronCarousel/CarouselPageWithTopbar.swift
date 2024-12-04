@@ -41,6 +41,8 @@ import ZTronObservation
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
     
+    private var limitViewDidLayoutCalls: Int = Int.max
+    
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
@@ -214,6 +216,12 @@ import ZTronObservation
     
     override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
+        if #unavailable(iOS 16.0) {
+            guard self.limitViewDidLayoutCalls > 0 else { return }
+            
+            self.limitViewDidLayoutCalls -= 1
+        }
                 
         // only execute this code block if the view frame has changed
         //    such as on device rotation
@@ -244,6 +252,10 @@ import ZTronObservation
     
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+        
+        if #unavailable(iOS 16) {
+            self.limitViewDidLayoutCalls = 1
+        }
         
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
@@ -291,8 +303,14 @@ import ZTronObservation
                 }
                 
             } completion: { @MainActor ended in
-                self.topbarView.view.invalidateIntrinsicContentSize()
-                self.view.setNeedsLayout()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    if #unavailable(iOS 16) {
+                        self.limitViewDidLayoutCalls = Int.max
+                    }
+                    
+                    self.topbarView.view.invalidateIntrinsicContentSize()
+                    self.view.layoutIfNeeded()
+                }
             }
         }
     }
