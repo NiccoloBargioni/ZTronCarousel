@@ -1,5 +1,4 @@
 import UIKit
-import SnapKit
 import SwiftSVG
 import SkeletonView
 
@@ -14,12 +13,13 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     
     private var placeables: [any PlaceableView] = []
     private var placeablesConstraints: [ZTronImagePage.PlaceableConstraints] = []
-    
     private var overlays: [UIView] = []
     
     private let mediator: MSAMediator?
-    
+
     private var animation: (any VariantAnimation)? = nil
+    
+    private var currentWidth: CGFloat = .zero
         
     init(
         imageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor,
@@ -167,10 +167,13 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        self.makePlaceablesConstraintsIfNeeded()
+        if self.currentWidth != self.view.bounds.width {
+            self.currentWidth = self.view.bounds.width
+            self.makePlaceablesConstraintsIfNeeded()
 
-        self.overlays.forEach {
-            self.view.bringSubviewToFront($0)
+            self.overlays.forEach {
+                self.view.bringSubviewToFront($0)
+            }
         }
     }
         

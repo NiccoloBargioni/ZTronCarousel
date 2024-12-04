@@ -37,9 +37,7 @@ import ZTronObservation
     
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
-    
-    private var limitLayoutSubviews: Int = Int.max
-    
+        
     public let mediator: MSAMediator = .init()
     public let topbarView: UIViewController
     
@@ -215,12 +213,8 @@ import ZTronObservation
     }
     
     override open func viewDidLayoutSubviews() {
-        guard self.limitLayoutSubviews > 0 else { return }
-        
         super.viewDidLayoutSubviews()
                 
-        
-        self.limitLayoutSubviews -= 1
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
@@ -228,7 +222,6 @@ import ZTronObservation
             
             // cannot directly change a constraint multiplier, so
             //    deactivate / create new / reactivate
-            let size = CGSize.sizeThatFits(containerSize: self.myContainerView.superview!.bounds.size, containedAR: 16.0/9.0)
             
             self.pgvcHeight.isActive = false
             self.pgvcWidth.isActive = false
@@ -242,8 +235,6 @@ import ZTronObservation
             self.pgvcHeight.isActive = true
             self.pgvcWidth.isActive = true
         }
-        
-        self.topbarView.view.invalidateIntrinsicContentSize()
     }
     
     
@@ -254,7 +245,6 @@ import ZTronObservation
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        self.limitLayoutSubviews = 1
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
@@ -299,8 +289,9 @@ import ZTronObservation
                     
                     self.view.layoutIfNeeded()
                 }
+                
             } completion: { @MainActor ended in
-                self.limitLayoutSubviews = Int.max
+                self.topbarView.view.invalidateIntrinsicContentSize()
                 self.view.setNeedsLayout()
             }
         }
