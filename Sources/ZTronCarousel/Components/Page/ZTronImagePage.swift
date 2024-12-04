@@ -44,9 +44,9 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         placeableDescriptors.forEach { descriptor in
             placeablesFactory.make(placeable: descriptor).forEach { thisPlaceable in
                 self.placeables.append(thisPlaceable)
+                self.placeablesConstraints.append(Self.PlaceableConstraints())
             }
             
-            self.placeablesConstraints.append(Self.PlaceableConstraints())
         }
         
         self.placeables.forEach {
