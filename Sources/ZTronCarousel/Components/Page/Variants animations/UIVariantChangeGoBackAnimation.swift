@@ -8,7 +8,7 @@ fileprivate extension ClosedRange<CGFloat> {
 }
 
 
-public final class UIVariantChangeGoBackAnimation: UIView, PlaceableView, VariantAnimation {
+public final class UIVariantChangeGoBackAnimation: UIView, VariantAnimation {
     private let initialNormalizedAABB: CGRect
     private let slaveImage: UIImageView
     private let masterImage: UIImageView
@@ -131,22 +131,6 @@ public final class UIVariantChangeGoBackAnimation: UIView, PlaceableView, Varian
             self.layoutIfNeeded()
         }
     }
-    
-    
-    // MARK: - Placeable
-    public func getOrigin(for containerSize: CGSize) -> CGPoint {
-        return .zero
-    }
-    
-    public func getSize(for containerSize: CGSize) -> CGSize {
-        return CGSize(width: 1.0, height: 1.0)
-    }
-    
-    public func updateForZoom(_ scrollView: UIScrollView) { }
-    
-    public func resize(for containerSize: CGSize) {  }
-
-    public func dismantle() {  }
 
     public func detach() {
         UIView.animate(withDuration: 0.25) {

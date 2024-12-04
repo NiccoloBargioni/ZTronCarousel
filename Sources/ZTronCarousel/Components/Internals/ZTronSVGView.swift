@@ -118,13 +118,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
             )
         )
     }
-    
-    override public func layoutSubviews() {
-        super.layoutSubviews()
         
-        self.delegate?.setup(or: .replace)
-    }
-    
     public func colorChanged(_ color: UIColor) {
         self.strokeColor = color.cgColor
     }
@@ -180,6 +174,14 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         }
     }
     
+    
+    public func viewDidAppear() {
+        self.delegate?.setup(or: .replace)
+    }
+    
+    public func viewWillDisappear() {
+        self.delegate?.detach()
+    }
     
     public func dismantle() {
         self.setDelegate(nil)

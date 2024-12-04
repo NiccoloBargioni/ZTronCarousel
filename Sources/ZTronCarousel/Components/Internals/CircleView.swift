@@ -260,6 +260,14 @@ public final class CircleView: UIView, PlaceableColoredView, @preconcurrency Com
         self.delegate?.detach()
     }
     
+    public func viewDidAppear() {
+        self.delegate?.setup(or: .replace)
+    }
+    
+    public func viewWillDisappear() {
+        self.delegate?.detach(or: .ignore)
+    }
+    
     public func dismantle() {
         self.setDelegate(nil)
     }

@@ -1,5 +1,4 @@
 import UIKit
-import SnapKit
 import SwiftSVG
 import SkeletonView
 
@@ -13,11 +12,14 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     private(set) public var lastAction: PageAction = .browsing
     
     private var placeables: [any PlaceableView] = []
+    private var placeablesConstraints: [ZTronImagePage.PlaceableConstraints] = []
     private var overlays: [UIView] = []
     
     private let mediator: MSAMediator?
-    
+
     private var animation: (any VariantAnimation)? = nil
+    
+    private var currentWidth: CGFloat = .zero
         
     init(
         imageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor,
@@ -42,7 +44,10 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         placeableDescriptors.forEach { descriptor in
             placeablesFactory.make(placeable: descriptor).forEach { thisPlaceable in
                 self.placeables.append(thisPlaceable)
+                self.placeablesConstraints.append(Self.PlaceableConstraints())
+                thisPlaceable.translatesAutoresizingMaskIntoConstraints = false
             }
+            
         }
         
         self.placeables.forEach {
@@ -140,9 +145,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         super.viewDidAppear(animated)
                 
         self.placeables.forEach { thePlaceable in
-            if let placeable = thePlaceable as? any Component {
-                placeable.getDelegate()?.setup(or: .replace)
-            }
+            thePlaceable.viewDidAppear()
         }
         
         if let mediator = self.mediator {
@@ -153,11 +156,8 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        
         self.placeables.forEach { thePlaceable in
-            if let placeable = thePlaceable as? any Component {
-                placeable.getDelegate()?.detach(or: .ignore)
-            }
+            thePlaceable.viewWillDisappear()
         }
         
         self.setDelegate(nil)
@@ -166,11 +166,25 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-                
-        self.makePlaceablesConstraintsIfNeeded()
 
-        self.overlays.forEach {
-            self.view.bringSubviewToFront($0)
+        if self.currentWidth != self.view.bounds.width {
+            self.currentWidth = self.view.bounds.width
+            
+            if #unavailable(iOS 16) {
+                DispatchQueue.main.async {
+                    self.makePlaceablesConstraintsIfNeeded()
+
+                    self.overlays.forEach {
+                        self.view.bringSubviewToFront($0)
+                    }
+                }
+            } else {
+                self.makePlaceablesConstraintsIfNeeded()
+
+                self.overlays.forEach {
+                    self.view.bringSubviewToFront($0)
+                }
+            }
         }
     }
         
@@ -178,18 +192,38 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     private final func makePlaceablesConstraintsIfNeeded() {
         let sizeThatFits = CGSize.sizeThatFits(containerSize: super.scrollView.bounds.size, containedAR: 16.0/9.0)
         
-        self.placeables.forEach { thePlaceable in
-            thePlaceable.snp.removeConstraints()
+        self.placeables.enumerated().forEach { i, thePlaceable in
+            let newOrigin = thePlaceable.getOrigin(for: sizeThatFits)
+            let newSize = thePlaceable.getSize(for: sizeThatFits)
             
-            thePlaceable.snp.makeConstraints { make in
-                make.left.equalTo(thePlaceable.getOrigin(for: sizeThatFits).x)
-                make.top.equalTo(thePlaceable.getOrigin(for: sizeThatFits).y)
-                make.width.equalTo(thePlaceable.getSize(for: sizeThatFits).width)
-                make.height.equalTo(thePlaceable.getSize(for: sizeThatFits).height)
-            }
+            self.placeablesConstraints[i].top?.isActive = false
+            self.placeablesConstraints[i].top = thePlaceable.topAnchor.constraint(
+                equalTo: thePlaceable.superview!.safeAreaLayoutGuide.topAnchor,
+                constant: newOrigin.y
+            )
+            self.placeablesConstraints[i].top?.isActive = true
             
+            self.placeablesConstraints[i].left?.isActive = false
+            self.placeablesConstraints[i].left = thePlaceable.leftAnchor.constraint(
+                equalTo: thePlaceable.superview!.safeAreaLayoutGuide.leftAnchor,
+                constant: newOrigin.x
+            )
+            self.placeablesConstraints[i].left?.isActive = true
+            
+            self.placeablesConstraints[i].width?.isActive = false
+            self.placeablesConstraints[i].width = thePlaceable.widthAnchor.constraint(
+                equalToConstant: newSize.width
+            )
+            self.placeablesConstraints[i].width?.isActive = true
+            
+            self.placeablesConstraints[i].height?.isActive = false
+            self.placeablesConstraints[i].height = thePlaceable.heightAnchor.constraint(equalToConstant: newSize.height)
+            self.placeablesConstraints[i].height?.isActive = true
+                        
             thePlaceable.resize(for: sizeThatFits)
         }
+        
+        self.view.layoutIfNeeded()
     }
     
     public func scrollViewDidZoom(_ scrollView: UIScrollView) {
@@ -241,4 +275,10 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         self.delegate?.detach(or: .ignore)
     }
     
+    private struct PlaceableConstraints {
+        fileprivate var top: NSLayoutConstraint?
+        fileprivate var left: NSLayoutConstraint?
+        fileprivate var width: NSLayoutConstraint?
+        fileprivate var height: NSLayoutConstraint?
+    }
 }
