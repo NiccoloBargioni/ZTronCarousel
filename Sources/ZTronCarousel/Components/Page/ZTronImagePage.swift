@@ -166,13 +166,24 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+
         if self.currentWidth != self.view.bounds.width {
             self.currentWidth = self.view.bounds.width
-            self.makePlaceablesConstraintsIfNeeded()
+            
+            if #unavailable(iOS 16) {
+                DispatchQueue.main.async {
+                    self.makePlaceablesConstraintsIfNeeded()
 
-            self.overlays.forEach {
-                self.view.bringSubviewToFront($0)
+                    self.overlays.forEach {
+                        self.view.bringSubviewToFront($0)
+                    }
+                }
+            } else {
+                self.makePlaceablesConstraintsIfNeeded()
+
+                self.overlays.forEach {
+                    self.view.bringSubviewToFront($0)
+                }
             }
         }
     }
