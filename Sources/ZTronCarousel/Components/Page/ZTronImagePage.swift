@@ -194,7 +194,9 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
                 equalTo: thePlaceable.superview!.safeAreaLayoutGuide.leftAnchor,
                 constant: newOrigin.x
             )
-            self.placeablesConstraints[i].width?.isActive = true
+            self.placeablesConstraints[i].left?.isActive = true
+            
+            self.placeablesConstraints[i].width?.isActive = false
             self.placeablesConstraints[i].width = thePlaceable.widthAnchor.constraint(
                 equalToConstant: newSize.width
             )
