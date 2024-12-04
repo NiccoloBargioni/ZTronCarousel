@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol VariantAnimation: UIView, PlaceableView {
+public protocol VariantAnimation: UIView {
     func start() -> Void
     func viewWillTransitionTo(size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) -> Void
 }

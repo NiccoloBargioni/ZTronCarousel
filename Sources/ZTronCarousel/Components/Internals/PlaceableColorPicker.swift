@@ -179,12 +179,6 @@ internal final class PlaceableColorPicker: UIView, PlaceableView, @preconcurrenc
         
     }
     
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        
-        self.delegate?.setup(or: .replace)
-    }
-    
     public func getSelectedColor() -> UIColor {
         return self.selectedColor
     }
@@ -201,6 +195,15 @@ internal final class PlaceableColorPicker: UIView, PlaceableView, @preconcurrenc
     deinit {
         self.delegate?.detach()
     }
+    
+    public func viewDidAppear() {
+        self.delegate?.setup(or: .replace)
+    }
+    
+    public func viewWillDisappear() {
+        self.delegate?.detach(or: .ignore)
+    }
+
     
     public func dismantle() {
         self.setDelegate(nil)

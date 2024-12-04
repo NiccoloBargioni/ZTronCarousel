@@ -9,7 +9,7 @@ fileprivate extension ClosedRange<CGFloat> {
 }
 
 
-public final class UIVariantChangedForwardAnimation: UIView, PlaceableView, VariantAnimation {
+public final class UIVariantChangedForwardAnimation: UIView, VariantAnimation {
     private let initialNormalizedAABB: CGRect
     private let hostedImage: UIImageView
     private let completion: ((_ ended: Bool) -> Void)?
@@ -65,11 +65,8 @@ public final class UIVariantChangedForwardAnimation: UIView, PlaceableView, Vari
     
     
     public final func start() {
-        // guard self.status == .ready else { return }
         self.status = .started
         
-        let parentImage = (self.parentViewController! as! (any AnyPage)).imageName
-
         let sizeThatFits = CGSize.sizeThatFits(
             containerSize: .init(
                 width: self.bounds.size.width * self.initialNormalizedAABB.width,
@@ -134,25 +131,6 @@ public final class UIVariantChangedForwardAnimation: UIView, PlaceableView, Vari
                 self.completion?(ended)
             }
         }
-    }
-    
-    
-    
-    // MARK: - Placeable
-    public func getOrigin(for containerSize: CGSize) -> CGPoint {
-        return .zero
-    }
-    
-    public func getSize(for containerSize: CGSize) -> CGSize {
-        return CGSize(width: 1.0, height: 1.0)
-    }
-    
-    public func updateForZoom(_ scrollView: UIScrollView) { }
-    
-    public func resize(for containerSize: CGSize) {  }
-
-    public func dismantle() {
-        
     }
     
     public enum Status: Sendable {
