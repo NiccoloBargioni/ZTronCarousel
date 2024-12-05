@@ -6,7 +6,7 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 
-@MainActor open class CarouselPageWithTopbar: SomeViewController {
+@MainActor open class CarouselPageWithTopbar: IOS15LayoutLimitingViewController {
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
@@ -23,6 +23,7 @@ import ZTronObservation
     
     // we will add a UIPageViewController as a child VC
     private(set) public var thePageVC: CarouselComponent!
+    private(set) public var scrollView: UIScrollView = .init()
     
     // this will be used to change the page view controller height based on
     //    view width-to-height (portrait/landscape)
@@ -105,14 +106,24 @@ import ZTronObservation
         // so we can see the view / page view controller framing
         view.backgroundColor = .systemBackground
         
+        self.view.addSubview(self.scrollView)
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false
+        self.scrollView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.scrollView.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+        self.scrollView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        self.scrollView.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+        
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
-        self.view.addSubview(self.topbarView.view)
-        
+        self.scrollView.addSubview(self.topbarView.view)
+                
         self.topbarView.view.snp.makeConstraints { make in
-            make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
+            make.left.right.top.equalTo(self.scrollView.contentLayoutGuide)
             make.height.equalTo(self.topbarView.view.intrinsicContentSize.height)
         }
+
+        print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
+        
         
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             if !UIDevice.current.orientation.isPortrait {
@@ -164,14 +175,19 @@ import ZTronObservation
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         
-        self.view.addSubview(self.bottomBarView)
+        self.scrollView.addSubview(self.bottomBarView)
 
         self.bottomBarView.snp.makeConstraints { make in
             make.left.right.equalTo(thePageVC.view)
             make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
             make.height.equalTo(44)
         }
-                
+        
+        /*
+        if UIDevice.current.orientation != .portrait {
+            self.bottomBarView.isHidden = true
+        }*/
+        
         self.bottomBarView.setDelegate(
             self.interactionsManagersFactory
                 .makeBottomBarInteractionsManager(owner: self.bottomBarView, mediator: self.mediator)
@@ -180,7 +196,7 @@ import ZTronObservation
         self.captionView = componentsFactory.makeCaptionView()
         
         let captionViewContainer = BottomSeparatedUIView()
-        self.view.addSubview(captionViewContainer)
+        self.scrollView.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
         
         
@@ -198,6 +214,7 @@ import ZTronObservation
         
         self.captionView.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
+        captionViewContainer.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
         self.view.bringSubviewToFront(captionView)
         self.captionView.setDelegate(
@@ -212,6 +229,11 @@ import ZTronObservation
             self.interactionsManagersFactory
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
+        
+        self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.scrollView.contentLayoutGuide.bottomAnchor.constraint(equalTo: self.captionView.superview!.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.leftAnchor).isActive = true
+        self.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.rightAnchor).isActive = true
     }
     
     override open func viewDidLayoutSubviews() {

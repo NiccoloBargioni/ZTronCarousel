@@ -166,7 +166,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        
         if self.currentWidth != self.view.bounds.width {
             self.currentWidth = self.view.bounds.width
             
