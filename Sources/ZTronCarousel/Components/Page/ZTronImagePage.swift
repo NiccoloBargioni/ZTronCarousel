@@ -167,6 +167,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
+        
         if self.currentWidth != self.view.bounds.width {
             self.currentWidth = self.view.bounds.width
             
@@ -268,6 +269,7 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
 
         } completion: { _ in
             self.animation?.viewWillTransitionTo(size: self.view.bounds.size, with: coordinator)
+            super.onRotationCompletion()
         }
     }
     
