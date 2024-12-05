@@ -6,13 +6,32 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 
-@MainActor open class CarouselPageWithTopbar: UIViewController {
-    private let pageFactory: any MediaFactory
-    private let dbLoader: any AnyDBLoader
-    private let carouselModel: (any AnyViewModel)
 
+public final class CustomView: UIView {
+    internal var shouldLayout: Bool = true
+    
+    override public func layoutSubviews() {
+        guard shouldLayout else { return }
+        
+        super.layoutSubviews()
+    }
+}
+
+
+@MainActor public final class CarouselPageWithTopbar: UIViewController {
+    private let pageFactory: any MediaFactory
+    private let medias: [any VisualMediaDescriptor]
+    
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
+    
+    private let mediator: MSAMediator = .init()
+    private let dbLoader: any AnyDBLoader
+    private let carouselModel = CarouselWithTopbarViewModel()
+    
+    
+    
+    private var limitDidLayoutSubviews: Int = Int.max
 
     // this will hold the page view controller
     private let myContainerView: UIView = {
@@ -22,7 +41,7 @@ import ZTronObservation
     }()
     
     // we will add a UIPageViewController as a child VC
-    private(set) public var thePageVC: CarouselComponent!
+    private(set) internal var thePageVC: CarouselComponent!
     
     // this will be used to change the page view controller height based on
     //    view width-to-height (portrait/landscape)
@@ -32,32 +51,31 @@ import ZTronObservation
     private var pgvcTop: NSLayoutConstraint!
     private var topbarWidth: NSLayoutConstraint!
     
+    
     // track current view width
     private var curWidth: CGFloat = 0.0
     
-    private(set) public var bottomBarView: (any AnyBottomBar)!
-    private(set) public var captionView: (any AnyCaptionView)!
-        
-    public let mediator: MSAMediator = .init()
-    public let topbarView: UIViewController
-    
-    private var limitViewDidLayoutCalls: Int = Int.max
+    private let topbarView: UIViewController
+    private var bottomBarView: (any AnyBottomBar)!
+    private var captionView: (any AnyCaptionView)!
     
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory)? = nil,
-        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
+        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil,
+        medias: [any VisualMediaDescriptor]
     ) {
         
         self.componentsFactory = componentsFactory ?? DefaultZtronComponentsFactory()
         self.interactionsManagersFactory = interactionsManagersFactory ?? DefaultZTronInteractionsManagerFactory()
         
-        self.carouselModel = self.componentsFactory.makeViewModel()
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
+        self.medias = medias
         self.pageFactory = pageFactory ?? BasicMediaFactory()
-        self.thePageVC = .init(with: self.pageFactory, medias: [])
+        self.thePageVC = .init(with: pageFactory ?? BasicMediaFactory(), medias: medias)
+        
         
         thePageVC.view.layer.cornerRadius = 5.0;
         thePageVC.view.layer.masksToBounds = false
@@ -70,34 +88,43 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        Task(priority: .userInitiated) {
-            self.carouselModel.viewModel = self
-            
-            self.carouselModel.setDelegate(
-                self.interactionsManagersFactory
-                    .makeCarouselInteractionsManager(owner: self.carouselModel, mediator: self.mediator)
-            )
-            
-            self.dbLoader.setDelegate(
-                self.interactionsManagersFactory
-                    .makeDBLoaderInteractionsManager(owner: self.dbLoader, mediator: self.mediator)
-            )
-            
-            if let pgFactory = pageFactory as? any Notifiable {
-                pgFactory.setMediator(self.mediator)
-            }
-            
-            Task(priority: .high) {
-                try self.dbLoader.loadFirstLevelGalleries()
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            Task(priority: .userInitiated) {
+                self.carouselModel.viewModel = self
+                
+                self.carouselModel.setDelegate(
+                    self.interactionsManagersFactory
+                        .makeCarouselInteractionsManager(owner: self.carouselModel, mediator: self.mediator)
+                )
+                self.dbLoader.setDelegate(
+                    self.interactionsManagersFactory
+                        .makeDBLoaderInteractionsManager(owner: self.dbLoader, mediator: self.mediator)
+                )
+                
+                if let pgFactory = pageFactory as? DefaultZTronMediaFactory {
+                    pgFactory.setMediator(self.mediator)
+                }
+                
+                Task(priority: .high) {
+                    try self.dbLoader.loadFirstLevelGalleries()
+                }
             }
         }
     }
     
-    required public init?(coder: NSCoder) {
+    
+    override public func loadView() {
+        view = CustomView(frame: .init(x: 0, y: 0, width: 400, height: 700))
+    
+        
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    }
+    
+    required internal init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override open func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         self.navigationItem.title = "Memory Charms"
@@ -113,6 +140,9 @@ import ZTronObservation
             make.left.right.top.equalTo(self.topbarView.view.superview!.safeAreaLayoutGuide)
             make.height.equalTo(self.topbarView.view.intrinsicContentSize.height)
         }
+
+        print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
+        
         
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             if !UIDevice.current.orientation.isPortrait {
@@ -171,7 +201,12 @@ import ZTronObservation
             make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
             make.height.equalTo(44)
         }
-                
+        
+        /*
+        if UIDevice.current.orientation != .portrait {
+            self.bottomBarView.isHidden = true
+        }*/
+        
         self.bottomBarView.setDelegate(
             self.interactionsManagersFactory
                 .makeBottomBarInteractionsManager(owner: self.bottomBarView, mediator: self.mediator)
@@ -214,15 +249,11 @@ import ZTronObservation
         )
     }
     
-    override open func viewDidLayoutSubviews() {
+    override public func viewDidLayoutSubviews() {
+        guard self.limitDidLayoutSubviews > 0 else { return }
+        self.limitDidLayoutSubviews -= 1
         super.viewDidLayoutSubviews()
         
-        if #unavailable(iOS 16.0) {
-            guard self.limitViewDidLayoutCalls > 0 else { return }
-            
-            self.limitViewDidLayoutCalls -= 1
-        }
-                
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
@@ -230,31 +261,31 @@ import ZTronObservation
             
             // cannot directly change a constraint multiplier, so
             //    deactivate / create new / reactivate
+            let size = self.computeContentSizeThatFits()
             
-            self.pgvcHeight.isActive = false
-            self.pgvcWidth.isActive = false
-            if myContainerView.superview!.frame.width / myContainerView.superview!.frame.height >= 16.0/9.0 {
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
-            } else {
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
-            }
-            self.pgvcHeight.isActive = true
-            self.pgvcWidth.isActive = true
+            pgvcHeight.isActive = false
+            pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
+            pgvcHeight.isActive = true
+            
+            pgvcWidth.isActive = false
+            pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
+            pgvcWidth.isActive = true
         }
+        
+        self.topbarView.view.invalidateIntrinsicContentSize()
     }
     
     
-    public final func computeContentSizeThatFits() -> CGSize {
+    final func computeContentSizeThatFits() -> CGSize {
         return CGSize.sizeThatFits(containerSize: self.view.safeAreaLayoutGuide.layoutFrame.size, containedAR: 16.0/9.0)
     }
     
-    override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        if #unavailable(iOS 16) {
-            self.limitViewDidLayoutCalls = 1
+        self.view.layoutSubviews()
+        if let view = self.view as? CustomView {
+            view.shouldLayout = false
         }
         
         coordinator.animate { _ in
@@ -271,20 +302,15 @@ import ZTronObservation
                 }
                 
                 self.pgvcHeight.isActive = false
-                self.pgvcWidth.isActive = false
-                if size.width / size.height >= 16.0/9.0 {
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
-                } else {
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
-                }
+                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
                 self.pgvcHeight.isActive = true
+                
+                self.pgvcWidth.isActive = false
+                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
                 self.pgvcWidth.isActive = true
                 
                 if UIDevice.current.orientation.isValidInterfaceOrientation {
                     if UIDevice.current.orientation.isPortrait {
-                        self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
                         self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
                         self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
                         self.topbarView.view.isHidden = false
@@ -301,16 +327,12 @@ import ZTronObservation
                     
                     self.view.layoutIfNeeded()
                 }
-                
             } completion: { @MainActor ended in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    if #unavailable(iOS 16) {
-                        self.limitViewDidLayoutCalls = Int.max
-                    }
-                    
-                    self.topbarView.view.invalidateIntrinsicContentSize()
-                    self.view.layoutIfNeeded()
+                if let view = self.view as? CustomView {
+                    view.shouldLayout = true
                 }
+
+                self.view.setNeedsLayout()
             }
         }
     }
