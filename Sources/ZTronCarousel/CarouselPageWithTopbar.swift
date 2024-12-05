@@ -32,6 +32,7 @@ import ZTronObservation
     private var pgvcWidth: NSLayoutConstraint!
     private var pgvcTop: NSLayoutConstraint!
     private var topbarWidth: NSLayoutConstraint!
+    private var scrollViewBottomContentGuide: NSLayoutConstraint!
     
     // track current view width
     private var curWidth: CGFloat = 0.0
@@ -230,8 +231,10 @@ import ZTronObservation
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
         
+        scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(equalTo: self.captionView.superview!.safeAreaLayoutGuide.bottomAnchor)
+        self.scrollViewBottomContentGuide.isActive = true
+
         self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor).isActive = true
-        self.scrollView.contentLayoutGuide.bottomAnchor.constraint(equalTo: self.captionView.superview!.safeAreaLayoutGuide.bottomAnchor).isActive = true
         self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.leftAnchor).isActive = true
         self.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.rightAnchor).isActive = true
     }
@@ -335,6 +338,12 @@ import ZTronObservation
                 }
             }
         }
+    }
+    
+    @MainActor public final func updateScrollViewContentBottom(customize: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void)? = nil) {
+        guard let customize = customize else { return }
+        
+        customize(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
     }
 }
 
