@@ -6,7 +6,7 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 
-@MainActor open class CarouselPageWithTopbar: UIViewController {
+@MainActor open class CarouselPageWithTopbar: SomeViewController {
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
@@ -309,7 +309,7 @@ import ZTronObservation
                     }
                     
                     self.topbarView.view.invalidateIntrinsicContentSize()
-                    self.view.layoutIfNeeded()
+                    super.onRotationCompletion()
                 }
             }
         }
