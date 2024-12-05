@@ -7,18 +7,7 @@ import ZTronCarouselCore
 import ZTronObservation
 
 
-public final class CustomView: UIView {
-    internal var shouldLayout: Bool = true
-    
-    override public func layoutSubviews() {
-        guard shouldLayout else { return }
-        
-        super.layoutSubviews()
-    }
-}
-
-
-@MainActor public final class CarouselPageWithTopbar: UIViewController {
+@MainActor public final class CarouselPageWithTopbar: SomeViewController {
     private let pageFactory: any MediaFactory
     private let medias: [any VisualMediaDescriptor]
     
@@ -112,13 +101,6 @@ public final class CustomView: UIView {
         }
     }
     
-    
-    override public func loadView() {
-        view = CustomView(frame: .init(x: 0, y: 0, width: 400, height: 700))
-    
-        
-        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    }
     
     required internal init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -284,10 +266,7 @@ public final class CustomView: UIView {
         super.viewWillTransition(to: size, with: coordinator)
         
         self.view.layoutSubviews()
-        if let view = self.view as? CustomView {
-            view.shouldLayout = false
-        }
-        
+ 
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
@@ -328,9 +307,7 @@ public final class CustomView: UIView {
                     self.view.layoutIfNeeded()
                 }
             } completion: { @MainActor ended in
-                if let view = self.view as? CustomView {
-                    view.shouldLayout = true
-                }
+                super.onRotationCompletion()
 
                 self.view.setNeedsLayout()
             }
