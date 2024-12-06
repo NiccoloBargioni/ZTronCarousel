@@ -360,7 +360,7 @@ import ZTronObservation
                         self.captionView.superview?.isHidden = false
                         
                         self.scrollViewTopContentGuide.isActive = false
-                        self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
+                        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
                         self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
@@ -371,7 +371,7 @@ import ZTronObservation
                         self.captionView.isHidden = true
                         self.captionView.superview?.isHidden = true
                         self.scrollViewTopContentGuide.isActive = false
-                        self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
+                        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
                         self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
