@@ -336,7 +336,7 @@ import ZTronObservation
                     self.pgvcTop.isActive = false
                     self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.topAnchor)
                     self.pgvcTop.isActive = true
-                } else {                 
+                } else {
                     self.pgvcTop.isActive = false
                     self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.bottomAnchor)
                     self.pgvcTop.isActive = true
@@ -354,7 +354,7 @@ import ZTronObservation
                 self.pgvcHeight.isActive = true
                 self.pgvcWidth.isActive = true
                 
-                if size.width > size.height {
+                if size.width < size.height {
                     self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
                     self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
                     self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
