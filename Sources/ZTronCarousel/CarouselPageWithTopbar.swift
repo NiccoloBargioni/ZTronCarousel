@@ -257,17 +257,18 @@ import ZTronObservation
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
         
+        if UIDevice.current.orientation.isValidInterfaceOrientation {
+            scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+                equalTo: UIDevice.current.orientation.isPortrait ?
+                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                )
+        }
+
         if let customize = self.customizeScrollviewBottomGuide {
             customize(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
-        } else {
-            if UIDevice.current.orientation.isValidInterfaceOrientation {
-                scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
-                    equalTo: UIDevice.current.orientation.isPortrait ?
-                        self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                        self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
-                    )
-            }
         }
+        
         self.scrollViewBottomContentGuide.isActive = true
         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
             equalTo: UIDevice.current.orientation.isPortrait ?
