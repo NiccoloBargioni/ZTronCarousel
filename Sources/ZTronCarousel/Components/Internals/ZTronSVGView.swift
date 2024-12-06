@@ -180,7 +180,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     }
     
     public func viewWillDisappear() {
-        self.delegate?.detach()
+        self.delegate?.detach(or: .ignore)
     }
     
     public func dismantle() {

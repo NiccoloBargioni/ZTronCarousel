@@ -32,6 +32,8 @@ import ZTronObservation
     private var pgvcWidth: NSLayoutConstraint!
     private var pgvcTop: NSLayoutConstraint!
     private var topbarWidth: NSLayoutConstraint!
+    
+    private var scrollViewTopContentGuide: NSLayoutConstraint!
     private var scrollViewBottomContentGuide: NSLayoutConstraint!
     
     // track current view width
@@ -44,6 +46,10 @@ import ZTronObservation
     public let topbarView: UIViewController
     
     private var limitViewDidLayoutCalls: Int = Int.max
+    
+    open var customizeScrollviewBottomGuide: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void) = { orientation, bottomContentGuide in
+        
+    }
     
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
@@ -316,12 +322,23 @@ import ZTronObservation
                         self.bottomBarView.isHidden = false
                         self.captionView.isHidden = false
                         self.captionView.superview?.isHidden = false
+                        
+                        self.scrollViewTopContentGuide.isActive = false
+                        self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
+                        self.scrollViewTopContentGuide.isActive = true
+                        
+                        self.customizeScrollviewBottomGuide(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
                     } else {
                         self.navigationItem.searchController = nil
                         self.topbarView.view.isHidden = true
                         self.bottomBarView.isHidden = true
                         self.captionView.isHidden = true
                         self.captionView.superview?.isHidden = true
+                        self.scrollViewTopContentGuide.isActive = false
+                        self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
+                        self.scrollViewTopContentGuide.isActive = true
+                        
+                        self.customizeScrollviewBottomGuide(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
                     }
                     
                     self.view.layoutIfNeeded()
@@ -340,6 +357,7 @@ import ZTronObservation
         }
     }
     
+    @available(*, renamed: "customizeScrollviewBottomGuide(orientation:bottomGuide:)", message: "The renamed: argument is an open var.")
     @MainActor public final func updateScrollViewContentBottom(customize: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void)? = nil) {
         guard let customize = customize else { return }
         
