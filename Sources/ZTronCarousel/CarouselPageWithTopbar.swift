@@ -158,9 +158,6 @@ import ZTronObservation
             make.left.right.top.equalTo(self.scrollView.contentLayoutGuide)
             make.height.equalTo(self.topbarView.view.intrinsicContentSize.height)
         }
-
-        print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
-        
         
         if !self.isPortrait {
             self.topbarView.view.isHidden = true
@@ -222,10 +219,9 @@ import ZTronObservation
             make.height.equalTo(44)
         }
         
-        /*
-        if UIDevice.current.orientation != .portrait {
+        if !self.isPortrait {
             self.bottomBarView.isHidden = true
-        }*/
+        }
         
         self.bottomBarView.setDelegate(
             self.interactionsManagersFactory
@@ -272,14 +268,14 @@ import ZTronObservation
         scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
             equalTo: isPortrait ?
                 self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                self.myContainerView.safeAreaLayoutGuide.bottomAnchor
             )
 
         self.scrollViewBottomContentGuide.isActive = true
         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
             equalTo: isPortrait ?
                 self.topbarView.view.safeAreaLayoutGuide.topAnchor :
-                self.thePageVC.view.safeAreaLayoutGuide.topAnchor
+                self.myContainerView.safeAreaLayoutGuide.topAnchor
         )
         self.scrollViewTopContentGuide.isActive = true
         
@@ -344,6 +340,7 @@ import ZTronObservation
                 
                 self.pgvcHeight.isActive = false
                 self.pgvcWidth.isActive = false
+                
                 if size.width / size.height >= 16.0/9.0 {
                     self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
                     self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
@@ -351,6 +348,7 @@ import ZTronObservation
                     self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
                     self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
                 }
+                
                 self.pgvcHeight.isActive = true
                 self.pgvcWidth.isActive = true
                 
@@ -375,9 +373,11 @@ import ZTronObservation
                     self.captionView.isHidden = true
                     self.captionView.superview?.isHidden = true
                     
+                    /*
                     self.scrollViewTopContentGuide.isActive = false
                     self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
                     self.scrollViewTopContentGuide.isActive = true
+                     */
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
                     
@@ -403,13 +403,13 @@ import ZTronObservation
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: UIDevice.current.orientation.isPortrait ?
                     self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                    self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         } else {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: self.isPortrait ?
                     self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                    self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         }
         constraint.isActive = true
