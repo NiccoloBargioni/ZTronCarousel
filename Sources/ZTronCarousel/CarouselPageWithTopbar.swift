@@ -47,7 +47,7 @@ import ZTronObservation
     
     private var limitViewDidLayoutCalls: Int = Int.max
     
-    public var isPotrait: Bool {
+    public var isPortrait: Bool {
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             return UIDevice.current.orientation.isPortrait
         } else {
@@ -162,8 +162,10 @@ import ZTronObservation
         print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
         
         
-        if !self.isPotrait {
+        if !self.isPortrait {
             self.topbarView.view.isHidden = true
+        } else {
+            self.topbarView.view.isHidden = false
         }
                 
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
@@ -353,36 +355,34 @@ import ZTronObservation
                 self.pgvcHeight.isActive = true
                 self.pgvcWidth.isActive = true
                 
-                if UIDevice.current.orientation.isValidInterfaceOrientation {
-                    if UIDevice.current.orientation.isPortrait {
-                        self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
-                        self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
-                        self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
-                        self.topbarView.view.isHidden = false
-                        self.bottomBarView.isHidden = false
-                        self.captionView.isHidden = false
-                        self.captionView.superview?.isHidden = false
-                        
-                        self.scrollViewTopContentGuide.isActive = false
-                        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
-                        self.scrollViewTopContentGuide.isActive = true
-                        
-                        self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
-                    } else {
-                        self.navigationItem.searchController = nil
-                        self.topbarView.view.isHidden = true
-                        self.bottomBarView.isHidden = true
-                        self.captionView.isHidden = true
-                        self.captionView.superview?.isHidden = true
-                        self.scrollViewTopContentGuide.isActive = false
-                        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
-                        self.scrollViewTopContentGuide.isActive = true
-                        
-                        self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
-                    }
+                if self.isPortrait {
+                    self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
+                    self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
+                    self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
+                    self.topbarView.view.isHidden = false
+                    self.bottomBarView.isHidden = false
+                    self.captionView.isHidden = false
+                    self.captionView.superview?.isHidden = false
                     
-                    self.view.layoutIfNeeded()
+                    self.scrollViewTopContentGuide.isActive = false
+                    self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
+                    self.scrollViewTopContentGuide.isActive = true
+                    
+                    self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
+                } else {
+                    self.navigationItem.searchController = nil
+                    self.topbarView.view.isHidden = true
+                    self.bottomBarView.isHidden = true
+                    self.captionView.isHidden = true
+                    self.captionView.superview?.isHidden = true
+                    self.scrollViewTopContentGuide.isActive = false
+                    self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
+                    self.scrollViewTopContentGuide.isActive = true
+                    
+                    self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
+                    
+                self.view.layoutIfNeeded()
                 
             } completion: { @MainActor ended in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -398,15 +398,22 @@ import ZTronObservation
     }
     
     @MainActor open func updateScrollViewContentBottom(constraint: inout NSLayoutConstraint) {
+        constraint.isActive = false
+
         if UIDevice.current.orientation.isValidInterfaceOrientation {
-            constraint.isActive = false
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: UIDevice.current.orientation.isPortrait ?
                     self.captionView.safeAreaLayoutGuide.bottomAnchor :
                     self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
                 )
-            constraint.isActive = true
+        } else {
+            constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+                equalTo: self.isPortrait ?
+                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                )
         }
+        constraint.isActive = true
     }
     
     @MainActor public final func updateScrollViewContentBottom() {
