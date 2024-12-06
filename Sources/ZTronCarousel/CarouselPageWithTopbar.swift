@@ -381,5 +381,9 @@ import ZTronObservation
             constraint.isActive = true
         }
     }
+    
+    @MainActor public final func updateScrollViewContentBottom() {
+        self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
+    }
 }
 
