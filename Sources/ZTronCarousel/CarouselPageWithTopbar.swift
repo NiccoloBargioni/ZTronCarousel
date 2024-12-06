@@ -47,6 +47,21 @@ import ZTronObservation
     
     private var limitViewDidLayoutCalls: Int = Int.max
     
+    public var isPotrait: Bool {
+        if UIDevice.current.orientation.isValidInterfaceOrientation {
+            return UIDevice.current.orientation.isPortrait
+        } else {
+            let scenes = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+            let keyWindow = scenes.first(where: { $0.keyWindow != nil })?.keyWindow ?? scenes.first?.keyWindow
+
+            if let keyWindowBounds = keyWindow?.screen.bounds {
+                return keyWindowBounds.height > keyWindowBounds.width
+            } else {
+                fatalError("Unable to infer initial device orientation")
+            }
+        }
+    }
+    
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
@@ -147,12 +162,10 @@ import ZTronObservation
         print("DEVICE ORIENTATION: \(UIDevice.current.orientation.isValidInterfaceOrientation), \(UIDevice.current.orientation.isPortrait), \(UIDevice.current.orientation.isLandscape)")
         
         
-        if UIDevice.current.orientation.isValidInterfaceOrientation {
-            if !UIDevice.current.orientation.isPortrait {
-                self.topbarView.view.isHidden = true
-            }
+        if !self.isPotrait {
+            self.topbarView.view.isHidden = true
         }
-        
+                
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         self.topbarView.view.layer.zPosition = 3.0
 
