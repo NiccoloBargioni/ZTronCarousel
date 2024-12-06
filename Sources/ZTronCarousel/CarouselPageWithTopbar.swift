@@ -105,6 +105,22 @@ import ZTronObservation
     override open func viewDidLoad() {
         super.viewDidLoad()
         
+        var isPortrait = false
+        
+        if UIDevice.current.orientation.isValidInterfaceOrientation {
+            isPortrait = UIDevice.current.orientation.isPortrait
+        } else {
+            let scenes = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+            let keyWindow = scenes.first(where: { $0.keyWindow != nil })?.keyWindow ?? scenes.first?.keyWindow
+
+            if let keyWindowBounds = keyWindow?.screen.bounds {
+                isPortrait = keyWindowBounds.height > keyWindowBounds.width
+            } else {
+                fatalError("Unable to infer initial device orientation")
+            }
+        }
+
+        
         self.navigationItem.title = "Memory Charms"
         
         // so we can see the view / page view controller framing
@@ -238,17 +254,15 @@ import ZTronObservation
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
         
-        if UIDevice.current.orientation.isValidInterfaceOrientation {
-            scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
-                equalTo: UIDevice.current.orientation.isPortrait ?
-                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
-                )
-        }
+        scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+            equalTo: isPortrait ?
+                self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+            )
 
         self.scrollViewBottomContentGuide.isActive = true
         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
-            equalTo: UIDevice.current.orientation.isPortrait ?
+            equalTo: isPortrait ?
                 self.topbarView.view.safeAreaLayoutGuide.topAnchor :
                 self.thePageVC.view.safeAreaLayoutGuide.topAnchor
         )
