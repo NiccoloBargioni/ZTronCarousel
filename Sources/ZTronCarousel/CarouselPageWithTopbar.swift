@@ -47,9 +47,6 @@ import ZTronObservation
     
     private var limitViewDidLayoutCalls: Int = Int.max
     
-    /// - Note: It's responsibility of who defines this method to set `.isActive` to `true` or `false` as needed.
-    open var customizeScrollviewBottomGuide: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void)? = nil
-    
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
@@ -77,22 +74,6 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        
-        self.customizeScrollviewBottomGuide = { @MainActor orientation, bottomContentGuide in
-            
-            if orientation.isValidInterfaceOrientation {
-                
-                bottomContentGuide.isActive = false
-                bottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
-                    equalTo: orientation.isPortrait ?
-                        self.captionView.safeAreaLayoutGuide.bottomAnchor :
-                        self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
-                )
-                bottomContentGuide.isActive = true
-                
-            }
-            
-        }
         
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
@@ -265,10 +246,6 @@ import ZTronObservation
                 )
         }
 
-        if let customize = self.customizeScrollviewBottomGuide {
-            customize(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
-        }
-        
         self.scrollViewBottomContentGuide.isActive = true
         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
             equalTo: UIDevice.current.orientation.isPortrait ?
@@ -363,7 +340,7 @@ import ZTronObservation
                         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
-                        self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+                        self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                     } else {
                         self.navigationItem.searchController = nil
                         self.topbarView.view.isHidden = true
@@ -374,7 +351,7 @@ import ZTronObservation
                         self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
-                        self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+                        self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                     }
                     
                     self.view.layoutIfNeeded()
@@ -393,11 +370,16 @@ import ZTronObservation
         }
     }
     
-    @available(*, renamed: "customizeScrollviewBottomGuide(orientation:bottomGuide:)", message: "The renamed: argument is an open var.")
-    @MainActor public final func updateScrollViewContentBottom(customize: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void)? = nil) {
-        guard let customize = customize else { return }
-        
-        customize(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+    @MainActor open func updateScrollViewContentBottom(constraint: inout NSLayoutConstraint) {
+        if UIDevice.current.orientation.isValidInterfaceOrientation {
+            constraint.isActive = false
+            constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+                equalTo: UIDevice.current.orientation.isPortrait ?
+                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                    self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                )
+            constraint.isActive = true
+        }
     }
 }
 
