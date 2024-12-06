@@ -47,9 +47,8 @@ import ZTronObservation
     
     private var limitViewDidLayoutCalls: Int = Int.max
     
-    open var customizeScrollviewBottomGuide: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void) = { orientation, bottomContentGuide in
-        
-    }
+    /// - Note: It's responsibility of who defines this method to set `.isActive` to `true` or `false` as needed.
+    open var customizeScrollviewBottomGuide: ((_: UIDeviceOrientation, _: inout NSLayoutConstraint) -> Void)? = nil
     
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
@@ -78,6 +77,23 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
+        
+        self.customizeScrollviewBottomGuide = { @MainActor orientation, bottomContentGuide in
+            
+            if orientation.isValidInterfaceOrientation {
+                
+                bottomContentGuide.isActive = false
+                bottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+                    equalTo: orientation.isPortrait ?
+                        self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                        self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                )
+                bottomContentGuide.isActive = true
+                
+            }
+            
+        }
+        
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
             
@@ -120,6 +136,8 @@ import ZTronObservation
         self.scrollView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         self.scrollView.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         
+        self.scrollView.layer.zPosition = 2.0
+        
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
         self.scrollView.addSubview(self.topbarView.view)
@@ -139,6 +157,7 @@ import ZTronObservation
         }
         
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        self.topbarView.view.layer.zPosition = 3.0
 
         // add myContainerView
         myContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -181,6 +200,7 @@ import ZTronObservation
         }
         
         self.bottomBarView = componentsFactory.makeBottomBar()
+        self.bottomBarView.layer.zPosition = 3.0
         
         self.scrollView.addSubview(self.bottomBarView)
 
@@ -237,10 +257,25 @@ import ZTronObservation
                 .makeCarouselComponentInteractionsManager(owner: self.thePageVC, mediator: self.mediator)
         )
         
-        scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(equalTo: self.captionView.superview!.safeAreaLayoutGuide.bottomAnchor)
+        if let customize = self.customizeScrollviewBottomGuide {
+            customize(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+        } else {
+            if UIDevice.current.orientation.isValidInterfaceOrientation {
+                scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
+                    equalTo: UIDevice.current.orientation.isPortrait ?
+                        self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                        self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor
+                    )
+            }
+        }
         self.scrollViewBottomContentGuide.isActive = true
-
-        self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
+            equalTo: UIDevice.current.orientation.isPortrait ?
+                self.topbarView.view.safeAreaLayoutGuide.topAnchor :
+                self.thePageVC.view.safeAreaLayoutGuide.topAnchor
+        )
+        self.scrollViewTopContentGuide.isActive = true
+        
         self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.leftAnchor).isActive = true
         self.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.rightAnchor).isActive = true
     }
@@ -327,7 +362,7 @@ import ZTronObservation
                         self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
-                        self.customizeScrollviewBottomGuide(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+                        self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
                     } else {
                         self.navigationItem.searchController = nil
                         self.topbarView.view.isHidden = true
@@ -338,7 +373,7 @@ import ZTronObservation
                         self.scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
                         self.scrollViewTopContentGuide.isActive = true
                         
-                        self.customizeScrollviewBottomGuide(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
+                        self.customizeScrollviewBottomGuide?(UIDevice.current.orientation, &self.scrollViewBottomContentGuide)
                     }
                     
                     self.view.layoutIfNeeded()
