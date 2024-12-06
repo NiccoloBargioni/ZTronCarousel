@@ -334,10 +334,9 @@ import ZTronObservation
             UIView.animate(withDuration: 0.25) {
                 if size.width > size.height {
                     self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
+                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.topAnchor)
                     self.pgvcTop.isActive = true
-                } else {
-                                        
+                } else {                 
                     self.pgvcTop.isActive = false
                     self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.bottomAnchor)
                     self.pgvcTop.isActive = true
@@ -355,7 +354,7 @@ import ZTronObservation
                 self.pgvcHeight.isActive = true
                 self.pgvcWidth.isActive = true
                 
-                if self.isPortrait {
+                if size.width > size.height {
                     self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
                     self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
                     self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
@@ -375,10 +374,10 @@ import ZTronObservation
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
                     self.captionView.superview?.isHidden = true
+                    
                     self.scrollViewTopContentGuide.isActive = false
                     self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
                     self.scrollViewTopContentGuide.isActive = true
-                    
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
                     
