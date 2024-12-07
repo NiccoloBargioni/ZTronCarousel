@@ -23,7 +23,13 @@ import ZTronObservation
     
     // we will add a UIPageViewController as a child VC
     private(set) public var thePageVC: CarouselComponent!
-    private(set) public var scrollView: UIScrollView = .init()
+    private(set) public var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
+        
+        return scrollView
+    }()
     
     // this will be used to change the page view controller height based on
     //    view width-to-height (portrait/landscape)
@@ -119,22 +125,8 @@ import ZTronObservation
     
     override open func viewDidLoad() {
         super.viewDidLoad()
-        
-        var isPortrait = false
-        
-        if UIDevice.current.orientation.isValidInterfaceOrientation {
-            isPortrait = UIDevice.current.orientation.isPortrait
-        } else {
-            let scenes = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
-            let keyWindow = scenes.first(where: { $0.keyWindow != nil })?.keyWindow ?? scenes.first?.keyWindow
 
-            if let keyWindowBounds = keyWindow?.screen.bounds {
-                isPortrait = keyWindowBounds.height > keyWindowBounds.width
-            } else {
-                fatalError("Unable to infer initial device orientation")
-            }
-        }
-
+        self.view.layer.masksToBounds = true
         
         self.navigationItem.title = "Memory Charms"
         
@@ -186,12 +178,7 @@ import ZTronObservation
         pgvcWidth = myContainerView.widthAnchor.constraint(equalToConstant: size.width)
         pgvcWidth.isActive = true
         
-        if UIDevice.current.orientation == .portrait {
-            pgvcTop = myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.bottomAnchor)
-        } else {
-            pgvcTop = myContainerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
-        }
-        
+        pgvcTop = myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.bottomAnchor)
         pgvcTop.isActive = true
         self.thePageVC.willMove(toParent: self)
         addChild(thePageVC)
@@ -353,9 +340,6 @@ import ZTronObservation
                 self.pgvcWidth.isActive = true
                 
                 if size.width < size.height {
-                    self.navigationItem.searchController = UISearchController(searchResultsController: ZTronSearchController())
-                    self.navigationItem.searchController?.searchBar.placeholder = "Search Memory Charms"
-                    self.navigationItem.searchController?.hidesNavigationBarDuringPresentation = false
                     self.topbarView.view.isHidden = false
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
@@ -367,17 +351,10 @@ import ZTronObservation
                     
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
-                    self.navigationItem.searchController = nil
                     self.topbarView.view.isHidden = true
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
                     self.captionView.superview?.isHidden = true
-                    
-                    /*
-                    self.scrollViewTopContentGuide.isActive = false
-                    self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor)
-                    self.scrollViewTopContentGuide.isActive = true
-                     */
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
                     
