@@ -15,7 +15,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
         guard let owner = self.owner else { return }
         
         if let loader = (eventArgs.getSource() as? (any AnyDBLoader)) {
-            self.mediator?.signalInterest(owner, to: loader)
+            self.mediator?.signalInterest(owner, to: loader, or: .fail)
         }
     }
     

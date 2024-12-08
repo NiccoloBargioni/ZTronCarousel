@@ -14,7 +14,7 @@ public final class ImagePageInteractionsManager: MSAInteractionsManager, @unchec
         guard let owner = self.owner else { return }
         
         if let dbLoader = (eventArgs.getSource() as? (any AnyDBLoader)) {
-            self.mediator?.signalInterest(owner, to: dbLoader)
+            self.mediator?.signalInterest(owner, to: dbLoader, or: .fail)
         }
     }
     

@@ -1,6 +1,7 @@
 import UIKit
 import ZTronObservation
 import SnapKit
+@preconcurrency import Combine
 
 public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBottomBar {
     public let id: String = "bottom bar"
@@ -21,6 +22,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     private(set) public var currentImage: String? = nil
     
     private var variantsStack: UIStackView?
+    private let throttler: PassthroughSubject<BottomBarLastAction, Never> = .init()
+    private var cancellables: Set<AnyCancellable> = .init()
     
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
     
@@ -38,6 +41,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             self.layer.addSublayer(borderLayer!)
         }
     }
+    
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -60,8 +64,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         buttonsHStack.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         
         let outlineButton = UIButton(type: .system, primaryAction: .init(handler: { _ in
-            self.lastAction = .toggleOutline
-            self.pushNotification()
+            self.throttler.send(.toggleOutline)
         }))
         
         outlineButton.setImage(UIImage(systemName: "pencil.and.outline")!
@@ -78,8 +81,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         }
         
         let boundingCircleButton = UIButton(type: .system, primaryAction: .init(handler: { _ in
-            self.lastAction = .toggleBoundingCircle
-            self.pushNotification()
+            self.throttler.send(.toggleBoundingCircle)
         }))
         
         boundingCircleButton.setImage(UIImage(systemName: "circle.dashed")!
@@ -111,6 +113,12 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         variantsStackView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         
         self.variantsStack = variantsStackView
+        
+        self.throttler.throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: true).sink { action in
+            self.lastAction = action
+            self.pushNotification()
+        }
+        .store(in: &self.cancellables)
     }
     
     required init(coder: NSCoder) {
@@ -225,6 +233,10 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     
     public func pushNotification() {
         self.delegate?.pushNotification(eventArgs: .init(source: self), limitToNeighbours: true)
+    }
+    
+    deinit {
+        self.cancellables.forEach { $0.cancel() }
     }
     
 

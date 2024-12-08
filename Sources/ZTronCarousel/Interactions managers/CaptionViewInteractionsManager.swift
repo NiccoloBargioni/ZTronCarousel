@@ -15,7 +15,7 @@ public final class CaptionViewInteractionsManager: MSAInteractionsManager, @unch
         guard let owner = self.captionView else { return }
         
         if let carousel = eventArgs.getSource() as? CarouselComponent {
-            self.mediator?.signalInterest(owner, to: carousel)
+            self.mediator?.signalInterest(owner, to: carousel, or: .fail)
         }
     }
     

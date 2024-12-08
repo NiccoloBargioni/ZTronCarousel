@@ -106,7 +106,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronObservation",
       "state" : {
         "branch" : "bugfix/threadSafety",
-        "revision" : "06bf4666bddc39fc88725d1e231e652bf92abec5"
+        "revision" : "766cebbb828a371621102b6cd07475340aeeafd6"
       }
     },
     {
