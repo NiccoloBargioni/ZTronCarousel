@@ -1,7 +1,8 @@
 import ZTronDataModel
 import Ifrit
 
-public final class SearchableImage: Sendable, Searchable {
+public final class SearchableImage: Sendable, Searchable, Hashable, Identifiable {
+    public let id: String
     private let name: String
     private let description: String
     private let position: Int
@@ -41,6 +42,8 @@ public final class SearchableImage: Sendable, Searchable {
         } else {
             self.localizedSearchLabel = nil
         }
+        
+        self.id = self.name
     }
     
     
@@ -64,4 +67,14 @@ public final class SearchableImage: Sendable, Searchable {
         return self.gallery
     }
 
+    public static func == (lhs: SearchableImage, rhs: SearchableImage) -> Bool {
+        return lhs.name == rhs.name && lhs.gallery == rhs.gallery && lhs.description == rhs.description && lhs.position == rhs.position
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(gallery)
+        hasher.combine(description)
+        hasher.combine(position)
+    }
 }

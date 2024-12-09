@@ -4,7 +4,7 @@ import ZTronObservation
 import ZTronDataModel
 import Ifrit
 
-public final class ZTronSearchController: AnySearchController, ObservableObject {
+public final class ZTronSearchController: AnySearchController, ObservableObject, @unchecked Sendable {
     @InteractionsManaging private var delegate: (any MSAInteractionsManager)? = nil
     private let fuse: Fuse
     
@@ -81,15 +81,16 @@ public final class ZTronSearchController: AnySearchController, ObservableObject 
         )
     }
     
-    public func search(text: String) async {
+    nonisolated public func search(text: String) async {
         let searchResults = await self.fuse.search(text, in: self.images, by: \.propertiesCustomWeight)
         
         let matchingImages = searchResults.map {
             return self.images[$0.index]
         }
         
-        
-        self.searchResults = matchingImages
+        await MainActor.run {
+            self.searchResults = matchingImages
+        }
     }
     
     public func getSearchResults() -> [SearchableImage] {
