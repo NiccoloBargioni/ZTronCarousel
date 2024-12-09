@@ -6,7 +6,7 @@ public final class ZTronBasicPlaceableFactory<M>: ZTronPlaceableFactory, @unchec
     
     weak private var mediator: M?
     
-    init(mediator: M?) {
+    public init(mediator: M?) {
         self.mediator = mediator
     }
     

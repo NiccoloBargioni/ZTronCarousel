@@ -4,6 +4,8 @@ import ZTronObservation
 import ZTronSerializable
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
+    public init() {  }
+
     public func makeViewModel() -> any AnyViewModel {
         return CarouselWithTopbarViewModel()
     }

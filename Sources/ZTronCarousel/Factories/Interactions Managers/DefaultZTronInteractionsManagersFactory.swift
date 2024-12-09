@@ -2,6 +2,8 @@ import ZTronObservation
 import ZTronCarouselCore
 
 public final class DefaultZTronInteractionsManagerFactory: ZTronInteractionsManagersFactory {
+    public init() {  }
+    
     public func makeCarouselComponentInteractionsManager(owner: CarouselComponent, mediator: ZTronObservation.MSAMediator) -> any ZTronObservation.MSAInteractionsManager {
         return CarouselInteractionsManger(owner: owner, mediator: mediator)
     }
