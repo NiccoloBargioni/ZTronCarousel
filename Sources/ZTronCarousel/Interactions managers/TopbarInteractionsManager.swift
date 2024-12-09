@@ -13,7 +13,11 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
         
         if let dbLoader = (eventArgs.getSource() as? (any AnyDBLoader)) {
-            self.mediator?.signalInterest(owner, to: dbLoader, or: .fail)
+            self.mediator?.signalInterest(owner, to: dbLoader)
+        } else {
+            if let searchController = (eventArgs.getSource() as? (any AnySearchController)) {
+                self.mediator?.signalInterest(owner, to: searchController)
+            }
         }
     }
     
@@ -34,6 +38,16 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
                 Task(priority: .userInitiated) { @MainActor in
                     owner.replaceItems(with: newTopbarItems)
                     owner.setIsRedacted(to: false)
+                }
+            }
+        } else {
+            if let searchController = args.getSource() as? any AnySearchController {
+                if searchController.lastAction == .imageSelected {
+                    if let imageSelectedMessage = (args as? MSAArgs)?.getPayload() as? ImageSelectedFromSearchEventMessage {
+                        if let leafGallery = imageSelectedMessage.getGalleryPath().last {
+                            owner.switchTo(itemNamed: leafGallery.getName())
+                        }
+                    }
                 }
             }
         }

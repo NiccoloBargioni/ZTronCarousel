@@ -54,6 +54,16 @@ internal final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         return self.items[self.selectedItem].getName()
     }
     
+    public func switchTo(itemNamed: String) {
+        if let requestedItemIndex = (self.items.firstIndex {
+            return $0.getName() == itemNamed
+        }) {
+            self.selectedItem = requestedItemIndex
+            self.lastAction = .selectedItemChanged
+            self.pushNotification()
+        }
+    }
+    
     func getTitle() -> String {
         return self.title
     }

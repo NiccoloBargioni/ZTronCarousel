@@ -10,7 +10,8 @@ import ZTronObservation
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
-
+    private var searchController: (any AnySearchController)?
+    
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
 
@@ -111,6 +112,16 @@ import ZTronObservation
             
             if let pgFactory = pageFactory as? any Notifiable {
                 pgFactory.setMediator(self.mediator)
+            }
+            
+            if let searchController = self.componentsFactory.makeSearchController() {
+                self.searchController = searchController
+                searchController.setDelegate(
+                    self.interactionsManagersFactory.makeSearchControllerInteractionsManager(owner: searchController, mediator: self.mediator),
+                    ofType: MSAInteractionsManager.self
+                )
+            } else {
+                self.searchController = nil
             }
             
             Task(priority: .high) {

@@ -8,6 +8,10 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
         return CarouselWithTopbarViewModel()
     }
     
+    public func makeSearchController() -> (any AnySearchController)? {
+        return ZTronSearchController(fuse: .init(threshold: 0.25))
+    }
+    
     public func makeDBLoader(with foreignKeys: SerializableGalleryForeignKeys) -> any AnyDBLoader {
         return DBCarouselLoader(with: foreignKeys)
     }

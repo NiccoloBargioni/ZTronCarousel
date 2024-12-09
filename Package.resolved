@@ -1,6 +1,15 @@
 {
-  "originHash" : "6032e94e2cc490078154eb792763f882d0f90eaa39ac2bf018272b3d27fd8bde",
+  "originHash" : "237d217bd991bae1886d53778a4df7eb279f177c7bc4b231868d4a87feaa8569",
   "pins" : [
+    {
+      "identity" : "ifrit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ukushu/Ifrit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "0240251c688cca825f9bd5d6b4b30cf429d62e78"
+      }
+    },
     {
       "identity" : "isvimagescrollview",
       "kind" : "remoteSourceControl",
@@ -88,7 +97,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
         "branch" : "main",
-        "revision" : "8e2649c95a82e174372d272d0e7ca8362b5ad155"
+        "revision" : "f2670a7913306681e034087bce69ec3df46c1be8"
       }
     },
     {
@@ -97,7 +106,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
         "branch" : "main",
-        "revision" : "2aeca99b0e0fdace5ee4539fa59218752bf11e0e"
+        "revision" : "58314ca0a3d8b7e497aa0baae6f6c8af93e59eb6"
       }
     },
     {
@@ -106,7 +115,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronObservation",
       "state" : {
         "branch" : "bugfix/threadSafety",
-        "revision" : "766cebbb828a371621102b6cd07475340aeeafd6"
+        "revision" : "58086882c42955060edc522f2e70369dd47dc0af"
       }
     },
     {

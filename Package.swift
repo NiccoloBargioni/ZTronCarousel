@@ -16,7 +16,8 @@ let package = Package(
         .package(url: "https://github.com/NiccoloBargioni/ZTronCarouselCore", branch: "main"),
         .package(url: "https://github.com/NiccoloBargioni/ZTronSerializable", branch: "main"),
         .package(url: "https://github.com/Juanpe/SkeletonView", branch: "main"),
-        .package(url: "https://github.com/mchoe/SwiftSVG", branch: "master")
+        .package(url: "https://github.com/mchoe/SwiftSVG", branch: "master"),
+        .package(url: "https://github.com/ukushu/Ifrit", branch: "main")
     ],
 
     targets: [
@@ -30,7 +31,8 @@ let package = Package(
                 .product(name: "ZTronCarouselCore", package: "ZTronCarouselCore"),
                 .product(name: "ZTronSerializable", package: "ZTronSerializable"),
                 .product(name: "SkeletonView", package: "SkeletonView"),
-                .product(name: "SwiftSVG", package: "SwiftSVG")
+                .product(name: "SwiftSVG", package: "SwiftSVG"),
+                .product(name: "Ifrit", package: "Ifrit")
             ],
             resources: [
                 .process("Resources")

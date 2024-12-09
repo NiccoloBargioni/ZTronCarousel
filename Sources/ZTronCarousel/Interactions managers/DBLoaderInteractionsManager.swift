@@ -20,13 +20,17 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     public func peerDiscovered(eventArgs: ZTronObservation.BroadcastArgs) {
         guard let owner = self.owner else { return }
         if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
-            self.mediator?.signalInterest(owner, to: topbar, or: .fail)
+            self.mediator?.signalInterest(owner, to: topbar)
         } else {
             if let colorPicker = eventArgs.getSource() as? PlaceableColorPicker {
-                self.mediator?.signalInterest(owner, to: colorPicker, or: .fail)
+                self.mediator?.signalInterest(owner, to: colorPicker)
             } else {
                 if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
-                    self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .fail)
+                    self.mediator?.signalInterest(owner, to: pinnedBottomBar)
+                } else {
+                    if let searchController = eventArgs.getSource() as? (any AnySearchController) {
+                        self.mediator?.signalInterest(owner, to: searchController)
+                    }
                 }
             }
         }
@@ -49,6 +53,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                 if let pinnedBottomBar = args.getSource() as? (any AnyBottomBar) {
                     Task {
                         self.handlePinnedBottomBarNotification(pinnedBottomBar)
+                    }
+                } else {
+                    if let searchController = args.getSource() as? (any AnySearchController) {
+                        self.handleSearchControllerNotifications(searchController)
                     }
                 }
             }
@@ -196,6 +204,22 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
             } catch {
                 fatalError(error.localizedDescription)
             }
+        }
+    }
+    
+    private final func handleSearchControllerNotifications(_ searchController: any AnySearchController) {
+        guard let owner = self.owner else { return }
+        
+        do {
+            if searchController.lastAction == .loadGalleriesGraph {
+                try owner.loadGalleriesGraph()
+            } else {
+                if searchController.lastAction == .loadAllMasterImages {
+                    try owner.loadImagesForSearch()
+                }
+            }
+        } catch {
+            fatalError(error.localizedDescription)
         }
     }
 }

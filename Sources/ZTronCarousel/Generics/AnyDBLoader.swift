@@ -9,6 +9,8 @@ public protocol AnyDBLoader: Component, AnyObject {
     
     func loadFirstLevelGalleries() throws -> Void
     func loadImagesForGallery(_ theGallery: String) throws -> Void
+    func loadGalleriesGraph() throws -> Void
+    func loadImagesForSearch() throws -> Void
     
     func loadImageDescriptor(imageID: String, in gallery: String, variantDescriptor: ImageVariantDescriptor) throws
 }
@@ -19,4 +21,6 @@ public enum DBLoaderAction: Sendable {
     case imagesLoaded
     case variantLoadedForward
     case variantLoadedBackward
+    case loadedGalleriesGraph
+    case imagesLoadedForSearch
 }

@@ -33,22 +33,28 @@ internal struct TopbarView: View {
             
             //MARK: Topbar item selection view
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 25) {
-                    ForEach(0..<topbar.count(), id:\.self) { i in
-                        Button(action: {
-                            withAnimation(.easeOut(duration: 0.5)) {
-                                topbar.setSelectedItem(item: i)
+                ScrollViewReader { scroll in
+                    HStack(alignment: .top, spacing: 25) {
+                        ForEach(0..<topbar.count(), id:\.self) { i in
+                            Button(action: {
+                                withAnimation(.easeOut(duration: 0.5)) {
+                                    topbar.setSelectedItem(item: i)
+                                }
+                            }) {
+                                TopbarItemView(
+                                    tool: topbar.get(i),
+                                    isActive: topbar.getSelectedItem() == i
+                                )
                             }
-                        }) {
-                            TopbarItemView(
-                                tool: topbar.get(i),
-                                isActive: topbar.getSelectedItem() == i
-                            )
+                            .id(i)
                         }
+                        
                     }
-                    
+                    .frame(maxHeight: 100)
+                    .onChange(of: self.topbar.getSelectedItem()) { newSelectedItemIndex in
+                        scroll.scrollTo(newSelectedItemIndex, anchor: .center)
+                    }
                 }
-                .frame(maxHeight: 100)
             }
             .padding()
              

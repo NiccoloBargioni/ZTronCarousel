@@ -82,7 +82,6 @@ public final class UIVariantChangeGoBackAnimation: UIView, VariantAnimation {
 
         self.theAnimation?.startAnimation()
         
-        let startTime = DispatchTime.now()
         self.theAnimation?.addCompletion { animation in
             if animation == .end {
                 self.status = .completed

@@ -38,6 +38,20 @@ public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendabl
         return lhs.id == rhs.id && lhs.viewModel === rhs.viewModel
     }
     
+    @MainActor public func hide() {
+        guard let owner = self.viewModel else { return }
+        
+        owner.view.subviews.forEach { $0.isHidden = true }
+    }
+    
+    @MainActor public func show() {
+        guard let owner = self.viewModel else { return }
+        
+        owner.view.subviews.forEach {
+            $0.isHidden = false
+        }
+    }
+    
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }

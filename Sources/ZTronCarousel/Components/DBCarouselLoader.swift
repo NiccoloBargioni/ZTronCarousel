@@ -1,21 +1,13 @@
 import Foundation
 import SQLite
+import SwiftGraph
 import ZTronDataModel
 import ZTronObservation
 import ZTronSerializable
 
 public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sendable, AnyDBLoader {
     public let id: String = "db loader"
-    private var delegate: (any MSAInteractionsManager)? = nil {
-        didSet {
-            guard let delegate = delegate else { return }
-            delegate.setup(or: .ignore)
-        }
-        
-        willSet {
-            self.delegate?.detach()
-        }
-    }
+    @InteractionsManaging(setupOr: .ignore, detachOr: .fail) private var delegate: (any MSAInteractionsManager)? = nil
     
     private let fk: SerializableGalleryForeignKeys
     
@@ -198,6 +190,113 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         }
     }
     
+    public final func loadGalleriesGraph() throws -> Void {
+        var allGalleries: [ReadGalleryOption: [(any ReadGalleryOptional)?]] = [:]
+        
+        try DBMS.transaction { db in
+            allGalleries = try DBMS.CRUD.readAllGalleriesForTool(
+                for: db,
+                tool: self.fk.getTool(),
+                tab: self.fk.getTab(),
+                map: self.fk.getMap(),
+                game: self.fk.getGame(),
+                options: [.galleries, .searchToken, .master]
+            )
+            
+            return .commit
+        }
+        
+        var galleryIDMap: [String: ZTronGalleryDescriptor] = [:]
+        
+        if let theGalleries = (allGalleries[.galleries]?.map {
+            return ($0 as! SerializedGalleryModel)
+        }.enumerated().map { i, gallery in
+            if let token = allGalleries[.searchToken]?[i] as? SerializedSearchTokenModel {
+                return ZTronGalleryDescriptor(
+                    from: gallery,
+                    with: token,
+                    master: allGalleries[.master]?[i] as? String ?? nil
+                )
+            } else {
+                return ZTronGalleryDescriptor(
+                    from: gallery,
+                    with: nil,
+                    master: allGalleries[.master]?[i] as? String ?? nil
+                )
+            }
+        }) {
+            theGalleries.forEach { gallery in
+                galleryIDMap[gallery.getName()] = gallery
+            }
+            
+            let galleriesGraph: UnweightedGraph<ZTronGalleryDescriptor> = UnweightedGraph()
+            
+            galleryIDMap.keys.forEach { galleryName in
+                let _ = galleriesGraph.addVertex(galleryIDMap[galleryName]!)
+            }
+            
+            galleryIDMap.keys.forEach { galleryName in
+                if let theGallery = galleryIDMap[galleryName] {
+                    if let master = theGallery.getMaster() {
+                        if let masterGalleryDescriptor = galleryIDMap[master] {
+                            if let indexOfGallery = galleriesGraph.indexOfVertex(theGallery),
+                               let indexOfMaster = galleriesGraph.indexOfVertex(masterGalleryDescriptor) {
+                                
+                                galleriesGraph.addEdge(
+                                    UnweightedEdge(
+                                        u: indexOfMaster,
+                                        v: indexOfGallery,
+                                        directed: true
+                                    ),
+                                    directed: true
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            self.lastAction = .loadedGalleriesGraph
+            
+            Task(priority: .userInitiated) { @MainActor in
+                self.pushNotification(
+                    GalleriesGraphLoadedEventMessage(
+                        source: self,
+                        galleries: galleriesGraph
+                    )
+                )
+            }
+        }
+
+    }
+    
+    
+    public func loadImagesForSearch() throws {
+        var result: [ReadImageOption: [(any ReadImageOptional)?]] = [:]
+        
+        try DBMS.transaction { db in
+            
+            result = try DBMS.CRUD.readFirstLevelMasterImagesForGallery(
+                for: db,
+                game: self.fk.getGame(),
+                map: self.fk.getMap(),
+                tab: self.fk.getTab(),
+                tool: self.fk.getTool(),
+                gallery: nil,
+                options: [.images]
+            )
+            
+            return .commit
+        }
+        
+        if let images = result[.images] as? [SerializedImageModel] {
+            self.lastAction = .imagesLoadedForSearch
+            
+            DispatchQueue.main.async { @MainActor in
+                self.pushNotification(ImagesLoadedForSearchEventMessage(source: self, images: images))
+            }
+        }
+    }
     
     public func getLastAction() -> DBLoaderAction {
         return self.lastAction
@@ -242,11 +341,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
     }
 
     public func pushNotification(_ args: BroadcastArgs) {
-        self.delegate?.pushNotification(eventArgs: args, limitToNeighbours: true) /*{
-            Task(priority: .userInitiated) { @MainActor in
-                self.lastAction = .ready
-            }
-        }*/
+        self.delegate?.pushNotification(eventArgs: args, limitToNeighbours: true)
     }
     
 }

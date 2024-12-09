@@ -7,6 +7,7 @@ import ZTronSerializable
     func makeViewModel() -> any AnyViewModel 
     
     func makeDBLoader(with foreignKeys: SerializableGalleryForeignKeys) -> any AnyDBLoader
+    func makeSearchController() -> (any AnySearchController)?
     
     /// - Pinned to left, top and right of this component
     /// - Height sized to fit its intrinsicContentSize
@@ -24,4 +25,6 @@ import ZTronSerializable
     /// - Has `.defaultHigh` priority for `.vertical`
     /// - Disappears when `.orientation == .landscape`
     func makeCaptionView() -> any AnyCaptionView
+    
+    
 }
