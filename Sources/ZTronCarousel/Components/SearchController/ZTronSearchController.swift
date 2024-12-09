@@ -44,9 +44,14 @@ public final class ZTronSearchController: AnySearchController, ObservableObject,
         self.images = images
     }
     
-    public func selectedImage(gallery: ZTronGalleryDescriptor, image: SearchableImage) {
+    public func selectedImage(_ image: SearchableImage) {
         guard let galleriesGraph = self.galleriesGraph else { return }
-        guard let indexOfGallery = galleriesGraph.indexOfVertex(gallery) else { return }
+        guard let indexOfGallery = (galleriesGraph.firstIndex { gallery in
+            return gallery.getName() == image.getGallery()
+        }) else {
+            return
+        }
+        
         let reversedGraph = galleriesGraph.reversed()
         
         let pathToIndex = reversedGraph.bfs(fromIndex: indexOfGallery) { gallery in
@@ -65,10 +70,10 @@ public final class ZTronSearchController: AnySearchController, ObservableObject,
                 galleryPath.append(galleriesGraph[edge.v])
             }
         } else {
-            galleryPath.append(gallery)
+            galleryPath.append(galleriesGraph[indexOfGallery])
         }
         
-        assert(galleryPath.last === gallery)
+        assert(galleryPath.last === galleriesGraph[indexOfGallery])
         
         self.lastAction = .imageSelected
         self.getDelegate()?.pushNotification(

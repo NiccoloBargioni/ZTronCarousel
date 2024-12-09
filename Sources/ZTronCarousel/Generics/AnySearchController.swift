@@ -9,7 +9,7 @@ public protocol AnySearchController: AnyObject, Component {
     func prepare() -> Void
     func galleriesLoaded(_ galleries: UnweightedGraph<ZTronGalleryDescriptor>) -> Void
     func imagesLoaded(_ images: [SearchableImage]) -> Void
-    func selectedImage(gallery: ZTronGalleryDescriptor, image: SearchableImage) -> Void
+    func selectedImage(_ image: SearchableImage) -> Void
     func searchCancelled() -> Void
 }
 
