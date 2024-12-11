@@ -52,7 +52,9 @@ internal struct TopbarView: View {
                     }
                     .frame(maxHeight: 100)
                     .onChange(of: self.topbar.getSelectedItem()) { newSelectedItemIndex in
-                        scroll.scrollTo(newSelectedItemIndex, anchor: .center)
+                        withAnimation(.linear(duration: 0.25)) {
+                            scroll.scrollTo(newSelectedItemIndex, anchor: .center)
+                        }
                     }
                 }
             }

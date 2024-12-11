@@ -13,7 +13,7 @@ public final class SearchControllerInteractionsManager: MSAInteractionsManager, 
         guard let owner = self.searchController else { return }
         
         if let dbLoader = eventArgs.getSource() as? any AnyDBLoader {
-            self.mediator?.signalInterest(owner, to: dbLoader)
+            self.mediator?.signalInterest(owner, to: dbLoader, or: .ignore)
         }
     }
     

@@ -20,16 +20,16 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     public func peerDiscovered(eventArgs: ZTronObservation.BroadcastArgs) {
         guard let owner = self.owner else { return }
         if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
-            self.mediator?.signalInterest(owner, to: topbar)
+            self.mediator?.signalInterest(owner, to: topbar, or: .ignore)
         } else {
             if let colorPicker = eventArgs.getSource() as? PlaceableColorPicker {
-                self.mediator?.signalInterest(owner, to: colorPicker)
+                self.mediator?.signalInterest(owner, to: colorPicker, or: .ignore)
             } else {
                 if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
-                    self.mediator?.signalInterest(owner, to: pinnedBottomBar)
+                    self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .ignore)
                 } else {
                     if let searchController = eventArgs.getSource() as? (any AnySearchController) {
-                        self.mediator?.signalInterest(owner, to: searchController)
+                        self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
                     }
                 }
             }

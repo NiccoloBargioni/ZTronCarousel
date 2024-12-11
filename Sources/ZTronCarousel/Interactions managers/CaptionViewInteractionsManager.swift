@@ -15,7 +15,7 @@ public final class CaptionViewInteractionsManager: MSAInteractionsManager, @unch
         guard let owner = self.captionView else { return }
         
         if let carousel = eventArgs.getSource() as? CarouselComponent {
-            self.mediator?.signalInterest(owner, to: carousel, or: .fail)
+            self.mediator?.signalInterest(owner, to: carousel, or: .ignore)
         }
     }
     
@@ -29,7 +29,7 @@ public final class CaptionViewInteractionsManager: MSAInteractionsManager, @unch
         if let carousel = args.getSource() as? CarouselComponent {
             Task(priority: .userInitiated) { @MainActor in
                 if let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor {
-                    owner.setText(body: currentMediaDescriptor.getCaption())
+                    owner.setText(body: currentMediaDescriptor.getCaption().localized(in: .main))
                 }
             }
         }

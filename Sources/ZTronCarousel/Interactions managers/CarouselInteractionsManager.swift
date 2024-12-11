@@ -15,16 +15,16 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
         guard let owner = self.owner else { return }
         
         if let bottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
-            self.mediator?.signalInterest(owner, to: bottomBar, or: .fail)
+            self.mediator?.signalInterest(owner, to: bottomBar, or: .ignore)
         } else {
             if let colorPicker = eventArgs.getSource() as? PlaceableColorPicker {
-                self.mediator?.signalInterest(owner, to: colorPicker, or: .fail)
+                self.mediator?.signalInterest(owner, to: colorPicker, or: .ignore)
             } else {
                 if let dbLoader = eventArgs.getSource() as? (any AnyDBLoader) {
-                    self.mediator?.signalInterest(owner, to: dbLoader, or: .fail)
+                    self.mediator?.signalInterest(owner, to: dbLoader, or: .ignore)
                 } else {
                     if let page = eventArgs.getSource() as? (any AnyPage) {
-                        self.mediator?.signalInterest(owner, to: page, or: .fail)
+                        self.mediator?.signalInterest(owner, to: page, or: .ignore)
                     }
                 }
             }

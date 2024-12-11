@@ -24,10 +24,10 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
     public func peerDiscovered(eventArgs: ZTronObservation.BroadcastArgs) {
         guard let owner = self.owner else { return }
         if let carousel = eventArgs.getSource() as? CarouselComponent {
-            self.mediator?.signalInterest(owner, to: carousel, or: .fail)
+            self.mediator?.signalInterest(owner, to: carousel, or: .ignore)
         } else {
             if let dbLoader = eventArgs.getSource() as? (any AnyDBLoader) {
-                self.mediator?.signalInterest(owner, to: dbLoader, or: .fail)
+                self.mediator?.signalInterest(owner, to: dbLoader, or: .ignore)
             }
         }
     }

@@ -138,9 +138,7 @@ import ZTronObservation
         super.viewDidLoad()
 
         self.view.layer.masksToBounds = true
-        
-        self.navigationItem.title = "Memory Charms"
-        
+                
         // so we can see the view / page view controller framing
         view.backgroundColor = .systemBackground
         

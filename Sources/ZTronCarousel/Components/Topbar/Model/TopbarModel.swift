@@ -16,7 +16,7 @@ internal final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         }
     }
     
-    private let title: String
+    public let title: String
     @Published private var selectedItem: Int
     @Published private var items: [any TopbarComponent]
     @Published private(set) internal var redacted: Bool = true

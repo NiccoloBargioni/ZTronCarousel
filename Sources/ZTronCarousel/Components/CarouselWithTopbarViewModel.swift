@@ -2,19 +2,9 @@ import Foundation
 import ZTronObservation
 
 public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendable {
-    public let id: String = "memory charms viewModel"
+    public let id: String = "viewModel"
     weak public var viewModel: CarouselPageWithTopbar?
-    private var delegate: (any MSAInteractionsManager)? {
-        willSet {
-            guard let delegate = self.delegate else { return }
-            delegate.detach()
-        }
-        
-        didSet {
-            guard let delegate = self.delegate else { return }
-            delegate.setup(or: .ignore)
-        }
-    }
+    @InteractionsManaging(setupOr: .ignore, detachOr: .fail) var delegate: (any MSAInteractionsManager)? = nil
     
     
     public func getDelegate() -> (any ZTronObservation.InteractionsManager)? {

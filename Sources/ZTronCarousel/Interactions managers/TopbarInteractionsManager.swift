@@ -13,10 +13,10 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
         
         if let dbLoader = (eventArgs.getSource() as? (any AnyDBLoader)) {
-            self.mediator?.signalInterest(owner, to: dbLoader)
+            self.mediator?.signalInterest(owner, to: dbLoader, or: .ignore)
         } else {
             if let searchController = (eventArgs.getSource() as? (any AnySearchController)) {
-                self.mediator?.signalInterest(owner, to: searchController)
+                self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
             }
         }
     }

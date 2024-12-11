@@ -8,6 +8,8 @@ public protocol TopbarComponent: AnyObject, Sendable, Equatable {
 
 
 public protocol AnyTopbarModel: Component, AnyObject, ObservableObject {
+    var title: String { get }
+
     func setIsRedacted(to isRedacted: Bool) -> Void
     func replaceItems(with items: [any TopbarComponent])
     func getSelectedItemName() -> String

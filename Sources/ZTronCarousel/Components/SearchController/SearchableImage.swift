@@ -35,10 +35,10 @@ public final class SearchableImage: Sendable, Searchable, Hashable, Identifiable
         self.searchLabel = from.getSearchLabel()
         self.gallery = from.getGallery()
         
-        self.localizedName = String(localized: String.LocalizationValue(stringLiteral: self.name), bundle: .main)
-        self.localizedDescription = String(localized: String.LocalizationValue(stringLiteral: self.description), bundle: .main)
+        self.localizedName = self.name.localized(in: .main)
+        self.localizedDescription = self.description.localized(in: .main)
         if let searchLabel = self.searchLabel {
-            self.localizedSearchLabel = String(localized: String.LocalizationValue(stringLiteral: searchLabel), bundle: .main)
+            self.localizedSearchLabel = searchLabel.localized(in: .main)
         } else {
             self.localizedSearchLabel = nil
         }

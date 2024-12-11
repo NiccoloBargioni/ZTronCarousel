@@ -4,7 +4,13 @@ import ZTronObservation
 import ZTronSerializable
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
-    public init() {  }
+    private let topbarTitle: String
+    
+    public init(
+        topbarTitle: String
+    ) {
+        self.topbarTitle = topbarTitle
+    }
 
     public func makeViewModel() -> any AnyViewModel {
         return CarouselWithTopbarViewModel()
@@ -32,7 +38,7 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: "Select a charm"
+            title: self.topbarTitle
         )
         
         let topbar = UIHostingController<TopbarView>(rootView: TopbarView(topbar: model))

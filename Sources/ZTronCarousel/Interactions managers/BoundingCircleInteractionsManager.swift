@@ -17,13 +17,13 @@ public final class BoundingCircleInteractionsManager: MSAInteractionsManager, @u
         if let colorPicker = eventArgs.getSource() as? PlaceableColorPicker {
             Task(priority: .userInitiated) { @MainActor in
                 if colorPicker.parentImage == owner.parentImage {
-                    self.mediator?.signalInterest(owner, to: colorPicker, or: .fail)
+                    self.mediator?.signalInterest(owner, to: colorPicker, or: .ignore)
                 }
             }
         } else {
             Task(priority: .userInitiated) { @MainActor in 
                 if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
-                    self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .fail)
+                    self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .ignore)
                 }
             }
         }
