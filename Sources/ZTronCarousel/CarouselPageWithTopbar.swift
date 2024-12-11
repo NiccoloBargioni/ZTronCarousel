@@ -72,11 +72,11 @@ import ZTronObservation
     public init(
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
-        componentsFactory: (any ZTronComponentsFactory)? = nil,
+        componentsFactory: (any ZTronComponentsFactory),
         interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
     ) {
         
-        self.componentsFactory = componentsFactory ?? DefaultZtronComponentsFactory()
+        self.componentsFactory = componentsFactory
         self.interactionsManagersFactory = interactionsManagersFactory ?? DefaultZTronInteractionsManagerFactory()
         
         self.carouselModel = self.componentsFactory.makeViewModel()
