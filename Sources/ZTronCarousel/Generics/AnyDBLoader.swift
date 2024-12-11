@@ -1,7 +1,9 @@
 import ZTronObservation
 import ZTronDataModel
+import ZTronSerializable
 
 public protocol AnyDBLoader: Component, AnyObject {
+    var fk: SerializableGalleryForeignKeys { get }
     var lastAction: DBLoaderAction { get }
     
     func getGalleries() -> [SerializedGalleryModel]

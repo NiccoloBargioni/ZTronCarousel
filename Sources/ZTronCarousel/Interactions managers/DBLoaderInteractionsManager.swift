@@ -92,6 +92,8 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     }
     
     private func handleColorPickerNotification(_ colorPicker: PlaceableColorPicker) {
+        guard let owner = self.owner else  { return }
+        
         if let currentGallery = self.currentGalleryName {
             
             Task(priority: .userInitiated) { @MainActor in
@@ -106,10 +108,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                         opacity: colorPicker.getSelectedColor().cgColor.alpha,
                                         image: colorPicker.parentImage,
                                         gallery: currentGallery,
-                                        tool: "memory charms",
-                                        tab: "side quests",
-                                        map: "rave in the redwoods",
-                                        game: "infinite warfare"
+                                        tool: owner.fk.getTool(),
+                                        tab: owner.fk.getTab(),
+                                        map: owner.fk.getMap(),
+                                        game: owner.fk.getGame()
                                     )
                                     
                                     try DBMS.CRUD.updateBoundingCircleColor(
@@ -118,10 +120,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                         opacity: colorPicker.getSelectedColor().cgColor.alpha,
                                         image: colorPicker.parentImage,
                                         gallery: currentGallery,
-                                        tool: "memory charms",
-                                        tab: "side quests",
-                                        map: "rave in the redwoods",
-                                        game: "infinite warfare"
+                                        tool: owner.fk.getTool(),
+                                        tab: owner.fk.getTab(),
+                                        map: owner.fk.getMap(),
+                                        game: owner.fk.getGame()
                                     )
                                     
                                 } catch {
@@ -143,6 +145,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
 
     
     private final func handlePinnedBottomBarNotification(_ pinnedBottomBar: any AnyBottomBar) {
+        guard let owner = self.owner else { return }
         guard let currentGallery = self.currentGalleryName else { return }
         
         Task(priority: .userInitiated) { @MainActor in
@@ -174,10 +177,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                         for: dbConnection,
                                         image: currentImage,
                                         gallery: currentGallery,
-                                        tool: "memory charms",
-                                        tab: "side quests",
-                                        map: "rave in the redwoods",
-                                        game: "infinite warfare"
+                                        tool: owner.fk.getTool(),
+                                        tab: owner.fk.getTab(),
+                                        map: owner.fk.getMap(),
+                                        game: owner.fk.getGame()
                                     )
                                 } else {
                                     if pinnedBottomBar.lastAction == .toggleBoundingCircle {
@@ -185,10 +188,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                             for: dbConnection,
                                             image: currentImage,
                                             gallery: currentGallery,
-                                            tool: "memory charms",
-                                            tab: "side quests",
-                                            map: "rave in the redwoods",
-                                            game: "infinite warfare"
+                                            tool: owner.fk.getTool(),
+                                            tab: owner.fk.getTab(),
+                                            map: owner.fk.getMap(),
+                                            game: owner.fk.getGame()
                                         )
                                     }
                                 }

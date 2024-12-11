@@ -9,7 +9,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
     public let id: String = "db loader"
     @InteractionsManaging(setupOr: .ignore, detachOr: .fail) private var delegate: (any MSAInteractionsManager)? = nil
     
-    private let fk: SerializableGalleryForeignKeys
+    public let fk: SerializableGalleryForeignKeys
     
     @Published private var galleries: [SerializedGalleryModel] = [] // mutable array of immutable objects
     @Published private var images: [ZTronCarouselImageDescriptor] = []
