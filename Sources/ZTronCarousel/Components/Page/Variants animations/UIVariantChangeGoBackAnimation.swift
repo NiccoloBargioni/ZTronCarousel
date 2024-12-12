@@ -130,22 +130,6 @@ public final class UIVariantChangeGoBackAnimation: UIView, VariantAnimation {
             self.layoutIfNeeded()
         }
     }
-
-    public func detach() {
-        UIView.animate(withDuration: 0.25) {
-            self.alpha = 0.0
-        } completion: { ended in
-            if ended {
-                self.removeFromSuperview()
-            } else {
-                DispatchQueue.main.async {
-                    Task(priority: .userInitiated) { @MainActor in
-                        self.removeFromSuperview()
-                    }
-                }
-            }
-        }
-    }
     
     public func viewWillTransitionTo(size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         guard let theAnimation = self.theAnimation else { return }

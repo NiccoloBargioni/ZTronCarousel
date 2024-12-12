@@ -90,55 +90,36 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     @MainActor public final func attachAnimation(_ animationDescriptor: ImageVariantDescriptor, forward: Bool = true) {
         guard self.lastAction != .animationEnded else { fatalError() }
         
-        if forward {
-            let animation = UIVariantChangedForwardAnimation(
-                target: animationDescriptor.getSlave(),
-                bundle: .main,
-                initialNormalizedAABB: animationDescriptor.getBoundingFrame()
-            ) { completed in
-                self.lastAction = .animationEnded
-
-                self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self), limitToNeighbours: true)
-            }
-            
-            self.imageView.addSubview(animation)
-            
-            animation.snp.makeConstraints { make in
-                make.top.right.bottom.left.equalTo(animation.superview!.safeAreaLayoutGuide)
-            }
-                        
-            self.animation = animation
-            self.lastAction = .animationStarted
-
-            self.view.layoutIfNeeded()
-            animation.start()
+        let animation: any VariantAnimation = forward ? UIVariantChangedForwardAnimation(
+            target: animationDescriptor.getSlave(),
+            bundle: .main,
+            initialNormalizedAABB: animationDescriptor.getBoundingFrame()
+        ) { _ in
+            self.lastAction = .animationEnded
             self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self), limitToNeighbours: true)
-        } else {
-            let animation = UIVariantChangeGoBackAnimation(
-                master: animationDescriptor.getMaster(),
-                slave: animationDescriptor.getSlave(),
-                bundle: .main,
-                initialNormalizedAABB: animationDescriptor.getBoundingFrame()
-            ) { completed in
-                self.lastAction = .animationEnded
-                self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self), limitToNeighbours: true)
-            }
-            
-            self.imageView.addSubview(animation)
-            
-            animation.snp.makeConstraints { make in
-                make.top.right.bottom.left.equalTo(animation.superview!.safeAreaLayoutGuide)
-            }
-            
-
-            self.view.layoutIfNeeded()
-            self.animation = animation
-            
-            self.lastAction = .animationStarted
-            animation.start()
-
+        } : UIVariantChangeGoBackAnimation(
+            master: animationDescriptor.getMaster(),
+            slave: animationDescriptor.getSlave(),
+            bundle: .main,
+            initialNormalizedAABB: animationDescriptor.getBoundingFrame()
+        ) { _ in
+            self.lastAction = .animationEnded
             self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self), limitToNeighbours: true)
         }
+        
+        
+        self.imageView.addSubview(animation)
+        
+        animation.snp.makeConstraints { make in
+            make.top.right.bottom.left.equalTo(animation.superview!.safeAreaLayoutGuide)
+        }
+                    
+        self.animation = animation
+        self.lastAction = .animationStarted
+
+        self.view.layoutIfNeeded()
+        animation.start()
+        self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self), limitToNeighbours: true)
     }
         
     override open func viewDidAppear(_ animated: Bool) {

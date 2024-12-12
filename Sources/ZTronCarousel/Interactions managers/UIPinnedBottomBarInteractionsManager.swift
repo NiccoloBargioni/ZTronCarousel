@@ -43,10 +43,13 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
             self.handleDBLoaderNotification(dbLoader, args: args)
         } else {
             if let carousel = args.getSource() as? CarouselComponent {
-                self.handleCarouselNotification(carousel)
+                if let args = args as? MSAArgs {
+                    if args.getFrom() === carousel { // Only handle direct notifications from carousel
+                        self.handleCarouselNotification(carousel)
+                    }
+                }
             }
         }
-
     }
     
     private final func appendGoBack(currentImageDescriptor: ZTronCarouselImageDescriptor) {
@@ -89,17 +92,13 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
                     if let currentImageDescriptor = currentImageDescriptor as? ZTronCarouselImageDescriptor {
                         
                         if let variantsMetadata = currentImageDescriptor.getVariantsDescriptor() {
-                            Task(priority: .userInitiated) { @MainActor in
-                                owner.switchVariants(variantsMetadata) { _ in
-                                    self.appendGoBack(currentImageDescriptor: currentImageDescriptor)
-                                }
+                            owner.switchVariants(variantsMetadata) { _ in
+                                self.appendGoBack(currentImageDescriptor: currentImageDescriptor)
                             }
                         } else {
-                            Task(priority: .userInitiated) { @MainActor in
-                                UIView.animate(withDuration: 0.25) {
-                                    owner.clearVariantsStack { _ in
-                                        self.appendGoBack(currentImageDescriptor: currentImageDescriptor)
-                                    }
+                            UIView.animate(withDuration: 0.25) {
+                                owner.clearVariantsStack { _ in
+                                    self.appendGoBack(currentImageDescriptor: currentImageDescriptor)
                                 }
                             }
                         }
