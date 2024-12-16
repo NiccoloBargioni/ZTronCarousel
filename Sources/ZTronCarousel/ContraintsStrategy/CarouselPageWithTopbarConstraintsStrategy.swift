@@ -27,11 +27,11 @@ internal final class CarouselPageWithTopbarConstraintsStrategy: ConstraintsStrat
     func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
         let size = owner.computeContentSizeThatFits()
-        
+        owner.myContainerView.translatesAutoresizingMaskIntoConstraints = false
+
         owner.myContainerView.snp.makeConstraints { make in
             make.centerX.equalTo(owner.view.safeAreaLayoutGuide)
         }
-
         
         pgvcHeight = owner.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
         pgvcHeight.isActive = true
@@ -41,7 +41,6 @@ internal final class CarouselPageWithTopbarConstraintsStrategy: ConstraintsStrat
         
         pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.topbarView.view.safeAreaLayoutGuide.bottomAnchor)
         pgvcTop.isActive = true
-
     }
     
 
@@ -62,15 +61,13 @@ internal final class CarouselPageWithTopbarConstraintsStrategy: ConstraintsStrat
     func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         
-        if orientation.isLandscape {
-            self.pgvcTop.isActive = false
+        self.pgvcTop.isActive = false
+        if sizeAfterTransition.width > sizeAfterTransition.height {
             self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
-            self.pgvcTop.isActive = true
         } else {
-            self.pgvcTop.isActive = false
             self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.topbarView.view.bottomAnchor)
-            self.pgvcTop.isActive = true
         }
+        self.pgvcTop.isActive = true
         
         self.pgvcHeight.isActive = false
         self.pgvcWidth.isActive = false
@@ -89,10 +86,12 @@ internal final class CarouselPageWithTopbarConstraintsStrategy: ConstraintsStrat
     func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         
+        self.scrollViewTopContentGuide.isActive = false
         if orientation.isPortrait {
-            self.scrollViewTopContentGuide.isActive = false
             self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: owner.topbarView.view.safeAreaLayoutGuide.topAnchor)
-            self.scrollViewTopContentGuide.isActive = true
+        } else {
+            self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: owner.myContainerView.safeAreaLayoutGuide.topAnchor)
         }
+        self.scrollViewTopContentGuide.isActive = true
     }
 }

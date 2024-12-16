@@ -76,14 +76,7 @@ import ZTronObservation
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
         self.thePageVC = .init(with: self.pageFactory, medias: [])
-        
-        thePageVC.view.layer.cornerRadius = 5.0;
-        thePageVC.view.layer.masksToBounds = false
-        thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
-        thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
-        thePageVC.view.layer.shadowRadius = 3
-        thePageVC.view.layer.shadowOpacity = 0.4
-        
+                
         self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
         self.bottomBarView = nil
         
@@ -158,9 +151,7 @@ import ZTronObservation
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         self.topbarView.view.layer.zPosition = 3.0
 
-        myContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(myContainerView)
-
         self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
         self.thePageVC.willMove(toParent: self)
@@ -198,7 +189,6 @@ import ZTronObservation
         let captionViewContainer = BottomSeparatedUIView()
         self.scrollView.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
-        
         
         captionViewContainer.snp.makeConstraints { make in
             make.top.equalTo(self.bottomBarView.snp.bottom)
@@ -252,6 +242,14 @@ import ZTronObservation
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
+            thePageVC.view.layer.cornerRadius = 5.0;
+            thePageVC.view.layer.masksToBounds = false
+            thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
+            thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
+            thePageVC.view.layer.shadowRadius = 3
+            thePageVC.view.layer.shadowOpacity = 0.4
+
+            
             curWidth = myContainerView.frame.width
             self.constraintsStrategy.updatePageWrapperConstraintsForTransition(
                 to: myContainerView.frame.width > myContainerView.frame.height ? .landscapeLeft : .portrait,
@@ -284,12 +282,6 @@ import ZTronObservation
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
                     self.captionView.superview?.isHidden = false
-                    
-                    self.constraintsStrategy.updateScrollViewContentConstraintsForTransition(
-                        to: .portrait,
-                        sizeAfterTransition: size
-                    )
-                    
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
                     self.topbarView.view.isHidden = true
@@ -298,6 +290,11 @@ import ZTronObservation
                     self.captionView.superview?.isHidden = true
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
+                
+                self.constraintsStrategy.updateScrollViewContentConstraintsForTransition(
+                    to: .portrait,
+                    sizeAfterTransition: size
+                )
                     
                 self.view.layoutIfNeeded()
                 
