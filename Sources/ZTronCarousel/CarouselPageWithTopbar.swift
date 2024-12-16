@@ -15,14 +15,13 @@ import ZTronObservation
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
 
-    // this will hold the page view controller
-    private let myContainerView: UIView = {
+
+    internal let myContainerView: UIView = {
         let v = UIView()
         v.backgroundColor = .black
         return v
     }()
     
-    // we will add a UIPageViewController as a child VC
     private(set) public var thePageVC: CarouselComponent!
     private(set) public var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -32,15 +31,8 @@ import ZTronObservation
         return scrollView
     }()
     
-    // this will be used to change the page view controller height based on
-    //    view width-to-height (portrait/landscape)
-    // I know this could be done with a SnapKit object, but I don't use SnapKit...
-    private var pgvcHeight: NSLayoutConstraint!
-    private var pgvcWidth: NSLayoutConstraint!
-    private var pgvcTop: NSLayoutConstraint!
-    private var topbarWidth: NSLayoutConstraint!
+    private var constraintsStrategy: ConstraintsStrategy!
     
-    private var scrollViewTopContentGuide: NSLayoutConstraint!
     private var scrollViewBottomContentGuide: NSLayoutConstraint!
     
     // track current view width
@@ -84,19 +76,13 @@ import ZTronObservation
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
         self.thePageVC = .init(with: self.pageFactory, medias: [])
-        
-        thePageVC.view.layer.cornerRadius = 5.0;
-        thePageVC.view.layer.masksToBounds = false
-        thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
-        thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
-        thePageVC.view.layer.shadowRadius = 3
-        thePageVC.view.layer.shadowOpacity = 0.4
-        
+                
         self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        
+        self.constraintsStrategy = CarouselPageWithTopbarConstraintsStrategy(owner: self)
+
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
             
@@ -139,7 +125,6 @@ import ZTronObservation
 
         self.view.layer.masksToBounds = true
                 
-        // so we can see the view / page view controller framing
         view.backgroundColor = .systemBackground
         
         self.view.addSubview(self.scrollView)
@@ -154,11 +139,8 @@ import ZTronObservation
         self.topbarView.willMove(toParent: self)
         self.addChild(self.topbarView)
         self.scrollView.addSubview(self.topbarView.view)
-                
-        self.topbarView.view.snp.makeConstraints { make in
-            make.left.right.top.equalTo(self.scrollView.contentLayoutGuide)
-            make.height.equalTo(self.topbarView.view.intrinsicContentSize.height)
-        }
+                    
+        self.constraintsStrategy.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
         if !self.isPortrait {
             self.topbarView.view.isHidden = true
@@ -169,35 +151,13 @@ import ZTronObservation
         self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         self.topbarView.view.layer.zPosition = 3.0
 
-        // add myContainerView
-        myContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(myContainerView)
+        self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
-        myContainerView.snp.makeConstraints { make in
-            make.centerX.equalTo(self.view.safeAreaLayoutGuide)
-        }
-
-            
-        let size = self.computeContentSizeThatFits()
-
-        // this will be updated in viewDidLayoutSubviews
-        pgvcHeight = myContainerView.heightAnchor.constraint(equalToConstant: size.height)
-        pgvcHeight.isActive = true
-
-        pgvcWidth = myContainerView.widthAnchor.constraint(equalToConstant: size.width)
-        pgvcWidth.isActive = true
-        
-        pgvcTop = myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.bottomAnchor)
-        pgvcTop.isActive = true
         self.thePageVC.willMove(toParent: self)
         addChild(thePageVC)
         
-        // set the "data"
-        
-        // we need to re-size the page view controller's view to fit our container view
         thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
-        
-        // add the page VC's view to our container view
         myContainerView.addSubview(thePageVC.view)
         
         thePageVC.view.snp.makeConstraints { make in
@@ -230,7 +190,6 @@ import ZTronObservation
         self.scrollView.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
         
-        
         captionViewContainer.snp.makeConstraints { make in
             make.top.equalTo(self.bottomBarView.snp.bottom)
             make.left.right.equalTo(self.bottomBarView)
@@ -252,7 +211,6 @@ import ZTronObservation
             self.interactionsManagersFactory.makeCaptionViewInteractionsManager(owner: self.captionView, mediator: self.mediator)
         )
         
-        
         thePageVC.didMove(toParent: self)
         self.topbarView.didMove(toParent: self)
         
@@ -268,15 +226,8 @@ import ZTronObservation
             )
 
         self.scrollViewBottomContentGuide.isActive = true
-        self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(
-            equalTo: isPortrait ?
-                self.topbarView.view.safeAreaLayoutGuide.topAnchor :
-                self.myContainerView.safeAreaLayoutGuide.topAnchor
-        )
-        self.scrollViewTopContentGuide.isActive = true
         
-        self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.leftAnchor).isActive = true
-        self.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.rightAnchor).isActive = true
+        self.constraintsStrategy.makeScrollViewContentConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
     }
     
     override open func viewDidLayoutSubviews() {
@@ -291,27 +242,24 @@ import ZTronObservation
         // only execute this code block if the view frame has changed
         //    such as on device rotation
         if curWidth != myContainerView.frame.width {
+            thePageVC.view.layer.cornerRadius = 5.0;
+            thePageVC.view.layer.masksToBounds = false
+            thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
+            thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
+            thePageVC.view.layer.shadowRadius = 3
+            thePageVC.view.layer.shadowOpacity = 0.4
+
+            
             curWidth = myContainerView.frame.width
-            
-            // cannot directly change a constraint multiplier, so
-            //    deactivate / create new / reactivate
-            
-            self.pgvcHeight.isActive = false
-            self.pgvcWidth.isActive = false
-            if myContainerView.superview!.frame.width / myContainerView.superview!.frame.height >= 16.0/9.0 {
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
-            } else {
-                self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
-                self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
-            }
-            self.pgvcHeight.isActive = true
-            self.pgvcWidth.isActive = true
+            self.constraintsStrategy.updatePageWrapperConstraintsForTransition(
+                to: myContainerView.frame.width > myContainerView.frame.height ? .landscapeLeft : .portrait,
+                sizeAfterTransition: myContainerView.superview!.frame.size
+            )
         }
     }
     
     
-    public final func computeContentSizeThatFits() -> CGSize {
+    internal final func computeContentSizeThatFits() -> CGSize {
         return CGSize.sizeThatFits(containerSize: self.view.safeAreaLayoutGuide.layoutFrame.size, containedAR: 16.0/9.0)
     }
     
@@ -324,40 +272,16 @@ import ZTronObservation
         
         coordinator.animate { _ in
             UIView.animate(withDuration: 0.25) {
-                if size.width > size.height {
-                    self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.topAnchor)
-                    self.pgvcTop.isActive = true
-                } else {
-                    self.pgvcTop.isActive = false
-                    self.pgvcTop = self.myContainerView.topAnchor.constraint(equalTo: self.topbarView.view.bottomAnchor)
-                    self.pgvcTop.isActive = true
-                }
-                
-                self.pgvcHeight.isActive = false
-                self.pgvcWidth.isActive = false
-                
-                if size.width / size.height >= 16.0/9.0 {
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.heightAnchor, multiplier: 16.0/9.0)
-                } else {
-                    self.pgvcWidth = self.myContainerView.widthAnchor.constraint(equalTo: self.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
-                    self.pgvcHeight = self.myContainerView.heightAnchor.constraint(equalTo: self.myContainerView.widthAnchor, multiplier: 9.0/16.0)
-                }
-                
-                self.pgvcHeight.isActive = true
-                self.pgvcWidth.isActive = true
+                self.constraintsStrategy.updatePageWrapperConstraintsForTransition(
+                    to: size.width > size.height ? .landscapeLeft : .portrait,
+                    sizeAfterTransition: size
+                )
                 
                 if size.width < size.height {
                     self.topbarView.view.isHidden = false
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
                     self.captionView.superview?.isHidden = false
-                    
-                    self.scrollViewTopContentGuide.isActive = false
-                    self.scrollViewTopContentGuide = self.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: self.topbarView.view.safeAreaLayoutGuide.topAnchor)
-                    self.scrollViewTopContentGuide.isActive = true
-                    
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
                     self.topbarView.view.isHidden = true
@@ -366,6 +290,11 @@ import ZTronObservation
                     self.captionView.superview?.isHidden = true
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
+                
+                self.constraintsStrategy.updateScrollViewContentConstraintsForTransition(
+                    to: .portrait,
+                    sizeAfterTransition: size
+                )
                     
                 self.view.layoutIfNeeded()
                 
