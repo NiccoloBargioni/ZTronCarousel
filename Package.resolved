@@ -1,5 +1,5 @@
 {
-  "originHash" : "237d217bd991bae1886d53778a4df7eb279f177c7bc4b231868d4a87feaa8569",
+  "originHash" : "1a00af6ecfd1d345d4351cb3d027a29cf5c4025d756c96e2e7ac41a905469f98",
   "pins" : [
     {
       "identity" : "ifrit",
@@ -97,7 +97,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
         "branch" : "main",
-        "revision" : "f2670a7913306681e034087bce69ec3df46c1be8"
+        "revision" : "88b72927e8d51ba9d168cf74f1558b45b473e7ce"
       }
     },
     {
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronObservation",
       "state" : {
-        "branch" : "bugfix/threadSafety",
-        "revision" : "58086882c42955060edc522f2e70369dd47dc0af"
+        "branch" : "main",
+        "revision" : "0f181236de96905b6abd8d0cb7c68bc6e943e0c7"
       }
     },
     {
