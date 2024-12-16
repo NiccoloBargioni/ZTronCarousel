@@ -7,14 +7,15 @@ import ZTronCarouselCore
 import ZTronObservation
 
 @MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
+    public let mediator: MSAMediator = .init()
+
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
-    
-    private let componentsFactory: any ZTronComponentsFactory
-    private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
-
+    public let topbarView: UIViewController?
+    private(set) public var bottomBarView: (any AnyBottomBar)!
+    private(set) public var captionView: (any AnyCaptionView)!
 
     internal let myContainerView: UIView = {
         let v = UIView()
@@ -33,18 +34,15 @@ import ZTronObservation
     
     private var constraintsStrategy: ConstraintsStrategy!
     
+    private let componentsFactory: any ZTronComponentsFactory
+    private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
+
     private var scrollViewBottomContentGuide: NSLayoutConstraint!
-    
-    // track current view width
-    private var curWidth: CGFloat = 0.0
-    
-    private(set) public var bottomBarView: (any AnyBottomBar)!
-    private(set) public var captionView: (any AnyCaptionView)!
-        
-    public let mediator: MSAMediator = .init()
-    public let topbarView: UIViewController?
+
     
     private var limitViewDidLayoutCalls: Int = Int.max
+    // track current view width
+    private var curWidth: CGFloat = 0.0
     
     public var isPortrait: Bool {
         if UIDevice.current.orientation.isValidInterfaceOrientation {
@@ -56,7 +54,7 @@ import ZTronObservation
             if let keyWindowBounds = keyWindow?.screen.bounds {
                 return keyWindowBounds.height > keyWindowBounds.width
             } else {
-                fatalError("Unable to infer initial device orientation")
+                fatalError("Unable to infer initial device orientation") // if not wrapped in UINavigationController this can happen
             }
         }
     }
@@ -111,11 +109,7 @@ import ZTronObservation
             }
             
             Task(priority: .high) {
-                if self.topbarView != nil {
-                    try self.dbLoader.loadFirstLevelGalleries()
-                } else {
-                    try self.dbLoader.loadImagesForGallery(nil)
-                }
+                try self.dbLoader.loadFirstLevelGalleries()
             }
         }
     }

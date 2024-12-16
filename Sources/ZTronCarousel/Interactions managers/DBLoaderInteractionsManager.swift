@@ -1,12 +1,15 @@
 import Foundation
 import ZTronObservation
+import ZTronCarouselCore
 import ZTronDataModel
  
 public final class DBLoaderInteractionsManager: MSAInteractionsManager, @unchecked Sendable {
     weak private var owner: (any AnyDBLoader)?
     weak private var mediator: MSAMediator?
     
+    
     private var currentGalleryName: String? = nil
+    private var acknowledgedTopbar: Bool = false
     
     public init(owner: (any AnyDBLoader), mediator: MSAMediator) {
         self.owner = owner
@@ -21,6 +24,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
         if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
             self.mediator?.signalInterest(owner, to: topbar, or: .ignore)
+            self.acknowledgedTopbar = true
         } else {
             if let colorPicker = eventArgs.getSource() as? PlaceableColorPicker {
                 self.mediator?.signalInterest(owner, to: colorPicker, or: .ignore)
@@ -30,6 +34,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                 } else {
                     if let searchController = eventArgs.getSource() as? (any AnySearchController) {
                         self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
+                    } else {
+                        if let carouselComponent = eventArgs.getSource() as? CarouselComponent {
+                            self.mediator?.signalInterest(owner, to: carouselComponent)
+                        }
                     }
                 }
             }
@@ -42,7 +50,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     
     public func notify(args: ZTronObservation.BroadcastArgs) {
         guard let args = (args as? MSAArgs) else { return }
-        guard let _ = self.owner else { return }
+        guard let owner = self.owner else { return }
                 
         if let topbar = args.getRoot() as? (any AnyTopbarModel) {
             self.handleTopbarNotification(topbar)
@@ -57,6 +65,21 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                 } else {
                     if let searchController = args.getSource() as? (any AnySearchController) {
                         self.handleSearchControllerNotifications(searchController)
+                    } else {
+                        if let carousel = args.getSource() as? CarouselComponent {
+                            if let firstGallery = owner.getGalleries().first {
+                                MainActor.assumeIsolated {
+                                    if !self.acknowledgedTopbar && carousel.lastAction == .ready {
+                                        do {
+                                            self.currentGalleryName = firstGallery.getName()
+                                            try owner.loadImagesForGallery(firstGallery.getName())
+                                        } catch {
+                                            fatalError(error.localizedDescription)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -64,7 +87,9 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        
+        if let _ = args.getSource() as? any AnyTopbarModel {
+            self.acknowledgedTopbar = false
+        }
     }
     
     public func getOwner() -> (any ZTronObservation.Component)? {

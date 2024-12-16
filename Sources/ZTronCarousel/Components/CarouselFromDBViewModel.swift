@@ -1,7 +1,7 @@
 import Foundation
 import ZTronObservation
 
-public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendable {
+public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
     public let id: String = "viewModel"
     weak public var viewModel: CarouselPageFromDB?
     @InteractionsManaging(setupOr: .ignore, detachOr: .fail) var delegate: (any MSAInteractionsManager)? = nil
@@ -24,7 +24,7 @@ public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendabl
         self.delegate = interactionsManager
     }
     
-    public static func == (lhs: CarouselWithTopbarViewModel, rhs: CarouselWithTopbarViewModel) -> Bool {
+    public static func == (lhs: CarouselFromDBViewModel, rhs: CarouselFromDBViewModel) -> Bool {
         return lhs.id == rhs.id && lhs.viewModel === rhs.viewModel
     }
     

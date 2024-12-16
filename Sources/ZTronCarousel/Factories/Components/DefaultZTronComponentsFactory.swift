@@ -13,7 +13,7 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
     }
 
     public func makeViewModel() -> any AnyViewModel {
-        return CarouselWithTopbarViewModel()
+        return CarouselFromDBViewModel()
     }
     
     public func makeSearchController() -> (any AnySearchController)? {
