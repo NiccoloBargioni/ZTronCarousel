@@ -40,7 +40,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         }
     }
     
-    public func loadImagesForGallery(_ theGallery: String) throws {
+    public func loadImagesForGallery(_ theGallery: String?) throws {
         try DBMS.transaction { db in
             let firstLevel = try
                 DBMS.CRUD.readFirstLevelMasterImagesForGallery(

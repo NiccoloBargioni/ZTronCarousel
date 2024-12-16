@@ -1,7 +1,7 @@
 import UIKit
 
 @MainActor internal protocol ConstraintsStrategy: AnyObject {
-    var owner: CarouselPageWithTopbar? { get }
+    var owner: CarouselPageFromDB? { get }
     
     func makeTopbarConstraints(for orientation: UIDeviceOrientation) -> Void
     func makePageWrapperConstraints(for orientation: UIDeviceOrientation) -> Void

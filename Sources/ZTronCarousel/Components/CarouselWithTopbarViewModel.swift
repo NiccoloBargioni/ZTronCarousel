@@ -3,7 +3,7 @@ import ZTronObservation
 
 public final class CarouselWithTopbarViewModel: AnyViewModel, @unchecked Sendable {
     public let id: String = "viewModel"
-    weak public var viewModel: CarouselPageWithTopbar?
+    weak public var viewModel: CarouselPageFromDB?
     @InteractionsManaging(setupOr: .ignore, detachOr: .fail) var delegate: (any MSAInteractionsManager)? = nil
     
     

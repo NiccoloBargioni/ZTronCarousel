@@ -6,7 +6,7 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 
-@MainActor open class CarouselPageWithTopbar: IOS15LayoutLimitingViewController {
+@MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
@@ -42,7 +42,7 @@ import ZTronObservation
     private(set) public var captionView: (any AnyCaptionView)!
         
     public let mediator: MSAMediator = .init()
-    public let topbarView: UIViewController
+    public let topbarView: UIViewController?
     
     private var limitViewDidLayoutCalls: Int = Int.max
     
@@ -81,7 +81,7 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        self.constraintsStrategy = CarouselPageWithTopbarConstraintsStrategy(owner: self)
+        self.constraintsStrategy = CarouselPageFromDBConstraintsStrategy(owner: self)
 
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
@@ -111,7 +111,11 @@ import ZTronObservation
             }
             
             Task(priority: .high) {
-                try self.dbLoader.loadFirstLevelGalleries()
+                if self.topbarView != nil {
+                    try self.dbLoader.loadFirstLevelGalleries()
+                } else {
+                    try self.dbLoader.loadImagesForGallery(nil)
+                }
             }
         }
     }
@@ -136,20 +140,22 @@ import ZTronObservation
         
         self.scrollView.layer.zPosition = 2.0
         
-        self.topbarView.willMove(toParent: self)
-        self.addChild(self.topbarView)
-        self.scrollView.addSubview(self.topbarView.view)
-                    
-        self.constraintsStrategy.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+        if let topbarView = self.topbarView {
+            topbarView.willMove(toParent: self)
+            self.addChild(topbarView)
+            self.scrollView.addSubview(topbarView.view)
         
-        if !self.isPortrait {
-            self.topbarView.view.isHidden = true
-        } else {
-            self.topbarView.view.isHidden = false
+            self.constraintsStrategy.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+            
+            if !self.isPortrait {
+                topbarView.view.isHidden = true
+            } else {
+                topbarView.view.isHidden = false
+            }
+                    
+            topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
+            topbarView.view.layer.zPosition = 3.0
         }
-                
-        self.topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        self.topbarView.view.layer.zPosition = 3.0
 
         view.addSubview(myContainerView)
         self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
@@ -212,7 +218,7 @@ import ZTronObservation
         )
         
         thePageVC.didMove(toParent: self)
-        self.topbarView.didMove(toParent: self)
+        self.topbarView?.didMove(toParent: self)
         
         self.thePageVC.setDelegate(
             self.interactionsManagersFactory
@@ -278,13 +284,13 @@ import ZTronObservation
                 )
                 
                 if size.width < size.height {
-                    self.topbarView.view.isHidden = false
+                    self.topbarView?.view.isHidden = false
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
                     self.captionView.superview?.isHidden = false
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
-                    self.topbarView.view.isHidden = true
+                    self.topbarView?.view.isHidden = true
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
                     self.captionView.superview?.isHidden = true
@@ -304,7 +310,7 @@ import ZTronObservation
                         self.limitViewDidLayoutCalls = Int.max
                     }
                     
-                    self.topbarView.view.invalidateIntrinsicContentSize()
+                    self.topbarView?.view.invalidateIntrinsicContentSize()
                     super.onRotationCompletion()
                 }
             }

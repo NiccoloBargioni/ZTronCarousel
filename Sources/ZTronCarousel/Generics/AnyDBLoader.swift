@@ -10,7 +10,7 @@ public protocol AnyDBLoader: Component, AnyObject {
     func getImages() -> [ZTronCarouselImageDescriptor]
     
     func loadFirstLevelGalleries() throws -> Void
-    func loadImagesForGallery(_ theGallery: String) throws -> Void
+    func loadImagesForGallery(_ theGallery: String?) throws -> Void
     func loadGalleriesGraph() throws -> Void
     func loadImagesForSearch() throws -> Void
     

@@ -4,10 +4,10 @@ import ZTronObservation
 import ZTronSerializable
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
-    private let topbarTitle: String
+    private let topbarTitle: String?
     
     public init(
-        topbarTitle: String
+        topbarTitle: String? = nil
     ) {
         self.topbarTitle = topbarTitle
     }
@@ -24,7 +24,8 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
         return DBCarouselLoader(with: foreignKeys)
     }
     
-    public func makeTopbar(mediator: MSAMediator) -> UIViewController {
+    public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
+        guard let title = self.topbarTitle else { fatalError("Provide a title for topbar in .init()") }
         let model = TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
@@ -38,7 +39,7 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: self.topbarTitle
+            title: title
         )
         
         let topbar = UIHostingController<TopbarView>(rootView: TopbarView(topbar: model))
