@@ -1,7 +1,6 @@
 import SwiftUI
 
 public struct TopbarItemView: View {
-    static private let radius: CGFloat = 55.0
     private var tool: any TopbarComponent
     private let isActive: Bool
     
@@ -14,32 +13,8 @@ public struct TopbarItemView: View {
 
     public var body: some View {
     VStack {
-      ZStack {
-        Circle()
-          .strokeBorder(
-            isActive
-                ? self.glowColor
-            : Color(UIColor.label)
-                .opacity(0.3)
-          )
-          .frame(width: Self.radius, height: Self.radius)
-          .shadow(
-            color:
-              isActive
-                ? self.glowColor
-              : .clear,
-            radius: 1, x: 0, y: 0)
-
-        Circle()
-          .fill(
-            .clear
-          )
-          .frame(width: Self.radius, height: Self.radius)
-        Image(tool.getIcon())
-          .resizable()
-          .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
-          .clipShape(Circle())
-      }
+        TopbarItemShopWindow(icon: tool.getIcon(), isActive: isActive)
+            .glowColor(self.glowColor)
       Text(
         LocalizedStringKey(
           String(
@@ -55,8 +30,7 @@ public struct TopbarItemView: View {
             ? self.glowColor : Color(UIColor.label)
       )
       .font(.caption2)
-      .frame(minWidth: Self.radius, idealWidth: Self.radius + 10, maxWidth: Self.radius * 3)
-
+      .frame(minWidth: TopbarItemShopWindow.radius, idealWidth: TopbarItemShopWindow.radius + 10, maxWidth: TopbarItemShopWindow.radius * 3)
     }
     .lineLimit(nil)
     }
