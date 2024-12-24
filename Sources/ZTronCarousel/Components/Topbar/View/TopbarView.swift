@@ -81,8 +81,6 @@ public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
     
 }
 
-
-
 #Preview {
     TopbarView(
         topbar: TopbarModel(

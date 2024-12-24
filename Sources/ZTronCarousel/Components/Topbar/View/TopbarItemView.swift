@@ -5,7 +5,8 @@ public struct TopbarItemView: View {
     private let isActive: Bool
     
     private var glowColor: SwiftUI.Color = .cyan
-
+    private var shouldHighlightText: Bool = true
+    
     public init(tool: any TopbarComponent, isActive: Bool) {
         self.tool = tool
         self.isActive = isActive
@@ -26,7 +27,7 @@ public struct TopbarItemView: View {
         isActive ? .bold : .regular
       )
       .foregroundColor(
-        isActive
+        self.shouldHighlightText && self.isActive
             ? self.glowColor : Color(UIColor.label)
       )
       .font(.caption2)
@@ -44,6 +45,12 @@ public extension TopbarItemView {
     func glowColor(_ color: SwiftUI.Color) -> Self {
         var copy = self
         copy.glowColor = color
+        return copy
+    }
+    
+    func highlightText(_ shouldHighlightText: Bool = true) -> Self {
+        var copy = self
+        copy.shouldHighlightText = shouldHighlightText
         return copy
     }
 }
