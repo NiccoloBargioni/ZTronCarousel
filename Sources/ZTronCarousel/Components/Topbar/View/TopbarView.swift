@@ -51,9 +51,9 @@ public struct TopbarView<I>: View where I: View {
                                     topbar.setSelectedItem(item: i)
                                 }
                             }) {
-                                TopbarItemView(
-                                    tool: topbar.get(i),
-                                    isActive: topbar.getSelectedItem() == i
+                                self.itemBuilder(
+                                    topbar.get(i),
+                                    topbar.getSelectedItem() == i
                                 )
                             }
                             .id(i)
