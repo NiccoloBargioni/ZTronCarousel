@@ -19,7 +19,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     public let title: String
     @Published private var selectedItem: Int
     @Published private var items: [any TopbarComponent]
-    @Published private(set) internal var redacted: Bool = true
+    @Published private(set) public var redacted: Bool = true
     
     private var lastAction: TopbarAction = .selectedItemChanged
     
@@ -30,23 +30,23 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.id = "\(title) topbar"
     }
     
-    func count() -> Int {
+    public func count() -> Int {
         return self.items.count
     }
     
-    func get(_ pos: Int) -> any TopbarComponent {
+    public func get(_ pos: Int) -> any TopbarComponent {
         assert(pos >= 0 && pos < self.items.count)
         return self.items[pos]
     }
     
-    func setSelectedItem(item: Int) {
+    public func setSelectedItem(item: Int) {
         assert(item >= 0 && item < self.items.count)
         self.selectedItem = item
         self.lastAction = .selectedItemChanged
         self.delegate?.pushNotification(eventArgs: .init(source: self))
     }
     
-    func getSelectedItem() -> Int {
+    public func getSelectedItem() -> Int {
         return self.selectedItem
     }
     

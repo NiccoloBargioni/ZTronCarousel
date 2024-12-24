@@ -1,11 +1,11 @@
 import SwiftUI
 
-public struct TopbarView<I>: View where I: View {
-    @ObservedObject private var topbar: TopbarModel
+public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
+    @ObservedObject private var topbar: M
     private let itemBuilder: (_: any TopbarComponent, _: Bool) -> I
     
     public init(
-        topbar: TopbarModel,
+        topbar: M,
         @ViewBuilder item: @escaping (_: any TopbarComponent, _: Bool) -> I = { component, active in
             return TopbarItemView(
                 tool: component,
@@ -25,7 +25,7 @@ public struct TopbarView<I>: View where I: View {
             HStack {
                 Text(
                     LocalizedStringKey(
-                        String(self.topbar.getTitle())
+                        String(self.topbar.title)
                     )
                 )
                     .padding(.horizontal, 15)
@@ -85,7 +85,7 @@ public struct TopbarView<I>: View where I: View {
 
 #Preview {
     TopbarView(
-        topbar: .init(
+        topbar: TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
                 .init(icon: "billiardBall8Icon", name: "Pallina biliardo"),
