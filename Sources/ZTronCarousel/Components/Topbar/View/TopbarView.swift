@@ -1,13 +1,13 @@
 import SwiftUI
 
-internal struct TopbarView: View {
+public struct TopbarView: View {
     @ObservedObject private var topbar: TopbarModel
     
-    init(topbar: TopbarModel) {
+    public init(topbar: TopbarModel) {
         self._topbar = ObservedObject(wrappedValue: topbar)
     }
     
-    var body: some View {
+    public var body: some View {
         //MARK: - Topbar
          VStack(alignment: .leading, spacing: 0) {
             
