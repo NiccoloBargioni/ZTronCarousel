@@ -1,10 +1,20 @@
 import SwiftUI
 
-public struct TopbarView: View {
+public struct TopbarView<I>: View where I: View {
     @ObservedObject private var topbar: TopbarModel
+    private let itemBuilder: (_: any TopbarComponent, _: Bool) -> I
     
-    public init(topbar: TopbarModel) {
+    public init(
+        topbar: TopbarModel,
+        @ViewBuilder item: @escaping (_: any TopbarComponent, _: Bool) -> I = { component, active in
+            return TopbarItemView(
+                tool: component,
+                isActive: active
+            )
+        }
+    ) {
         self._topbar = ObservedObject(wrappedValue: topbar)
+        self.itemBuilder = item
     }
     
     public var body: some View {
