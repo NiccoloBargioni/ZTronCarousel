@@ -22,7 +22,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
             if let searchController = (eventArgs.getSource() as? (any AnySearchController)) {
                 self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
             } else {
-                if let _ = (eventArgs.getSource() as? CarouselComponent) {
+                if let _ = (eventArgs.getSource() as? any AnyTopbarModel) {
                     self.topbarDiscovered = true
                 }
             }
@@ -80,7 +80,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        if let carousel = args.getSource() as? CarouselComponent {
+        if let topbar = args.getSource() as? any AnyTopbarModel {
             self.topbarDiscovered = false
         }
     }
