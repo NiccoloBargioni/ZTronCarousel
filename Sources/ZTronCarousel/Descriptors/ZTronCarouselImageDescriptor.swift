@@ -1,7 +1,9 @@
 import Foundation
 import ZTronCarouselCore
 
-public final class ZTronCarouselImageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor {
+public protocol ZTronVisualMediaDescriptor: VisualMediaDescriptor {  }
+
+public final class ZTronCarouselImageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor, ZTronVisualMediaDescriptor {
     private let caption: String
     private let variants: [ImageVariantDescriptor]?
     private let master: String?

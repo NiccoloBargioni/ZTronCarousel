@@ -33,7 +33,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                 
         if let loader = (args.getSource() as? (any AnyDBLoader)) {
             if loader.lastAction == .imagesLoaded {
-                let newImages = loader.getImages()
+                let newImages = loader.getMedias()
                 
                 Task(priority: .userInitiated) { @MainActor in
                     owner.viewModel?.thePageVC.replaceAllMedias(with: newImages, present: self.requestedImageIndex)

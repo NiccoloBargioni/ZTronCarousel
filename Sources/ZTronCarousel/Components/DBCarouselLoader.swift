@@ -12,7 +12,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
     public let fk: SerializableGalleryForeignKeys
     
     @Published private var galleries: [SerializedGalleryModel] = [] // mutable array of immutable objects
-    @Published private var images: [ZTronCarouselImageDescriptor] = []
+    @Published private var medias: [any ZTronVisualMediaDescriptor] = []
     
     private(set) public var lastAction: DBLoaderAction = .ready
     
@@ -54,8 +54,8 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             )
             
             
-            guard let images = firstLevel[.medias] as? [SerializedImageModel] else { fatalError() }
-            self.images = images.enumerated().map { i, image in
+            guard let fetchedMedias = firstLevel[.medias] as? [any SerializedVisualMediaModel] else { fatalError() }
+            self.medias = fetchedMedias.enumerated().map { i, media in
                 var placeables: [any PlaceableDescriptor] = []
                 var outlineBoundingBox: CGRect? = nil
                 
@@ -63,7 +63,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                     outlineBoundingBox = outline.getBoundingBox()
 
                     placeables.append(PlaceableOutlineDescriptor(
-                        parentImage: image.getName(),
+                        parentImage: media.getName(),
                         outlineAssetName: outline.getResourceName(),
                         outlineBoundingBox: outline.getBoundingBox(),
                         colorHex: outline.getColorHex(),
@@ -75,7 +75,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 
                 if let boundingCircle = firstLevel[.boundingCircles]?[i] as? SerializedBoundingCircleModel {
                     placeables.append(PlaceableBoundingCircleDescriptor(
-                        parentImageID: image.getName(),
+                        parentImageID: media.getName(),
                         boundingCircle: ZTronBoundingCircle(
                             idleDiameter: boundingCircle.getIdleDiameter(),
                             normalizedCenter: boundingCircle.getNormalizedCenter()
@@ -91,13 +91,27 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                     return ImageVariantDescriptor(from: $0)
                 }
                 
-                return ZTronCarouselImageDescriptor(
-                    assetName: image.getName(),
-                    caption: image.getDescription(),
-                    placeables: placeables,
-                    variants: variants,
-                    master: nil
-                )
+                switch media.getType() {
+                case .image:
+                    return ZTronCarouselImageDescriptor(
+                        assetName: media.getName(),
+                        caption: media.getDescription(),
+                        placeables: placeables,
+                        variants: variants,
+                        master: nil
+                    )
+                case .video:
+                    guard let video = media as? SerializedVideoModel else { fatalError("Unexpectedly found .video type on non-video serialized media. Aborting") }
+                    return ZTronCarouselVideoDescriptor(
+                        assetName: video.getName(),
+                        extension: video.getExtension(),
+                        caption: video.getDescription()
+                    )
+                    
+                @unknown default:
+                    fatalError("Please update the code in \(#file)@\(#line) in \(#function) to accomodate for the added media types")
+                }
+                
             }
             
             self.lastAction = .imagesLoaded
@@ -306,8 +320,8 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         return Array(self.galleries)
     }
     
-    public func getImages() -> [ZTronCarouselImageDescriptor] {
-        return Array(self.images)
+    public func getMedias() -> [any ZTronVisualMediaDescriptor] {
+        return Array(self.medias)
     }
         
     // MARK: - COMPONENT

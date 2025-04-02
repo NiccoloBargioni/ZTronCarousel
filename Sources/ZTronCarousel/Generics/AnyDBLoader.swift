@@ -7,7 +7,7 @@ public protocol AnyDBLoader: Component, AnyObject {
     var lastAction: DBLoaderAction { get }
     
     func getGalleries() -> [SerializedGalleryModel]
-    func getImages() -> [ZTronCarouselImageDescriptor]
+    func getMedias() -> [any ZTronVisualMediaDescriptor]
     
     func loadFirstLevelGalleries() throws -> Void
     func loadImagesForGallery(_ theGallery: String?) throws -> Void
