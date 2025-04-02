@@ -60,6 +60,7 @@ import ZTronObservation
     }
     
     public init(
+        gallery: String? = nil,
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory),
@@ -109,7 +110,11 @@ import ZTronObservation
             }
             
             Task(priority: .high) {
-                try self.dbLoader.loadFirstLevelGalleries()
+                if let gallery = gallery {
+                    try self.dbLoader.loadImagesForGallery(gallery)
+                } else {
+                    try self.dbLoader.loadFirstLevelGalleries()
+                }
             }
         }
     }
