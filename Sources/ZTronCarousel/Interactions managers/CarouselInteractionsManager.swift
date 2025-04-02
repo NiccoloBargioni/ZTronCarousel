@@ -6,6 +6,8 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
     weak private var owner: CarouselComponent?
     weak private var mediator: MSAMediator?
     
+    private var acknowledgedTopbar: Bool = false
+    
     public init(owner: CarouselComponent, mediator: MSAMediator) {
         self.owner = owner
         self.mediator = mediator
@@ -25,6 +27,11 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                 } else {
                     if let page = eventArgs.getSource() as? (any AnyPage) {
                         self.mediator?.signalInterest(owner, to: page, or: .ignore)
+                    } else {
+                        if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
+                            self.mediator?.signalInterest(owner, to: topbar)
+                            self.acknowledgedTopbar = true
+                        }
                     }
                 }
             }
@@ -56,7 +63,9 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        
+        if let topbar = args.getSource() as? any AnyTopbarModel {
+            self.acknowledgedTopbar = false
+        }
     }
     
     public func getOwner() -> (any ZTronObservation.Component)? {
@@ -136,6 +145,14 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                         at: owner.currentPage,
                         shouldReplaceViewController: false
                     )
+                }
+            }
+        } else {
+            if dbLoader.lastAction == .galleriesLoaded && !self.acknowledgedTopbar {
+                Task(priority: .userInitiated) { @MainActor in
+                    if owner.lastAction == .ready {
+                        self.pushNotification(eventArgs: .init(source: owner), limitToNeighbours: true)
+                    }
                 }
             }
         }

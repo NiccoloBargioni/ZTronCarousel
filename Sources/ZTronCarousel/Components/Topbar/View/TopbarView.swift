@@ -1,13 +1,23 @@
 import SwiftUI
 
-internal struct TopbarView: View {
-    @ObservedObject private var topbar: TopbarModel
+public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
+    @ObservedObject private var topbar: M
+    private let itemBuilder: (_: any TopbarComponent, _: Bool) -> I
     
-    init(topbar: TopbarModel) {
+    public init(
+        topbar: M,
+        @ViewBuilder item: @escaping (_: any TopbarComponent, _: Bool) -> I = { component, active in
+            return TopbarItemView(
+                tool: component,
+                isActive: active
+            )
+        }
+    ) {
         self._topbar = ObservedObject(wrappedValue: topbar)
+        self.itemBuilder = item
     }
     
-    var body: some View {
+    public var body: some View {
         //MARK: - Topbar
          VStack(alignment: .leading, spacing: 0) {
             
@@ -15,7 +25,7 @@ internal struct TopbarView: View {
             HStack {
                 Text(
                     LocalizedStringKey(
-                        String(self.topbar.getTitle())
+                        String(self.topbar.title)
                     )
                 )
                     .padding(.horizontal, 15)
@@ -41,9 +51,9 @@ internal struct TopbarView: View {
                                     topbar.setSelectedItem(item: i)
                                 }
                             }) {
-                                TopbarItemView(
-                                    tool: topbar.get(i),
-                                    isActive: topbar.getSelectedItem() == i
+                                self.itemBuilder(
+                                    topbar.get(i),
+                                    topbar.getSelectedItem() == i
                                 )
                             }
                             .id(i)
@@ -71,11 +81,9 @@ internal struct TopbarView: View {
     
 }
 
-
-
 #Preview {
     TopbarView(
-        topbar: .init(
+        topbar: TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
                 .init(icon: "billiardBall8Icon", name: "Pallina biliardo"),

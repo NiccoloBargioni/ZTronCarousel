@@ -4,6 +4,7 @@ import ZTronCarouselCore
 public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager, @unchecked Sendable {
     weak private var owner: (any AnyViewModel)?
     weak private var mediator: MSAMediator?
+    private var topbarDiscovered: Bool = false
     
     private var requestedImageIndex: Int = 0
     
@@ -20,6 +21,10 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
         } else {
             if let searchController = (eventArgs.getSource() as? (any AnySearchController)) {
                 self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
+            } else {
+                if let _ = (eventArgs.getSource() as? any AnyTopbarModel) {
+                    self.topbarDiscovered = true
+                }
             }
         }
     }
@@ -33,7 +38,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                 
         if let loader = (args.getSource() as? (any AnyDBLoader)) {
             if loader.lastAction == .imagesLoaded {
-                let newImages = loader.getImages()
+                let newImages = loader.getMedias()
                 
                 Task(priority: .userInitiated) { @MainActor in
                     owner.viewModel?.thePageVC.replaceAllMedias(with: newImages, present: self.requestedImageIndex)
@@ -52,6 +57,15 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                     if searchController.lastAction == .imageSelected {
                         if let imageSelectedMessage = ((args as? MSAArgs)?.getPayload() as? ImageSelectedFromSearchEventMessage) {
                             self.requestedImageIndex = imageSelectedMessage.getSelectedImage().getPosition()
+                            
+                            if !self.topbarDiscovered {
+                                if let _ = imageSelectedMessage.getGalleryPath().last {
+                                    Task(priority: .userInitiated) {
+                                        await owner.switchPage(self.requestedImageIndex)
+                                    }
+                                }
+                            }
+                            
                         }
                     } else {
                         if searchController.lastAction == .cancelled {
@@ -66,7 +80,9 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        
+        if let topbar = args.getSource() as? any AnyTopbarModel {
+            self.topbarDiscovered = false
+        }
     }
     
     public func getOwner() -> (any ZTronObservation.Component)? {

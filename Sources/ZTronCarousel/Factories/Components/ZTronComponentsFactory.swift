@@ -12,7 +12,7 @@ import ZTronSerializable
     /// - Pinned to left, top and right of this component
     /// - Height sized to fit its intrinsicContentSize
     /// - Disappears when `.orientation == .landscape`
-    func makeTopbar(mediator: MSAMediator) -> UIViewController
+    func makeTopbar(mediator: MSAMediator) -> UIViewController?
     
     /// - Pinned to left and right of carousel
     /// - Pinned to the bottom of carousel
@@ -25,6 +25,4 @@ import ZTronSerializable
     /// - Has `.defaultHigh` priority for `.vertical`
     /// - Disappears when `.orientation == .landscape`
     func makeCaptionView() -> any AnyCaptionView
-    
-    
 }

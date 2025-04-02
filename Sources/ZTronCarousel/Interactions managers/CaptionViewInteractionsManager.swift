@@ -28,7 +28,7 @@ public final class CaptionViewInteractionsManager: MSAInteractionsManager, @unch
         
         if let carousel = args.getSource() as? CarouselComponent {
             Task(priority: .userInitiated) { @MainActor in
-                if let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor {
+                if let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronVisualMediaDescriptor {
                     owner.setText(body: currentMediaDescriptor.getCaption().localized(in: .main))
                 }
             }

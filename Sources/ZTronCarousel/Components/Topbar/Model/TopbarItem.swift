@@ -4,7 +4,7 @@ public final class TopbarItem: TopbarComponent {
     private let icon: String
     private let name: String
     
-    init(icon: String, name: String) {
+    public init(icon: String, name: String) {
         self.icon = icon
         self.name = name
     }

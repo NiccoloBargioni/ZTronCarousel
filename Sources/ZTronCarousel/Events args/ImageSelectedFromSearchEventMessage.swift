@@ -1,4 +1,5 @@
 import ZTronObservation
+import ZTronCarouselCore
 
 public final class ImageSelectedFromSearchEventMessage: BroadcastArgs, @unchecked Sendable {
     private let galleryPath: [ZTronGalleryDescriptor]
