@@ -54,7 +54,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             )
             
             
-            guard let images = firstLevel[.images] as? [SerializedImageModel] else { fatalError() }
+            guard let images = firstLevel[.medias] as? [SerializedImageModel] else { fatalError() }
             self.images = images.enumerated().map { i, image in
                 var placeables: [any PlaceableDescriptor] = []
                 var outlineBoundingBox: CGRect? = nil
@@ -127,10 +127,10 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 tab: self.fk.getTab(),
                 map: self.fk.getMap(),
                 game: self.fk.getGame(),
-                options: [.images, .outlines, .boundingCircles, .variantsMetadatas, .masters]
+                options: [.medias, .outlines, .boundingCircles, .variantsMetadatas, .masters]
             )
             
-            guard let image = read[.images]?.first as? SerializedImageModel else { fatalError() }
+            guard let image = read[.medias]?.first as? any SerializedVisualMediaModel else { fatalError() }
             
              if let outline = read[.outlines]?.first as? SerializedOutlineModel {
                  outlineBoundingBox = outline.getBoundingBox()
@@ -283,13 +283,13 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 tab: self.fk.getTab(),
                 tool: self.fk.getTool(),
                 gallery: nil,
-                options: [.images]
+                options: [.medias]
             )
             
             return .commit
         }
         
-        if let images = result[.images] as? [SerializedImageModel] {
+        if let images = result[.medias] as? [SerializedImageModel] {
             self.lastAction = .imagesLoadedForSearch
             
             DispatchQueue.main.async { @MainActor in

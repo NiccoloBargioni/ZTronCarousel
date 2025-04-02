@@ -24,7 +24,7 @@ public struct TopbarItemView: View {
         )
       )
       .fontWeight(
-        isActive ? .bold : .regular
+        self.shouldHighlightText && isActive ? .bold : .regular
       )
       .foregroundColor(
         self.shouldHighlightText && self.isActive
