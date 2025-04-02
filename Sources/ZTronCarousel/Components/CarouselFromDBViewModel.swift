@@ -42,6 +42,12 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
         }
     }
     
+    @MainActor public func switchPage(_ to: Int) {
+        guard let owner = self.viewModel else { return }
+        
+        owner.thePageVC.turnPage(to: to)
+    }
+    
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }

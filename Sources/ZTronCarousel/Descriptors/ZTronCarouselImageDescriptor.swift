@@ -1,7 +1,9 @@
 import Foundation
 import ZTronCarouselCore
 
-public protocol ZTronVisualMediaDescriptor: VisualMediaDescriptor {  }
+public protocol ZTronVisualMediaDescriptor: VisualMediaDescriptor {
+    func getCaption() -> String
+}
 
 public final class ZTronCarouselImageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor, ZTronVisualMediaDescriptor {
     private let caption: String
