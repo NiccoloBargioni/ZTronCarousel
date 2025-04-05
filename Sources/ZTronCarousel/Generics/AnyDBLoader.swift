@@ -9,7 +9,7 @@ public protocol AnyDBLoader: Component, AnyObject {
     func getGalleries() -> [SerializedGalleryModel]
     func getMedias() -> [any ZTronVisualMediaDescriptor]
     
-    func loadFirstLevelGalleries() throws -> Void
+    func loadFirstLevelGalleries(_:String?) throws -> Void
     func loadImagesForGallery(_ theGallery: String?) throws -> Void
     func loadGalleriesGraph() throws -> Void
     func loadImagesForSearch() throws -> Void
@@ -25,4 +25,11 @@ public enum DBLoaderAction: Sendable {
     case variantLoadedBackward
     case loadedGalleriesGraph
     case imagesLoadedForSearch
+}
+
+
+public extension AnyDBLoader {
+    func loadFirstLevelGalleries() throws -> Void {
+        try self.loadImagesForGallery(nil)
+    }
 }
