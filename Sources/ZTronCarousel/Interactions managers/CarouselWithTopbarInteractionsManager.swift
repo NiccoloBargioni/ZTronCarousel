@@ -46,6 +46,12 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                     
                     owner.show()
                 }
+            } else {
+                if loader.lastAction == .galleriesLoaded && !self.topbarDiscovered {
+                    Task(priority: .userInitiated) { @MainActor in
+                        try owner.loadImages()
+                    }
+                }
             }
         } else {
             if let searchController = (args.getSource() as? (any AnySearchController)) {
