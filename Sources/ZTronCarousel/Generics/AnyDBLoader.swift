@@ -26,10 +26,3 @@ public enum DBLoaderAction: Sendable {
     case loadedGalleriesGraph
     case imagesLoadedForSearch
 }
-
-
-public extension AnyDBLoader {
-    func loadFirstLevelGalleries() throws -> Void {
-        try self.loadImagesForGallery(nil)
-    }
-}

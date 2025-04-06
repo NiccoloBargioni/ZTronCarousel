@@ -114,11 +114,7 @@ import ZTronObservation
             }
             
             Task(priority: .high) {
-                if let gallery = gallery {
-                    try self.dbLoader.loadFirstLevelGalleries(gallery)
-                } else {
-                    try self.dbLoader.loadFirstLevelGalleries()
-                }
+                try self.dbLoader.loadFirstLevelGalleries(gallery)
             }
         }
     }
@@ -347,7 +343,7 @@ import ZTronObservation
         if let gallery = self.requestedGalleryID {
             try self.dbLoader.loadImagesForGallery(gallery)
         } else {
-            try self.dbLoader.loadFirstLevelGalleries()
+            try self.dbLoader.loadFirstLevelGalleries(nil)
         }
     }
 }
