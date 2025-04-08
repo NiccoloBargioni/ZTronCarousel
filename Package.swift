@@ -13,7 +13,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/SnapKit/SnapKit", branch: "develop"),
         .package(url: "https://github.com/NiccoloBargioni/ZTronObservation", branch: "main"),
-        .package(url: "https://github.com/NiccoloBargioni/ZTronCarouselCore", branch: "testPages"),
+        .package(url: "https://github.com/NiccoloBargioni/ZTronCarouselCore", branch: "main"),
         .package(url: "https://github.com/NiccoloBargioni/ZTronSerializable", branch: "main"),
         .package(url: "https://github.com/Juanpe/SkeletonView", branch: "main"),
         .package(url: "https://github.com/mchoe/SwiftSVG", branch: "master"),
