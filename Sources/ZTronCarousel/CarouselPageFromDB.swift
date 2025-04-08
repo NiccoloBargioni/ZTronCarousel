@@ -17,6 +17,8 @@ import ZTronObservation
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
 
+    private let requestedGalleryID: String?
+    
     internal let myContainerView: UIView = {
         let v = UIView()
         v.backgroundColor = .black
@@ -67,6 +69,8 @@ import ZTronObservation
         interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
     ) {
         
+        self.requestedGalleryID = gallery
+        
         self.componentsFactory = componentsFactory
         self.interactionsManagersFactory = interactionsManagersFactory ?? DefaultZTronInteractionsManagerFactory()
         
@@ -110,11 +114,7 @@ import ZTronObservation
             }
             
             Task(priority: .high) {
-                if let gallery = gallery {
-                    try self.dbLoader.loadImagesForGallery(gallery)
-                } else {
-                    try self.dbLoader.loadFirstLevelGalleries()
-                }
+                try self.dbLoader.loadFirstLevelGalleries(gallery)
             }
         }
     }
@@ -337,6 +337,14 @@ import ZTronObservation
     
     @MainActor public final func updateScrollViewContentBottom() {
         self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
+    }
+    
+    public final func reloadImages() throws {
+        if let gallery = self.requestedGalleryID {
+            try self.dbLoader.loadImagesForGallery(gallery)
+        } else {
+            try self.dbLoader.loadFirstLevelGalleries(nil)
+        }
     }
 }
 

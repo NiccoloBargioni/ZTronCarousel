@@ -6,4 +6,5 @@ public protocol AnyViewModel: Component, Sendable, AnyObject {
     @MainActor func show() -> Void
     @MainActor func hide() -> Void
     @MainActor func switchPage(_ to: Int)
+    @MainActor func loadImages() throws -> Void
 }

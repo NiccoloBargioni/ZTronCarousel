@@ -48,6 +48,13 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
         owner.thePageVC.turnPage(to: to)
     }
     
+    public func loadImages() throws {
+        guard let owner = self.viewModel else { return }
+        Task(priority: .userInitiated) {
+            try await owner.reloadImages()
+        }
+    }
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }

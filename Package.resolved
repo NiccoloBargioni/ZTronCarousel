@@ -1,5 +1,5 @@
 {
-  "originHash" : "479b47dfed00fed46af7894f163eef1caf83e5ef0b5b1406aef6207ac27616f3",
+  "originHash" : "f4e3aa966dcd50e60e702499841b75582cd3420b9489090026c41bb7430ffda1",
   "pins" : [
     {
       "identity" : "ifrit",
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
-        "branch" : "main",
-        "revision" : "9e1ca3dc51fd0749e199aec63b08dbf14c2100f7"
+        "branch" : "testPages",
+        "revision" : "e2e6a128db05ee048d2b86c57430b0dd97069599"
       }
     },
     {
@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
-        "branch" : "videoSupport",
-        "revision" : "0e2a6d49212ebd3056f0c57ea78bc84c4d9289dd"
+        "branch" : "main",
+        "revision" : "0f1c50b6add0d4d4f9e972d728d907ca7717d2af"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronSerializable",
       "state" : {
-        "branch" : "videoSupport",
-        "revision" : "21722d7e0cb3a6df4e892bb92657cbb4499d0842"
+        "branch" : "main",
+        "revision" : "1916ef0f1bba48073e293c21b55fe9beb457638e"
       }
     },
     {

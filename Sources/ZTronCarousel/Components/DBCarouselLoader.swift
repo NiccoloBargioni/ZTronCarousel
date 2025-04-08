@@ -20,9 +20,19 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         self.fk = foreignKeys
     }
     
-    public func loadFirstLevelGalleries() throws {
+    public func loadFirstLevelGalleries(_ master: String? = nil) throws {
         try DBMS.transaction { db in
-            let firstLevel = try DBMS.CRUD.readFirstLevelOfGalleriesForTool(
+            let firstLevel =
+                master != nil ?
+            try DBMS.CRUD.readFirstLevelOfSubgalleriesForGallery(
+                for: db,
+                game: self.fk.getGame(),
+                map: self.fk.getMap(),
+                tab: self.fk.getTab(),
+                tool: self.fk.getTool(),
+                gallery: master!
+            ) :
+            try DBMS.CRUD.readFirstLevelOfGalleriesForTool(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
