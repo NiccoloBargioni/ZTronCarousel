@@ -213,6 +213,7 @@ import ZTronObservation
             captionViewContainer.topAnchor.constraint(equalTo: self.bottomBarView.bottomAnchor),
             captionViewContainer.leftAnchor.constraint(equalTo: self.bottomBarView.leftAnchor),
             captionViewContainer.rightAnchor.constraint(equalTo: self.bottomBarView.rightAnchor),
+            captionViewContainer.bottomAnchor.constraint(equalTo: self.captionView.bottomAnchor, constant: 10)
         ])
                 
         captionViewContainer.backgroundColor = UIColor.tertiarySystemGroupedBackground.withAlphaComponent(0.325)
@@ -225,7 +226,6 @@ import ZTronObservation
         ])
         
         self.captionView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        captionViewContainer.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
         self.view.bringSubviewToFront(captionView)
         self.captionView.setDelegate(
