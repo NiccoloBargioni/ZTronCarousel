@@ -1,14 +1,14 @@
 import UIKit
 import SnapKit
 
-internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy {
+internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsStrategy {
     weak internal var owner: CarouselPageFromDB?
     
     private var pgvcHeight: NSLayoutConstraint!
     private var pgvcWidth: NSLayoutConstraint!
     private var pgvcTop: NSLayoutConstraint!
 
-    private var scrollViewTopContentGuide: NSLayoutConstraint!
+    private var scrollViewTopContentGuide: NSLayoutConstraint?
 
     public init(owner: CarouselPageFromDB) {
         self.owner = owner
@@ -27,6 +27,8 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
     
     func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
+        guard let topbarView = owner.topbarView else { return }
+        
         let size = owner.computeContentSizeThatFits()
         owner.myContainerView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -40,11 +42,7 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
         pgvcWidth = owner.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
         pgvcWidth.isActive = true
         
-        if let topbarView = owner.topbarView {
-            pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: topbarView.view.safeAreaLayoutGuide.bottomAnchor)
-        } else {
-            pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
-        }
+        pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: topbarView.view.safeAreaLayoutGuide.bottomAnchor)
         
         pgvcTop.isActive = true
     }
@@ -52,18 +50,15 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
 
     func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
+        guard let topbarView = owner.topbarView else { return }
         
-        if let topbarView = owner.topbarView {
-            self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
-                equalTo: orientation.isPortrait ?
-                topbarView.view.safeAreaLayoutGuide.topAnchor :
-                    owner.myContainerView.safeAreaLayoutGuide.topAnchor
-            )
-        } else {
-            self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: owner.myContainerView.safeAreaLayoutGuide.topAnchor)
-        }
+        self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
+            equalTo: orientation.isPortrait ?
+            topbarView.view.safeAreaLayoutGuide.topAnchor :
+                owner.myContainerView.safeAreaLayoutGuide.topAnchor
+        )
         
-        self.scrollViewTopContentGuide.isActive = true
+        self.scrollViewTopContentGuide?.isActive = true
 
         owner.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: owner.scrollView.frameLayoutGuide.leftAnchor).isActive = true
         owner.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: owner.scrollView.frameLayoutGuide.rightAnchor).isActive = true
@@ -71,22 +66,21 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
     
     func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
+        guard let topbarView = owner.topbarView else { return }
         
         self.pgvcTop.isActive = false
         
-        if sizeAfterTransition.width > sizeAfterTransition.height || owner.topbarView == nil {
-            self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
+        if sizeAfterTransition.width < sizeAfterTransition.height {
+            self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: topbarView.view.bottomAnchor)
         } else {
-            // portrait and topbar not nil
-            if let topbarView = owner.topbarView { // always true, just safely unwrapping optional
-                self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: topbarView.view.bottomAnchor)
-            }
+            self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.view.safeAreaLayoutGuide.topAnchor)
         }
         
         self.pgvcTop.isActive = true
         
         self.pgvcHeight.isActive = false
         self.pgvcWidth.isActive = false
+        
         if sizeAfterTransition.width / sizeAfterTransition.height >= 16.0/9.0 {
             self.pgvcHeight = owner.myContainerView.heightAnchor.constraint(equalTo: owner.myContainerView.superview!.safeAreaLayoutGuide.heightAnchor)
             self.pgvcWidth = owner.myContainerView.widthAnchor.constraint(equalTo: owner.myContainerView.heightAnchor, multiplier: 16.0/9.0)
@@ -94,6 +88,7 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
             self.pgvcWidth = owner.myContainerView.widthAnchor.constraint(equalTo: owner.myContainerView.superview!.safeAreaLayoutGuide.widthAnchor)
             self.pgvcHeight = owner.myContainerView.heightAnchor.constraint(equalTo: owner.myContainerView.widthAnchor, multiplier: 9.0/16.0)
         }
+        
         self.pgvcHeight.isActive = true
         self.pgvcWidth.isActive = true
 
@@ -101,16 +96,12 @@ internal final class CarouselPageFromDBConstraintsStrategy: ConstraintsStrategy 
     
     func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
+        guard let topbarView = owner.topbarView else { return }
         
-        self.scrollViewTopContentGuide.isActive = false
+        self.scrollViewTopContentGuide?.isActive = false
         if orientation.isPortrait && owner.topbarView != nil {
-            if let topbarView = owner.topbarView {
-                self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: topbarView.view.safeAreaLayoutGuide.topAnchor)
-                
-            }
-        } else {
-            self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: owner.myContainerView.safeAreaLayoutGuide.topAnchor)
+            self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: topbarView.view.safeAreaLayoutGuide.topAnchor)
         }
-        self.scrollViewTopContentGuide.isActive = true
+        self.scrollViewTopContentGuide?.isActive = true
     }
 }

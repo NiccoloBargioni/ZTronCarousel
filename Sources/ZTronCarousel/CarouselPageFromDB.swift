@@ -1,5 +1,4 @@
 import UIKit
-import SnapKit
 import SwiftUI
 
 import ZTronSerializable
@@ -84,7 +83,12 @@ import ZTronObservation
         self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
-        self.constraintsStrategy = CarouselPageFromDBConstraintsStrategy(owner: self)
+        
+        if self.topbarView != nil {
+            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
+        } else {
+            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
+        }
 
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
@@ -144,7 +148,9 @@ import ZTronObservation
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
         
-            self.constraintsStrategy.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+            if let cs = self.constraintsStrategy as? CarouselPageFromDBWithTopbarConstraintsStrategy {
+                cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+            }
             
             if !self.isPortrait {
                 topbarView.view.isHidden = true
@@ -156,7 +162,7 @@ import ZTronObservation
             topbarView.view.layer.zPosition = 3.0
         }
 
-        view.addSubview(myContainerView)
+        self.scrollView.addSubview(myContainerView)
         self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
         self.thePageVC.willMove(toParent: self)
@@ -165,20 +171,27 @@ import ZTronObservation
         thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
         myContainerView.addSubview(thePageVC.view)
         
-        thePageVC.view.snp.makeConstraints { make in
-            make.left.top.right.bottom.equalTo(thePageVC.view.superview!.safeAreaLayoutGuide)
-        }
+        NSLayoutConstraint.activate([
+            thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
+            thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
+            thePageVC.view.bottomAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.bottomAnchor),
+            thePageVC.view.leftAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.leftAnchor),
+        ])
+        
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         self.bottomBarView.layer.zPosition = 3.0
         
         self.scrollView.addSubview(self.bottomBarView)
 
-        self.bottomBarView.snp.makeConstraints { make in
-            make.left.right.equalTo(thePageVC.view)
-            make.top.equalTo(thePageVC.view.snp.bottom).offset(5)
-            make.height.equalTo(44)
-        }
+        self.bottomBarView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            self.bottomBarView.topAnchor.constraint(equalTo: self.thePageVC.view.bottomAnchor, constant: 5.0),
+            self.bottomBarView.leftAnchor.constraint(equalTo: self.thePageVC.view.leftAnchor),
+            self.bottomBarView.rightAnchor.constraint(equalTo: self.thePageVC.view.rightAnchor),
+            self.bottomBarView.heightAnchor.constraint(equalToConstant: 44.0)
+        ])
+        
         
         if !self.isPortrait {
             self.bottomBarView.isHidden = true
@@ -195,20 +208,23 @@ import ZTronObservation
         self.scrollView.addSubview(captionViewContainer)
         captionViewContainer.addSubview(captionView)
         
-        captionViewContainer.snp.makeConstraints { make in
-            make.top.equalTo(self.bottomBarView.snp.bottom)
-            make.left.right.equalTo(self.bottomBarView)
-            make.bottom.equalTo(self.captionView!.snp.bottom)
-        }
-        
+        captionViewContainer.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            captionViewContainer.topAnchor.constraint(equalTo: self.bottomBarView.bottomAnchor),
+            captionViewContainer.leftAnchor.constraint(equalTo: self.bottomBarView.leftAnchor),
+            captionViewContainer.rightAnchor.constraint(equalTo: self.bottomBarView.rightAnchor),
+        ])
+                
         captionViewContainer.backgroundColor = UIColor.tertiarySystemGroupedBackground.withAlphaComponent(0.325)
 
-        self.captionView.snp.makeConstraints { make in
-            make.left.top.right.equalToSuperview().inset(10)
-        }
+        self.captionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            self.captionView.topAnchor.constraint(equalTo: self.captionView.superview!.topAnchor, constant: 10),
+            self.captionView.rightAnchor.constraint(equalTo: self.captionView.superview!.rightAnchor, constant: -10),
+            self.captionView.leftAnchor.constraint(equalTo: self.captionView.superview!.leftAnchor, constant: 10)
+        ])
         
         self.captionView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        
         captionViewContainer.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
         self.view.bringSubviewToFront(captionView)
@@ -244,13 +260,11 @@ import ZTronObservation
             self.limitViewDidLayoutCalls -= 1
         }
                 
-        // only execute this code block if the view frame has changed
-        //    such as on device rotation
         if curWidth != myContainerView.frame.width {
             thePageVC.view.layer.cornerRadius = 5.0;
             thePageVC.view.layer.masksToBounds = false
             thePageVC.view.layer.shadowOffset = CGSize.init(width: 0, height: 5)
-            thePageVC.view.layer.shadowColor = UIColor.gray.cgColor
+            thePageVC.view.layer.shadowColor = self.traitCollection.userInterfaceStyle == .light ? UIColor.gray.cgColor : UIColor.clear.cgColor
             thePageVC.view.layer.shadowRadius = 3
             thePageVC.view.layer.shadowOpacity = 0.4
 

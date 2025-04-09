@@ -3,7 +3,6 @@ import UIKit
 @MainActor internal protocol ConstraintsStrategy: AnyObject {
     var owner: CarouselPageFromDB? { get }
     
-    func makeTopbarConstraints(for orientation: UIDeviceOrientation) -> Void
     func makePageWrapperConstraints(for orientation: UIDeviceOrientation) -> Void
     func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) -> Void
     

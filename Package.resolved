@@ -1,5 +1,5 @@
 {
-  "originHash" : "f4e3aa966dcd50e60e702499841b75582cd3420b9489090026c41bb7430ffda1",
+  "originHash" : "1a00af6ecfd1d345d4351cb3d027a29cf5c4025d756c96e2e7ac41a905469f98",
   "pins" : [
     {
       "identity" : "ifrit",
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
-        "branch" : "testPages",
-        "revision" : "e2e6a128db05ee048d2b86c57430b0dd97069599"
+        "branch" : "main",
+        "revision" : "b891ec3c91d4f9068f41cd6dc3831fce63347731"
       }
     },
     {
