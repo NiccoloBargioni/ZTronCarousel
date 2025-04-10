@@ -5,8 +5,10 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
     weak private var owner: (any AnyViewModel)?
     weak private var mediator: MSAMediator?
     private var topbarDiscovered: Bool = false
+    private var didLoadInitialImages: Bool = false
     
     private var requestedImageIndex: Int = 0
+    
     
     public init(owner: (any AnyViewModel)? = nil, mediator: MSAMediator? = nil) {
         self.owner = owner
@@ -47,10 +49,12 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                     owner.show()
                 }
             } else {
-                if loader.lastAction == .galleriesLoaded && !self.topbarDiscovered {
+                if loader.lastAction == .galleriesLoaded && !self.topbarDiscovered && !didLoadInitialImages {
                     Task(priority: .userInitiated) { @MainActor in
                         try owner.loadImages()
                     }
+                    
+                    self.didLoadInitialImages = true
                 }
             }
         } else {
