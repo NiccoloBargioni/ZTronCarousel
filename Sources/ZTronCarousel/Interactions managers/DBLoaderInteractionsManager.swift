@@ -105,7 +105,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
         
         if topbar.lastAction == .loadSubgallery {
-            if let args = arg as? LoadSubgalleryRequestEventMessage {
+            if let args = ((arg as? MSAArgs)?.getPayload() as? LoadSubgalleryRequestEventMessage) {
                 do {
                     try owner.loadFirstLevelGalleries(args.master)
                 } catch {
