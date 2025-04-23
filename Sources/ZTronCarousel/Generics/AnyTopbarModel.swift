@@ -11,6 +11,8 @@ public protocol AnyTopbarModel: Component, AnyObject, ObservableObject {
     var title: String { get }
     var redacted: Bool { get }
     
+    var lastAction: TopbarAction { get }
+    
     // MARK: FOR OBSERVABILITY
     func setIsRedacted(to isRedacted: Bool) -> Void
     func replaceItems(with items: [any TopbarComponent])
