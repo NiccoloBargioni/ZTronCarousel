@@ -103,7 +103,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     
     private func handleTopbarNotification(_ topbar: any AnyTopbarModel, arg: BroadcastArgs) {
         guard let owner = self.owner else { return }
-        guard !topbar.lastAction == .subgalleriesLoaded else { return }
+        guard topbar.lastAction != .subgalleriesLoaded else { return }
         
         if topbar.lastAction == .loadSubgallery {
             if let args = ((arg as? MSAArgs)?.getPayload() as? LoadSubgalleryRequestEventMessage) {
