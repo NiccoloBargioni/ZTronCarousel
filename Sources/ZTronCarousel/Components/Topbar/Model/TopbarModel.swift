@@ -118,4 +118,5 @@ public enum TopbarAction {
     case selectedItemChanged
     case itemsReplaced
     case loadSubgallery
+    case subgalleriesLoaded
 }
