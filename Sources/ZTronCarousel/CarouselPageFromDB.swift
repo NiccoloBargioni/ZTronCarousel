@@ -33,7 +33,13 @@ import ZTronObservation
         return scrollView
     }()
     
-    open var constraintsStrategy: ConstraintsStrategy!
+    open var constraintsStrategy: ConstraintsStrategy! {
+        if self.topbarView != nil {
+            return CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
+        } else {
+            return CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
+        }
+    }
     
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
@@ -84,11 +90,6 @@ import ZTronObservation
         
         super.init(nibName: nil, bundle: nil)
         
-        if self.topbarView != nil {
-            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
-        } else {
-            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
-        }
 
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
