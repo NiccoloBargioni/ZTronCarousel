@@ -18,7 +18,7 @@ import ZTronObservation
 
     private let requestedGalleryID: String?
     
-    internal let myContainerView: UIView = {
+    public let myContainerView: UIView = {
         let v = UIView()
         v.backgroundColor = .black
         return v
