@@ -33,7 +33,7 @@ import ZTronObservation
         return scrollView
     }()
     
-    private var constraintsStrategy: ConstraintsStrategy!
+    open var constraintsStrategy: ConstraintsStrategy!
     
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory

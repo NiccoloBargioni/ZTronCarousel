@@ -1,6 +1,6 @@
 import UIKit
 
-@MainActor internal protocol ConstraintsStrategy: AnyObject {
+@MainActor public protocol ConstraintsStrategy: AnyObject {
     var owner: CarouselPageFromDB? { get }
     
     func makePageWrapperConstraints(for orientation: UIDeviceOrientation) -> Void

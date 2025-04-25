@@ -1,8 +1,8 @@
 import UIKit
 import SnapKit
 
-internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsStrategy {
-    weak internal var owner: CarouselPageFromDB?
+public final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsStrategy {
+    weak public var owner: CarouselPageFromDB?
     
     private var pgvcHeight: NSLayoutConstraint!
     private var pgvcWidth: NSLayoutConstraint!
@@ -14,7 +14,7 @@ internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: Constraint
         self.owner = owner
     }
     
-    func makeTopbarConstraints(for orientation: UIDeviceOrientation) {
+    public final func makeTopbarConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = owner else { return }
         guard let topbarView = owner.topbarView else { return }
         
@@ -25,7 +25,7 @@ internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: Constraint
 
     }
     
-    func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
+    public final func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
         
@@ -48,7 +48,7 @@ internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: Constraint
     }
     
 
-    func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
+    public final func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
         
@@ -64,7 +64,7 @@ internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: Constraint
         owner.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: owner.scrollView.frameLayoutGuide.rightAnchor).isActive = true
     }
     
-    func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
+    public final func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
         
@@ -94,7 +94,7 @@ internal final class CarouselPageFromDBWithTopbarConstraintsStrategy: Constraint
 
     }
     
-    func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
+    public final func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
         
