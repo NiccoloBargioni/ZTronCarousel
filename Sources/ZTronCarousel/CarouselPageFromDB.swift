@@ -88,7 +88,7 @@ import ZTronObservation
         self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
         self.bottomBarView = nil
         
-        super.init(nibName: nil, bundle: nil)
+        super.init(nibName: nil, bundle: nil) 
         
 
         Task(priority: .userInitiated) {

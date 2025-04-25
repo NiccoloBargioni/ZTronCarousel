@@ -67,6 +67,7 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsS
     public final func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
+        guard self.pgvcTop != nil, self.pgvcHeight != nil, self.pgvcWidth != nil else { return }
         
         self.pgvcTop.isActive = false
         
@@ -97,6 +98,7 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsS
     public final func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
         guard let topbarView = owner.topbarView else { return }
+        
         
         self.scrollViewTopContentGuide?.isActive = false
         if orientation.isPortrait && owner.topbarView != nil {

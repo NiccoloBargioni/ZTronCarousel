@@ -48,6 +48,7 @@ public final class CarouselPageFromDBTopbarlessConstraintsStrategy: ConstraintsS
     
     public func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
+        guard self.pgvcTop != nil, self.pgvcHeight != nil, self.pgvcWidth != nil else { return }
         
         self.pgvcTop.isActive = false
         pgvcTop = owner.myContainerView.safeAreaLayoutGuide.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
