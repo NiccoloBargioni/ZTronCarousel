@@ -33,13 +33,7 @@ import ZTronObservation
         return scrollView
     }()
     
-    open var constraintsStrategy: ConstraintsStrategy! {
-        if self.topbarView != nil {
-            return CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
-        } else {
-            return CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
-        }
-    }
+    open var constraintsStrategy: ConstraintsStrategy!
     
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
@@ -88,9 +82,10 @@ import ZTronObservation
         self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
         self.bottomBarView = nil
         
-        super.init(nibName: nil, bundle: nil) 
+        super.init(nibName: nil, bundle: nil)
         
-
+        self.makeConstraintsStrategy()
+        
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
             
@@ -361,5 +356,15 @@ import ZTronObservation
             try self.dbLoader.loadFirstLevelGalleries(nil)
         }
     }
+
+    open func makeConstraintsStrategy() {
+        if self.topbarView != nil {
+            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
+        } else {
+            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
+        }
+    }
+    
 }
+
 
