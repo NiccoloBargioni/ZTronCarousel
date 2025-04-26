@@ -144,7 +144,7 @@ import ZTronObservation
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
         
-            if let cs = self.constraintsStrategy as? CarouselPageFromDBWithTopbarConstraintsStrategy {
+            if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
                 cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
             }
             

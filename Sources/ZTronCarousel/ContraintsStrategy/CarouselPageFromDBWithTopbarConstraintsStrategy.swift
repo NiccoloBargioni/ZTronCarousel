@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-public final class CarouselPageFromDBWithTopbarConstraintsStrategy: ConstraintsStrategy {
+public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWithTopbarConstraintsStrategy {
     weak public var owner: CarouselPageFromDB?
     
     private var pgvcHeight: NSLayoutConstraint!
