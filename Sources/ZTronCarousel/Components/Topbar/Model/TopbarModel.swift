@@ -21,7 +21,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     @Published private var items: [any TopbarComponent]
     @Published private(set) public var redacted: Bool = true
     
-    private var lastAction: TopbarAction = .selectedItemChanged
+    private(set) public var lastAction: TopbarAction = .selectedItemChanged
     
     public init(items: [TopbarItem], title: String, selectedItem: Int = 0) {
         self.items = items
@@ -117,4 +117,6 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
 public enum TopbarAction {
     case selectedItemChanged
     case itemsReplaced
+    case loadSubgallery
+    case subgalleriesLoaded
 }

@@ -53,7 +53,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
                 
         if let topbar = args.getRoot() as? (any AnyTopbarModel) {
-            self.handleTopbarNotification(topbar)
+            self.handleTopbarNotification(topbar, arg: args)
         } else {
             if let colorPicker = args.getSource() as? PlaceableColorPicker {
                 self.handleColorPickerNotification(colorPicker)
@@ -101,17 +101,28 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     }
     
     
-    private func handleTopbarNotification(_ topbar: any AnyTopbarModel) {
+    private func handleTopbarNotification(_ topbar: any AnyTopbarModel, arg: BroadcastArgs) {
         guard let owner = self.owner else { return }
+        guard (topbar.lastAction != .subgalleriesLoaded) else { return }
         
-        if owner.lastAction != .ready {
-            let currentGallery = topbar.getSelectedItemName()
-            self.currentGalleryName = currentGallery
-
-            do {
-                try owner.loadImagesForGallery(currentGallery)
-            } catch {
-                fatalError(error.localizedDescription)
+        if topbar.lastAction == .loadSubgallery {
+            if let args = ((arg as? MSAArgs)?.getPayload() as? LoadSubgalleryRequestEventMessage) {
+                do {
+                    try owner.loadFirstLevelGalleries(args.master)
+                } catch {
+                    fatalError(error.localizedDescription)
+                }
+            }
+        } else {
+            if owner.lastAction != .ready {
+                let currentGallery = topbar.getSelectedItemName()
+                self.currentGalleryName = currentGallery
+                
+                do {
+                    try owner.loadImagesForGallery(currentGallery)
+                } catch {
+                    fatalError(error.localizedDescription)
+                }
             }
         }
     }

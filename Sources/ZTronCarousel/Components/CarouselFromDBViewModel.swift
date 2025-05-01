@@ -51,7 +51,7 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
     public func loadImages() throws {
         guard let owner = self.viewModel else { return }
         Task(priority: .userInitiated) {
-            try await owner.reloadImages()
+            try owner.reloadImages()
         }
     }
 

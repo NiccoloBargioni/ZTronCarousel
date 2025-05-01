@@ -18,7 +18,7 @@ import ZTronObservation
 
     private let requestedGalleryID: String?
     
-    internal let myContainerView: UIView = {
+    public let myContainerView: UIView = {
         let v = UIView()
         v.backgroundColor = .black
         return v
@@ -33,7 +33,7 @@ import ZTronObservation
         return scrollView
     }()
     
-    private var constraintsStrategy: ConstraintsStrategy!
+    open var constraintsStrategy: ConstraintsStrategy!
     
     private let componentsFactory: any ZTronComponentsFactory
     private let interactionsManagersFactory: any ZTronInteractionsManagersFactory
@@ -84,12 +84,8 @@ import ZTronObservation
         
         super.init(nibName: nil, bundle: nil)
         
-        if self.topbarView != nil {
-            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
-        } else {
-            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
-        }
-
+        self.makeConstraintsStrategy()
+        
         Task(priority: .userInitiated) {
             self.carouselModel.viewModel = self
             
@@ -148,7 +144,7 @@ import ZTronObservation
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
         
-            if let cs = self.constraintsStrategy as? CarouselPageFromDBWithTopbarConstraintsStrategy {
+            if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
                 cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
             }
             
@@ -360,5 +356,15 @@ import ZTronObservation
             try self.dbLoader.loadFirstLevelGalleries(nil)
         }
     }
+
+    open func makeConstraintsStrategy() {
+        if self.topbarView != nil {
+            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
+        } else {
+            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
+        }
+    }
+    
 }
+
 
