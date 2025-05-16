@@ -7,7 +7,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     public let id: String = "bottom bar"
     
     private var borderLayer: CALayer? = nil
-    nonisolated lazy private var delegate: (any MSAInteractionsManager)? = nil {
+    nonisolated(unsafe) private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {
             guard let delegate = self.delegate else { return }
             delegate.detach(or: .ignore)

@@ -7,7 +7,7 @@ import ZTronCarouselCore
 
 open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     public let id: String
-    nonisolated lazy private var delegate: (any MSAInteractionsManager)? = nil
+    nonisolated(unsafe) private var delegate: (any MSAInteractionsManager)? = nil
     private(set) public var imageName: String
     private(set) public var lastAction: PageAction = .browsing
     

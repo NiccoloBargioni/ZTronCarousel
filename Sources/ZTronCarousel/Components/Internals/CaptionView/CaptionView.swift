@@ -11,8 +11,8 @@ protocol ReadMoreLessViewDelegate: AnyObject {
 
 @IBDesignable public final class CaptionView : UIView, Component, AnyCaptionView {
     public let id: String = "captions"
-    nonisolated lazy private var subscription: AnyCancellable? = nil
-    nonisolated lazy private var interactionsDelegate: (any MSAInteractionsManager)? = nil {
+    nonisolated(unsafe) private var subscription: AnyCancellable? = nil
+    nonisolated(unsafe) private var interactionsDelegate: (any MSAInteractionsManager)? = nil {
         didSet {
             guard let interactionsDelegate = self.interactionsDelegate else { return }
             interactionsDelegate.setup(or: .ignore)
@@ -26,7 +26,7 @@ protocol ReadMoreLessViewDelegate: AnyObject {
         
     
     @IBInspectable var maxNumberOfLinesCollapsed: Int = 3
-    nonisolated fileprivate lazy var kvoContext = 0
+    fileprivate lazy var kvoContext = 0
         
     @IBInspectable var bodyColor: UIColor = .darkGray {
         didSet{

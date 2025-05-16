@@ -2,7 +2,7 @@ import ZTronCarouselCore
 import ZTronObservation
 
 public final class DefaultZTronMediaFactory: MediaFactory, Notifiable {
-    nonisolated lazy private var mediator: MSAMediator? = nil
+    nonisolated(unsafe) private var mediator: MSAMediator? = nil
     
     public init(mediator: MSAMediator? = nil) {
         self.mediator = mediator
