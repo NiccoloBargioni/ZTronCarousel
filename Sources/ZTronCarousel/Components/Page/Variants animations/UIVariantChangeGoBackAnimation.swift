@@ -1,12 +1,6 @@
 import UIKit
 import ZTronObservation
 
-fileprivate extension ClosedRange<CGFloat> {
-    func larp(_ t: CGFloat) -> CGFloat {
-        return self.lowerBound + t*(self.upperBound - self.lowerBound)
-    }
-}
-
 
 public final class UIVariantChangeGoBackAnimation: UIView, VariantAnimation {
     private let initialNormalizedAABB: CGRect

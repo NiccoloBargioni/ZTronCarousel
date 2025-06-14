@@ -1,0 +1,50 @@
+import SwiftUI
+
+struct EyeShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.size.width
+        let height = rect.size.height
+        path.move(to: CGPoint(x: 0.5*width, y: 0.8*height))
+        path.addCurve(to: CGPoint(x: 0.64489*width, y: 0.7125*height), control1: CGPoint(x: 0.55682*width, y: 0.8*height), control2: CGPoint(x: 0.60511*width, y: 0.77083*height))
+        path.addCurve(to: CGPoint(x: 0.70454*width, y: 0.5*height), control1: CGPoint(x: 0.68466*width, y: 0.65417*height), control2: CGPoint(x: 0.70454*width, y: 0.58333*height))
+        path.addCurve(to: CGPoint(x: 0.64489*width, y: 0.2875*height), control1: CGPoint(x: 0.70454*width, y: 0.41667*height), control2: CGPoint(x: 0.68466*width, y: 0.34583*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.2*height), control1: CGPoint(x: 0.60511*width, y: 0.22917*height), control2: CGPoint(x: 0.55682*width, y: 0.2*height))
+        path.addCurve(to: CGPoint(x: 0.35511*width, y: 0.2875*height), control1: CGPoint(x: 0.44318*width, y: 0.2*height), control2: CGPoint(x: 0.39489*width, y: 0.22917*height))
+        path.addCurve(to: CGPoint(x: 0.29546*width, y: 0.5*height), control1: CGPoint(x: 0.31534*width, y: 0.34583*height), control2: CGPoint(x: 0.29546*width, y: 0.41667*height))
+        path.addCurve(to: CGPoint(x: 0.35511*width, y: 0.7125*height), control1: CGPoint(x: 0.29546*width, y: 0.58333*height), control2: CGPoint(x: 0.31534*width, y: 0.65417*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.8*height), control1: CGPoint(x: 0.39489*width, y: 0.77083*height), control2: CGPoint(x: 0.44318*width, y: 0.8*height))
+        path.closeSubpath()
+        path.move(to: CGPoint(x: 0.5*width, y: 0.68*height))
+        path.addCurve(to: CGPoint(x: 0.41307*width, y: 0.6275*height), control1: CGPoint(x: 0.46591*width, y: 0.68*height), control2: CGPoint(x: 0.43693*width, y: 0.6625*height))
+        path.addCurve(to: CGPoint(x: 0.37727*width, y: 0.5*height), control1: CGPoint(x: 0.38921*width, y: 0.5925*height), control2: CGPoint(x: 0.37727*width, y: 0.55*height))
+        path.addCurve(to: CGPoint(x: 0.41307*width, y: 0.3725*height), control1: CGPoint(x: 0.37727*width, y: 0.45*height), control2: CGPoint(x: 0.38921*width, y: 0.4075*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.32*height), control1: CGPoint(x: 0.43693*width, y: 0.3375*height), control2: CGPoint(x: 0.46591*width, y: 0.32*height))
+        path.addCurve(to: CGPoint(x: 0.58693*width, y: 0.3725*height), control1: CGPoint(x: 0.53409*width, y: 0.32*height), control2: CGPoint(x: 0.56307*width, y: 0.3375*height))
+        path.addCurve(to: CGPoint(x: 0.62273*width, y: 0.5*height), control1: CGPoint(x: 0.61079*width, y: 0.4075*height), control2: CGPoint(x: 0.62273*width, y: 0.45*height))
+        path.addCurve(to: CGPoint(x: 0.58693*width, y: 0.6275*height), control1: CGPoint(x: 0.62273*width, y: 0.55*height), control2: CGPoint(x: 0.61079*width, y: 0.5925*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.68*height), control1: CGPoint(x: 0.56307*width, y: 0.6625*height), control2: CGPoint(x: 0.53409*width, y: 0.68*height))
+        path.closeSubpath()
+        path.move(to: CGPoint(x: 0.5*width, y: height))
+        path.addCurve(to: CGPoint(x: 0.19773*width, y: 0.86417*height), control1: CGPoint(x: 0.38939*width, y: height), control2: CGPoint(x: 0.28864*width, y: 0.95472*height))
+        path.addCurve(to: CGPoint(x: 0, y: 0.5*height), control1: CGPoint(x: 0.10682*width, y: 0.77361*height), control2: CGPoint(x: 0.04091*width, y: 0.65222*height))
+        path.addCurve(to: CGPoint(x: 0.19773*width, y: 0.13583*height), control1: CGPoint(x: 0.04091*width, y: 0.34778*height), control2: CGPoint(x: 0.10682*width, y: 0.22639*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0), control1: CGPoint(x: 0.28864*width, y: 0.04528*height), control2: CGPoint(x: 0.38939*width, y: 0))
+        path.addCurve(to: CGPoint(x: 0.80227*width, y: 0.13583*height), control1: CGPoint(x: 0.61061*width, y: 0), control2: CGPoint(x: 0.71136*width, y: 0.04528*height))
+        path.addCurve(to: CGPoint(x: width, y: 0.5*height), control1: CGPoint(x: 0.89318*width, y: 0.22639*height), control2: CGPoint(x: 0.95909*width, y: 0.34778*height))
+        path.addCurve(to: CGPoint(x: 0.80227*width, y: 0.86417*height), control1: CGPoint(x: 0.95909*width, y: 0.65222*height), control2: CGPoint(x: 0.89318*width, y: 0.77361*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: height), control1: CGPoint(x: 0.71136*width, y: 0.95472*height), control2: CGPoint(x: 0.61061*width, y: height))
+        path.closeSubpath()
+        path.move(to: CGPoint(x: 0.5*width, y: 0.86667*height))
+        path.addCurve(to: CGPoint(x: 0.73579*width, y: 0.7675*height), control1: CGPoint(x: 0.58561*width, y: 0.86667*height), control2: CGPoint(x: 0.66421*width, y: 0.83361*height))
+        path.addCurve(to: CGPoint(x: 0.9*width, y: 0.5*height), control1: CGPoint(x: 0.80739*width, y: 0.70139*height), control2: CGPoint(x: 0.86212*width, y: 0.61222*height))
+        path.addCurve(to: CGPoint(x: 0.73579*width, y: 0.2325*height), control1: CGPoint(x: 0.86212*width, y: 0.38778*height), control2: CGPoint(x: 0.80739*width, y: 0.29861*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.13333*height), control1: CGPoint(x: 0.66421*width, y: 0.16639*height), control2: CGPoint(x: 0.58561*width, y: 0.13333*height))
+        path.addCurve(to: CGPoint(x: 0.26421*width, y: 0.2325*height), control1: CGPoint(x: 0.41439*width, y: 0.13333*height), control2: CGPoint(x: 0.3358*width, y: 0.16639*height))
+        path.addCurve(to: CGPoint(x: 0.1*width, y: 0.5*height), control1: CGPoint(x: 0.19261*width, y: 0.29861*height), control2: CGPoint(x: 0.13788*width, y: 0.38778*height))
+        path.addCurve(to: CGPoint(x: 0.26421*width, y: 0.7675*height), control1: CGPoint(x: 0.13788*width, y: 0.61222*height), control2: CGPoint(x: 0.19261*width, y: 0.70139*height))
+        path.addCurve(to: CGPoint(x: 0.5*width, y: 0.86667*height), control1: CGPoint(x: 0.3358*width, y: 0.83361*height), control2: CGPoint(x: 0.41439*width, y: 0.86667*height))
+        path.closeSubpath()
+        return path
+    }
+}

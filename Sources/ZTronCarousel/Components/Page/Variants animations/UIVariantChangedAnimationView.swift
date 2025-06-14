@@ -1,12 +1,5 @@
 import UIKit
-// import SnapKit
 import ZTronObservation
-
-fileprivate extension ClosedRange<CGFloat> {
-    func larp(_ t: CGFloat) -> CGFloat {
-        return self.lowerBound + t*(self.upperBound - self.lowerBound)
-    }
-}
 
 
 public final class UIVariantChangedForwardAnimation: UIView, VariantAnimation {

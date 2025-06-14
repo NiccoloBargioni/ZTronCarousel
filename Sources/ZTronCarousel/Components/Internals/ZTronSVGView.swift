@@ -71,8 +71,15 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
             self.isHidden = true
         }
         
-        svgView.snp.makeConstraints { make in
-            make.left.top.right.bottom.equalToSuperview()
+        svgView.translatesAutoresizingMaskIntoConstraints = false
+        
+        if let parentView = svgView.superview {
+            NSLayoutConstraint.activate([
+                svgView.topAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.topAnchor),
+                svgView.rightAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.rightAnchor),
+                svgView.bottomAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.bottomAnchor),
+                svgView.leftAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.leftAnchor),
+            ])
         }
     }
     

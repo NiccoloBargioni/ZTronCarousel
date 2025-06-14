@@ -5,7 +5,7 @@ public protocol OverlayDescriptor: AnyObject, Sendable {
 }
 
 
-public struct OverlayDescriptorType: RawRepresentable, Sendable {
+public struct OverlayDescriptorType: RawRepresentable, Sendable, Hashable {
     public init?(rawValue: String) {
         self.rawValue = rawValue
     }
