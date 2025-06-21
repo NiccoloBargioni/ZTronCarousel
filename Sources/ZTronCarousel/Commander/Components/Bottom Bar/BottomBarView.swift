@@ -30,6 +30,11 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         self.throttler.throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: true).sink { action in
             self.lastAction = action
+            
+            if let role = BottomBarActionRole.fromBottomBarAction(action) {
+                self.toggleActive(role)
+            }
+            
             self.pushNotification()
         }
         .store(in: &self.cancellables)
@@ -228,12 +233,14 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         guard let buttonForRole = self.buttonForRole(role) else { return }
         
         buttonForRole.toggleActive()
+        self.parentViewController?.view.layoutIfNeeded()
     }
     
     public final func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
         guard let buttonForRole = self.buttonForRole(role) else { return }
 
         buttonForRole.setActive(isActive)
+        self.parentViewController?.view.layoutIfNeeded()
     }
 }
 

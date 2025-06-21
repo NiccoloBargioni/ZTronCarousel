@@ -21,12 +21,14 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
     
     public final func setup() {
         let theButton = UIDimmingBackgroundButton(type: .system)
+        
         theButton.addAction(UIAction(title: self.role.rawValue) { _ in
             self.action()
             
+            /*
             if self.isStateful {
                 self.toggleActive()
-            }
+            }*/
         }, for: .touchUpInside)
                 
         theButton.translatesAutoresizingMaskIntoConstraints = false

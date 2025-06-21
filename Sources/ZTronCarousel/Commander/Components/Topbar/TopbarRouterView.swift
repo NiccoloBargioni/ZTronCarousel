@@ -160,6 +160,8 @@ public final class TopbarRouterView: UIView {
         self.visibilityIndicator.view.backgroundColor = .clear
         
         self.topbarModel.onItemsReplaced(self.onItemsChanged(_:))
+        self.topbarModel.onSelectedItemChanged(self.updateCurrentSelection(_:))
+        self.topbarModel.onRedactedChange(self.onRedacted(_:))
     }
     
     required public init?(coder: NSCoder) {
@@ -172,11 +174,11 @@ public final class TopbarRouterView: UIView {
         let previousIndex = self.topbarModel.getSelectedItem()
         self.topbarModel.setSelectedItem(item: index)
         
-        if let previousLabel = self.scrollView.subviews[previousIndex] as? any AnyTopbarComponentView {
+        if let previousLabel = self.nthComponentView(index) {
             previousLabel.toggleActive()
         }
         
-        if let currentItem = self.scrollView.subviews[index] as? any AnyTopbarComponentView {
+        if let currentItem = self.nthComponentView(index) {
             currentItem.toggleActive()
             
             UIView.animate(withDuration: 0.25) {
@@ -211,10 +213,6 @@ public final class TopbarRouterView: UIView {
         self.scrollView.centerScrollContent(self.scrollView.subviews[self.topbarModel.getSelectedItem()])
     }
     
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        print(#function)
-    }
     
     @MainActor private final func onItemsChanged(_ items: [any TopbarComponent]) {
         self.scrollView.removeAllConstraints()
@@ -366,4 +364,12 @@ public final class TopbarRouterView: UIView {
         }[n]  as? any AnyTopbarComponentView
     }
 
+    
+    private final func onRedacted(_ isRedacted: Bool) {
+        self.scrollView.subviews.compactMap { subview in
+            return subview as? any AnyTopbarComponentView
+        }.forEach { subview in
+            subview.setIsRedacted(isRedacted)
+        }
+    }
 }
