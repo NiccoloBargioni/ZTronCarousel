@@ -155,26 +155,13 @@ import ZTronObservation
         }
 
         self.scrollView.addSubview(myContainerView)
-        self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
         self.thePageVC.willMove(toParent: self)
         addChild(thePageVC)
         
         thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
         myContainerView.addSubview(thePageVC.view)
-        
-        if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
-            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
-        }
-        
-
-        NSLayoutConstraint.activate([
-            thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
-            thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
-            thePageVC.view.bottomAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.bottomAnchor),
-            thePageVC.view.leftAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.leftAnchor),
-        ])
-        
+                
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         self.bottomBarView.layer.zPosition = 3.0
@@ -182,6 +169,7 @@ import ZTronObservation
         self.scrollView.addSubview(self.bottomBarView)
 
         self.bottomBarView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             self.bottomBarView.topAnchor.constraint(equalTo: self.thePageVC.view.bottomAnchor, constant: 5.0),
             self.bottomBarView.leftAnchor.constraint(equalTo: self.thePageVC.view.leftAnchor),
@@ -189,6 +177,20 @@ import ZTronObservation
             self.bottomBarView.heightAnchor.constraint(equalToConstant: 44.0)
         ])
         
+        
+        if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
+            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+        }
+        
+        self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+
+        NSLayoutConstraint.activate([
+            thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
+            thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
+            thePageVC.view.bottomAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.bottomAnchor),
+            thePageVC.view.leftAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.leftAnchor),
+        ])
+
         
         if !self.isPortrait {
             self.bottomBarView.isHidden = true
