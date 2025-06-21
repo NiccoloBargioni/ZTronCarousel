@@ -68,4 +68,12 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
         
         return captionView
     }
+    
+    public func makeConstraintsStrategy(owner: CarouselPageFromDB, _ includesTopbar : Bool) -> any ConstraintsStrategy {
+        if includesTopbar {
+            return CarouselPageFromDBWithTopbarConstraintsStrategy(owner: owner)
+        } else {
+            return CarouselPageFromDBTopbarlessConstraintsStrategy(owner: owner)
+        }
+    }
 }

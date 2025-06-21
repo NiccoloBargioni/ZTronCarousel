@@ -4,6 +4,7 @@ import ZTronObservation
 import ZTronSerializable
 
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
+    
     private let topbarTitle: String?
     
     public init(
@@ -57,4 +58,13 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     public func makeCaptionView() -> any AnyCaptionView {
         return CaptionOverlay(frame: .zero)
     }
+    
+    public func makeConstraintsStrategy(owner: CarouselPageFromDB, _ includesTopbar: Bool) -> any ConstraintsStrategy {
+        if includesTopbar {
+            return CommanderWithTopbarConstraintsStrategy(owner: owner)
+        } else {
+            return DefaultZtronComponentsFactory().makeConstraintsStrategy(owner: owner, false)
+        }
+    }
+
 }

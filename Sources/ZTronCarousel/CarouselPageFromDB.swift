@@ -385,13 +385,16 @@ import ZTronObservation
     }
 
     open func makeConstraintsStrategy() {
-        if self.topbarView != nil {
-            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
-        } else {
-            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
-        }
+        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarView != nil)
     }
     
+    open func viewBelowCarousel() -> UIView {
+        if self.captionView.displayStrategy == .below {
+            return self.captionView.superview!
+        } else {
+            return self.thePageVC.view.superview!
+        }
+    }
     
     public final func toggleCaptionOverlay() {
         if self.captionView.isHidden {
