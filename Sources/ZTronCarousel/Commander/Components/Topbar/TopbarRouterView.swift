@@ -140,6 +140,7 @@ public final class TopbarRouterView: UIView {
             self.progressIndicatorRight.isActive = true
         }
         
+        /*
         self.addSubview(visibilityIndicator.view)
         
         self.visibilityIndicator.view.translatesAutoresizingMaskIntoConstraints = false
@@ -158,6 +159,7 @@ public final class TopbarRouterView: UIView {
         self.visibilityIndicator.view.setContentHuggingPriority(.required, for: .horizontal)
         
         self.visibilityIndicator.view.backgroundColor = .clear
+        */
         
         self.topbarModel.onItemsReplaced(self.onItemsChanged(_:))
         self.topbarModel.onSelectedItemChanged(self.updateCurrentSelection(_:))
@@ -192,6 +194,7 @@ public final class TopbarRouterView: UIView {
                 self.superview?.layoutIfNeeded()
             }
             
+            /*
             UIView.animate(withDuration: 0.125) {
                 self.visibilityIndicator.view.layer.opacity = 0.0
             } completion: { _ in
@@ -205,7 +208,7 @@ public final class TopbarRouterView: UIView {
                 UIView.animate(withDuration: 0.25) {
                     self.visibilityIndicator.view.layer.opacity = 1.0
                 }
-            }
+            }*/
         }
 
         self.scrollView.centerScrollContent(self.nthComponentView(self.topbarModel.getSelectedItem())!)
@@ -335,6 +338,7 @@ public final class TopbarRouterView: UIView {
             }
         }
 
+        
     }
     
     private final func firstComponentView() -> (any AnyTopbarComponentView)? {
