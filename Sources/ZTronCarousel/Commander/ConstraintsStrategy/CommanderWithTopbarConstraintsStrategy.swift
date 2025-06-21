@@ -30,7 +30,6 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     
     public final func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
         
         let size = owner.computeContentSizeThatFits()
         owner.myContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -53,7 +52,6 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
 
     public final func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
         
         self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
             equalTo: owner.myContainerView.topAnchor
@@ -67,7 +65,6 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     
     public final func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
         
         self.pgvcTop.isActive = false
         

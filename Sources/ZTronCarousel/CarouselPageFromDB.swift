@@ -144,10 +144,6 @@ import ZTronObservation
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
         
-            if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
-                cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
-            }
-            
             if !self.isPortrait {
                 topbarView.view.isHidden = true
             } else {
@@ -167,6 +163,11 @@ import ZTronObservation
         thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
         myContainerView.addSubview(thePageVC.view)
         
+        if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
+            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+        }
+        
+
         NSLayoutConstraint.activate([
             thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
             thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
@@ -357,15 +358,13 @@ import ZTronObservation
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: UIDevice.current.orientation.isPortrait ?
-                self.captionView.displayStrategy == .below ?
-                    self.captionView.safeAreaLayoutGuide.bottomAnchor : self.thePageVC.view!.superview!.bottomAnchor :
+                    self.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         } else {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: self.isPortrait ?
-                self.captionView.displayStrategy == .below ?
-                    self.captionView.safeAreaLayoutGuide.bottomAnchor : self.thePageVC.view!.superview!.bottomAnchor :
+                    self.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         }
@@ -389,10 +388,30 @@ import ZTronObservation
     }
     
     open func viewBelowCarousel() -> UIView {
-        if self.captionView.displayStrategy == .below {
-            return self.captionView.superview!
+        let filtered = self.thePageVC.view.superview!.constraintsAffectingLayout(for: .vertical).filter { layout in
+            if layout.firstAttribute == .bottom && layout.firstItem === self.thePageVC.view.superview {
+                if layout.secondAttribute != .bottom {
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                if layout.secondAttribute == .bottom && layout.secondItem === self.thePageVC.view.superview {
+                    if layout.firstAttribute != .bottom {
+                        return true
+                    } else {
+                        return false
+                    }
+                } else {
+                    return false
+                }
+            }
+        }
+        
+        if filtered.first!.firstItem === self.thePageVC.view.superview {
+            return filtered.first!.secondItem as! UIView
         } else {
-            return self.thePageVC.view.superview!
+            return filtered.first!.firstItem as! UIView
         }
     }
     
