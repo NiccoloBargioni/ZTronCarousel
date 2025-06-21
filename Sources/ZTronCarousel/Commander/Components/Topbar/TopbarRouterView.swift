@@ -56,7 +56,6 @@ public final class TopbarRouterView: UIView {
             let topbarComponentContainer = TopbarComponentView(
                 component: topbarComponent,
                 action: UIAction(title: "Skip to i") { _ in
-                    self.lastSeenTopbarIndex = i
                     self.topbarModel.setSelectedItem(item: i)
                 }
             )
@@ -175,6 +174,7 @@ public final class TopbarRouterView: UIView {
     
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
+        
         let previousIndex = self.lastSeenTopbarIndex
         self.lastSeenTopbarIndex = index
         
