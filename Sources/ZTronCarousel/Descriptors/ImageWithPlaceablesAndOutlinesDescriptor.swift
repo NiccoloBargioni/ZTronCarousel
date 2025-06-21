@@ -18,4 +18,10 @@ public class ImageWithPlaceablesAndOverlaysDescriptor: ZTronImageDescriptor {
     public func getOverlaysDescriptors() -> [any OverlayDescriptor] {
         return Array(self.overlaysDescriptors)
     }
+    
+    public func getPlaceableDescriptors(for type: String) -> [any PlaceableDescriptor]? {
+        return self.placeablesDescriptors.compactMap { descriptor in
+            return descriptor.descriptorType.rawValue == type ? descriptor : nil
+        }
+    }
 }

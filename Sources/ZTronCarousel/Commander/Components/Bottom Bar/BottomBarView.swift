@@ -5,7 +5,6 @@ import Combine
 
 
 public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
-    
     private(set) public var lastAction: BottomBarLastAction = .ready
     nonisolated(unsafe) private(set) public var currentImage: String? = nil
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
@@ -91,16 +90,22 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         currentImageLabel.setContentHuggingPriority(.required, for: .horizontal)
         
         // MARK: - ZOOM
-        let zoomButton = self.addAction(title: "zoom", icon: ZoomShape(), rightAnchor: bottomBarView.rightAnchor, constant: -20) {
+        let zoomButton = self.addAction(
+            role: .fullScreen,
+            icon: ZoomShape(),
+            isStateful: false,
+            rightAnchor: bottomBarView.rightAnchor,
+            constant: -20
+        ) {
             
         }
         
-        let boundingCircleButton = self.addAction(title: "bounding circle", icon: BoundingCircleIcon(), rightAnchor: zoomButton.leftAnchor, constant: -15) {
+        let boundingCircleButton = self.addAction(role: .boundingCircle, icon: BoundingCircleIcon(), rightAnchor: zoomButton.leftAnchor, constant: -15) {
             self.throttler.send(.toggleBoundingCircle)
         }
 
         
-        let outlineButton = self.addAction(title: "outline", icon: OutlineIcon(), rightAnchor: boundingCircleButton.leftAnchor, constant: -15) {
+        let outlineButton = self.addAction(role: .outline, icon: OutlineIcon(), rightAnchor: boundingCircleButton.leftAnchor, constant: -15) {
             self.throttler.send(.toggleOutline)
         }
 
@@ -118,16 +123,16 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             separatorView.rightAnchor.constraint(equalTo: outlineButton.leftAnchor, constant: -15)
         ])
         
-        let triangulation = self.addAction(title: "triangulation", icon: TargetIcon(), rightAnchor: separatorView.leftAnchor, constant: -15) {
+        let triangulation = self.addAction(role: .triangulate, icon: TargetIcon(), rightAnchor: separatorView.leftAnchor, constant: -15) {
             print("Toggle triangulation")
         }
 
-        let pickerAction = self.addAction(title: "color picker", icon: ColorPickerIcon(), rightAnchor: triangulation.leftAnchor, constant: -15) {
+        let pickerAction = self.addAction(role: .colorPicker, icon: ColorPickerIcon(), rightAnchor: triangulation.leftAnchor, constant: -15) {
             
         }
         
-        self.addAction(title: "captions", icon: InfoShape(), rightAnchor: pickerAction.leftAnchor, constant: -15) {
-            
+        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: pickerAction.leftAnchor, constant: -15) {
+            self.throttler.send(.tappedToggleCaption)
         }
         
         NSLayoutConstraint.activate([
@@ -139,13 +144,14 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
-        title: String,
+        role: BottomBarActionRole,
         icon: S,
+        isStateful: Bool = true,
         rightAnchor: NSLayoutXAxisAnchor,
         constant: CGFloat = 0,
         action: @escaping () -> Void
     ) -> UIView {
-        let action = BottomBarAction(title: title, icon: icon, action: action)
+        let action = BottomBarAction(role: role, icon: icon, isStateful: isStateful, action: action)
         
         if let bottomBarView = self.subviews.first {
             bottomBarView.addSubview(action)
@@ -210,5 +216,24 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         self.cancellables.forEach { $0.cancel() }
     }
     
+    
+    private final func buttonForRole(_ role: BottomBarActionRole) -> (any ActiveTogglableView)? {
+        return self.subviews.first?.subviews.first {
+            return $0.accessibilityIdentifier == role.rawValue
+        } as? (any ActiveTogglableView)
+    }
+    
+    
+    public final func toggleActive(_ role: BottomBarActionRole) {
+        guard let buttonForRole = self.buttonForRole(role) else { return }
+        
+        buttonForRole.toggleActive()
+    }
+    
+    public final func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
+        guard let buttonForRole = self.buttonForRole(role) else { return }
+
+        buttonForRole.setActive(isActive)
+    }
 }
 

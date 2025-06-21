@@ -24,4 +24,23 @@ public protocol AnyTopbarModel: Component, AnyObject, ObservableObject {
     func setSelectedItem(item: Int) -> Void
     func getSelectedItem() -> Int
     func get(_ pos: Int) -> any TopbarComponent
+    
+    // MARK: - TO SUPPORT UIKIT TOPBARS
+    func onRedactedChange(_ action: @escaping (Bool) -> Void) -> Void
+    func onSelectedItemChanged(_ action: @escaping (Int) -> Void) -> Void
+    func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) -> Void
+}
+
+public extension AnyTopbarModel {
+    func onRedactedChange(_ action: @escaping (Bool) -> Void) -> Void {
+        print("\(#function) NOT IMPLEMENTED")
+    }
+    
+    func onSelectedItemChanged(_ action: @escaping (Int) -> Void) -> Void {
+        print("\(#function) NOT IMPLEMENTED")
+    }
+    
+    func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) -> Void {
+        print("\(#function) NOT IMPLEMENTED")
+    }
 }

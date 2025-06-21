@@ -10,6 +10,8 @@ protocol ReadMoreLessViewDelegate: AnyObject {
 }
 
 @IBDesignable public final class CaptionView : UIView, Component, AnyCaptionView {
+    
+    public let displayStrategy: CaptionDisplayStrategy = .below
     public let id: String = "captions"
     nonisolated(unsafe) private var subscription: AnyCancellable? = nil
     nonisolated(unsafe) private var interactionsDelegate: (any MSAInteractionsManager)? = nil {

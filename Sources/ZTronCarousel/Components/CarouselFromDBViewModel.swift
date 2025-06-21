@@ -59,6 +59,14 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
         hasher.combine(self.id)
     }
     
+    @MainActor public func toggleCaption() {
+        guard let owner = self.viewModel else { return }
+        guard owner.captionView.displayStrategy == .overlay else { return }
+        
+        owner.toggleCaptionOverlay()
+    }
+
+    
     deinit {
         self.delegate?.detach()
     }

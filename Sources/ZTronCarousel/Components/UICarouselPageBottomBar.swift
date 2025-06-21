@@ -240,5 +240,13 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     }
     
 
+    public func toggleActive(_ role: BottomBarActionRole) {
+        
+    }
+    
+    public func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
+        
+    }
+
 }
 

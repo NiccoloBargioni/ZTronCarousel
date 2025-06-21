@@ -26,6 +26,10 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
             } else {
                 if let _ = (eventArgs.getSource() as? any AnyTopbarModel) {
                     self.topbarDiscovered = true
+                } else {
+                    if let bottomBar = (eventArgs.getSource() as? any AnyBottomBar) {
+                        self.mediator?.signalInterest(owner, to: bottomBar)
+                    }
                 }
             }
         }
@@ -85,12 +89,21 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                         }
                     }
                 }
+            } else {
+                if let bottomBar = (args.getSource() as? any AnyBottomBar) {
+                    Task(priority: .userInitiated) { @MainActor in
+                        guard bottomBar.currentImage == owner.viewModel?.thePageVC.currentMediaDescriptor?.getAssetName() else { return }
+                        if bottomBar.lastAction == .tappedToggleCaption {
+                            owner.toggleCaption()
+                        }
+                    }
+                }
             }
         }
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        if let topbar = args.getSource() as? any AnyTopbarModel {
+        if let _ = args.getSource() as? any AnyTopbarModel {
             self.topbarDiscovered = false
         }
     }

@@ -26,6 +26,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
         guard let title = self.topbarTitle else { fatalError("Provide a title for topbar in .init()") }
+        
         let model = TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
@@ -42,11 +43,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
             title: title
         )
         
-        let topbar = UIHostingController<TopbarView>(rootView: TopbarView(topbar: model))
-        
-        if #available(iOS 16.0, *) {
-            topbar.sizingOptions = [.intrinsicContentSize]
-        }
+        let topbar = TopbarViewController(model: model)
         
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
         
@@ -58,14 +55,6 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeCaptionView() -> any AnyCaptionView {
-        let captionView = CaptionView()
-        
-        captionView.maxNumberOfLinesCollapsed = 3
-        captionView.bodyColor = UIColor.label
-        Task(priority: .userInitiated) { @MainActor in
-            captionView.setText(body: "Nullam dignissim quam ut enim volutpat porta posuere ut diam. Praesent efficitur sagittis sapien, ac mollis tellus bibendum sit amet. Sed pharetra, lacus a dictum scelerisque, est dolor tincidunt turpis, vel ornare arcu eros ac ligula. Ut feugiat sagittis ipsum, et vestibulum nulla vehicula ut. Nulla purus leo, feugiat luctus nulla eget, pharetra tempus est.")
-        }
-        
-        return captionView
+        return CaptionOverlay(frame: .zero)
     }
 }

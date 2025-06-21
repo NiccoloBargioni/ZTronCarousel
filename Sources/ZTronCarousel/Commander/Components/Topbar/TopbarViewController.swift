@@ -1,0 +1,49 @@
+import UIKit
+import SwiftUI
+
+public final class TopbarViewController: UIViewController {
+    private let topbarModel: TopbarModel
+    private var topbarView: TopbarRouterView!
+    
+    public init(model: TopbarModel) {
+        self.topbarModel = model
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    
+    override public func viewDidLoad() {
+        super.viewDidLoad()
+        
+        self.topbarView = .init(model: self.topbarModel)
+        self.view.backgroundColor = UIColor.clear
+                
+        self.view.addSubview(self.topbarView)
+        self.topbarView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            self.topbarView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            self.topbarView.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor),
+            self.topbarView.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor),
+            self.topbarView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
+    
+    override public func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        coordinator.animate { _ in
+            
+        } completion: { _ in
+            self.topbarView.viewDidTransition(to: size)
+        }
+    }
+    
+    override public func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+    }
+}
+
