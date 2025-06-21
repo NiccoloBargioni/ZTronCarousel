@@ -27,6 +27,8 @@ public final class TopbarRouterView: UIView {
     private var scrollViewContentLeft: NSLayoutConstraint!
     private var scrollViewContentRight: NSLayoutConstraint!
     
+    private var lastSeenTopbarIndex: Int = 0
+    
     public init(model: TopbarModel) {
         self.topbarModel = model
         super.init(frame: .zero)
@@ -54,7 +56,7 @@ public final class TopbarRouterView: UIView {
             let topbarComponentContainer = TopbarComponentView(
                 component: topbarComponent,
                 action: UIAction(title: "Skip to i") { _ in
-                    self.updateCurrentSelection(i)
+                    self.lastSeenTopbarIndex = i
                     self.topbarModel.setSelectedItem(item: i)
                 }
             )
@@ -173,7 +175,7 @@ public final class TopbarRouterView: UIView {
     
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
-        let previousIndex = self.topbarModel.getSelectedItem()
+        let previousIndex = self.lastSeenTopbarIndex
 
         if let previousLabel = self.nthComponentView(index) {
             previousLabel.toggleActive()
@@ -182,6 +184,8 @@ public final class TopbarRouterView: UIView {
         if index != self.topbarModel.getSelectedItem() {
             self.topbarModel.setSelectedItem(item: index)
         }
+        
+        self.nthComponentView(self.topbarModel.getSelectedItem())?.toggleActive()
         
         
         if let currentItem = self.nthComponentView(index) {
