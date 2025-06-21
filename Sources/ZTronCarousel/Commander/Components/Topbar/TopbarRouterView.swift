@@ -206,6 +206,14 @@ public final class TopbarRouterView: UIView {
         }
 
         self.scrollView.centerScrollContent(self.nthComponentView(self.topbarModel.getSelectedItem())!)
+        
+        self.scrollView.subviews.compactMap { subview in
+            return subview as? any AnyTopbarComponentView
+        }.forEach { subview in
+            subview.setIsActive(false)
+        }
+        
+        self.nthComponentView(self.topbarModel.getSelectedItem())?.setIsActive(true)
     }
     
     

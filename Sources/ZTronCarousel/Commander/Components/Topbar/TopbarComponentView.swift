@@ -116,6 +116,19 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         self.isActive.toggle()
     }
     
+    public func setIsActive(_ isActive: Bool) {
+        guard isActive != self.isActive else { return }
+        
+        titleView?.animate(
+            font: self.isActive ?  .systemFont(ofSize: 10, weight: .regular) : .systemFont(ofSize: 12, weight: .bold),
+            textColor: self.isActive ? self.disabledColor : .label,
+            duration: 0.25
+        )
+
+        self.isActive = isActive
+    }
+
+    
     public final func setIsRedacted(_ isRedacted: Bool) {
         if isRedacted {
             self.logoView?.showGradientSkeleton()
@@ -134,6 +147,7 @@ public protocol AnyTopbarComponentView: UIView {
     func viewForLogo() -> UIView?
     func viewForTitle() -> UILabel?
     func toggleActive() -> Void
+    func setIsActive(_:Bool) -> Void
     
     func setIsRedacted(_: Bool)
 }
