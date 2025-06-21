@@ -174,14 +174,15 @@ public final class TopbarRouterView: UIView {
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
         let previousIndex = self.topbarModel.getSelectedItem()
-        
+
+        if let previousLabel = self.nthComponentView(index) {
+            previousLabel.toggleActive()
+        }
+
         if index != self.topbarModel.getSelectedItem() {
             self.topbarModel.setSelectedItem(item: index)
         }
         
-        if let previousLabel = self.nthComponentView(index) {
-            previousLabel.toggleActive()
-        }
         
         if let currentItem = self.nthComponentView(index) {
             currentItem.toggleActive()

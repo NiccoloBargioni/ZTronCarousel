@@ -75,11 +75,13 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         guard self.isStateful else { return }
         
         self.iconView.toggleActive()
+        self.layoutIfNeeded()
     }
     
     public final func setActive(_ isActive: Bool) {
         guard self.isStateful else { return }
         
         self.iconView.setActive(isActive)
+        self.layoutIfNeeded()
     }
 }

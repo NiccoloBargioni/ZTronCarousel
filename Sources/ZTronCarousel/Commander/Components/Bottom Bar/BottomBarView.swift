@@ -233,14 +233,14 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         guard let buttonForRole = self.buttonForRole(role) else { return }
         
         buttonForRole.toggleActive()
-        self.parentViewController?.view.layoutIfNeeded()
+        self.subviews.first?.layoutIfNeeded()
     }
     
     public final func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
         guard let buttonForRole = self.buttonForRole(role) else { return }
 
         buttonForRole.setActive(isActive)
-        self.parentViewController?.view.layoutIfNeeded()
+        self.subviews.first?.layoutIfNeeded()
     }
 }
 
