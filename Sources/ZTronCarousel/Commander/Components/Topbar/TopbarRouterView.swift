@@ -174,7 +174,8 @@ public final class TopbarRouterView: UIView {
     
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
-        
+        guard self.lastSeenTopbarIndex != index else { return }
+            
         let previousIndex = self.lastSeenTopbarIndex
         self.lastSeenTopbarIndex = index
         
