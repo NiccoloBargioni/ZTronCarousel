@@ -21,13 +21,10 @@ public final class TopbarRouterView: UIView {
     private var progressIndicatorTotal: UIView!
 
     private var progressIndicatorRight: NSLayoutConstraint!
-    
     private var visibilityIndicatorRight: NSLayoutConstraint!
     
     private var scrollViewContentLeft: NSLayoutConstraint!
     private var scrollViewContentRight: NSLayoutConstraint!
-    
-    private var lastSeenTopbarIndex: Int = 0
     
     public init(model: TopbarModel) {
         self.topbarModel = model
@@ -56,7 +53,7 @@ public final class TopbarRouterView: UIView {
             let topbarComponentContainer = TopbarComponentView(
                 component: topbarComponent,
                 action: UIAction(title: "Skip to i") { _ in
-                    self.topbarModel.setSelectedItem(item: i)
+                    self.updateCurrentSelection(i)
                 }
             )
             
@@ -174,17 +171,7 @@ public final class TopbarRouterView: UIView {
     
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
-        guard self.lastSeenTopbarIndex != index else { return }
-            
-        let previousIndex = self.lastSeenTopbarIndex
-        self.lastSeenTopbarIndex = index
         
-        if let previousLabel = self.nthComponentView(previousIndex) {
-            if previousIndex != index {
-                previousLabel.toggleActive()
-            }
-        }
-
         if index != self.topbarModel.getSelectedItem() {
             self.topbarModel.setSelectedItem(item: index)
         }
@@ -193,8 +180,6 @@ public final class TopbarRouterView: UIView {
         
         
         if let currentItem = self.nthComponentView(index) {
-            currentItem.toggleActive()
-            
             UIView.animate(withDuration: 0.25) {
                 self.progressIndicatorRight.isActive = false
                 self.progressIndicatorRight = self.progressIndicator.rightAnchor.constraint(equalTo: currentItem.viewForLogo()!.safeAreaLayoutGuide.centerXAnchor)
