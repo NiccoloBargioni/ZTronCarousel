@@ -432,6 +432,10 @@ import ZTronObservation
             }
         }
     }
+    
+    public final func registerAlongsideCarousel(_ component: any Component) {
+        self.mediator.register(component)
+    }
 }
 
 
