@@ -31,6 +31,10 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                         if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
                             self.mediator?.signalInterest(owner, to: topbar)
                             self.acknowledgedTopbar = true
+                        } else {
+                            if let router = eventArgs.getSource() as? (any AnyGalleryRouter) {
+                                self.mediator?.signalInterest(owner, to: router)
+                            }
                         }
                     }
                 }
@@ -56,6 +60,12 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                 } else {
                     if let page = args.getSource() as? (any AnyPage) {
                         self.handlePageNotification(page)
+                    } else {
+                        if let router = args.getSource() as? (any AnyGalleryRouter) {
+                            Task(priority: .userInitiated) { @MainActor in
+                                self.handleGalleryRouterNotification(router)
+                            }
+                        }
                     }
                 }
             }
@@ -63,7 +73,7 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
     }
     
     public func willCheckout(args: ZTronObservation.BroadcastArgs) {
-        if let topbar = args.getSource() as? any AnyTopbarModel {
+        if let _ = args.getSource() as? any AnyTopbarModel {
             self.acknowledgedTopbar = false
         }
     }
@@ -173,5 +183,27 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                 }
             }
         }
+    }
+    
+    @MainActor private final func handleGalleryRouterNotification(_ router: any AnyGalleryRouter) {
+        guard let owner = self.owner else { return }
+        guard owner.numberOfPages > 0 else { return }
+        
+        switch router.lastAction {
+            case .next:
+                owner.turnPage(to: (owner.currentPage + 1) % owner.numberOfPages)
+                
+            case .previous:
+                owner.turnPage(to: (owner.currentPage - 1 + owner.numberOfPages) % owner.numberOfPages)
+                
+            case .skip(let requestedPage):
+                if requestedPage >= 0 && requestedPage < owner.numberOfPages {
+                    owner.turnPage(to: requestedPage)
+                }
+                
+            default:
+                break
+        }
+        
     }
 }
