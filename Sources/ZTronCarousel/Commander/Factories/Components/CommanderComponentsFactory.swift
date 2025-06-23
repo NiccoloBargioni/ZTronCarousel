@@ -26,7 +26,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
-        guard let title = self.topbarTitle else { fatalError("Provide a title for topbar in .init()") }
+        guard let title = self.topbarTitle else { return nil }
         
         let model = TopbarModel(
             items: [
