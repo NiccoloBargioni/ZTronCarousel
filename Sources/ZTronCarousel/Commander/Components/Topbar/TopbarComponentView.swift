@@ -40,7 +40,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         
         
         let title: UILabel = .init()
-        title.text = self.component.getName()
+        title.text = self.component.getName().fromLocalized()
         title.textColor = self.disabledColor // self.currentIndex != i ? disabledColor : .label
         title.numberOfLines = 0
         title.font = .systemFont(

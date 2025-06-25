@@ -60,6 +60,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             bottomBarView.heightAnchor.constraint(greaterThanOrEqualToConstant: 39)
         ])
         
+        /*
         let currentImageIcon: UIImageView = .init(
             image: UIImage(systemName: "photo.fill")?
                 .withRenderingMode(.alwaysOriginal)
@@ -93,7 +94,9 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         currentImageLabel.setContentHuggingPriority(.required, for: .vertical)
         currentImageLabel.setContentHuggingPriority(.required, for: .horizontal)
+        */
         
+        /*
         // MARK: - ZOOM
         let zoomButton = self.addAction(
             role: .fullScreen,
@@ -104,8 +107,9 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         ) {
             
         }
+        */
         
-        let boundingCircleButton = self.addAction(role: .boundingCircle, icon: BoundingCircleIcon(), rightAnchor: zoomButton.leftAnchor, constant: -15) {
+        let boundingCircleButton = self.addAction(role: .boundingCircle, icon: BoundingCircleIcon(), rightAnchor: bottomBarView.rightAnchor, constant: -20) {
             self.throttler.send(.toggleBoundingCircle)
         }
 
@@ -128,6 +132,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             separatorView.rightAnchor.constraint(equalTo: outlineButton.leftAnchor, constant: -15)
         ])
         
+        /*
         let triangulation = self.addAction(role: .triangulate, icon: TargetIcon(), rightAnchor: separatorView.leftAnchor, constant: -15) {
             print("Toggle triangulation")
         }
@@ -135,8 +140,9 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let pickerAction = self.addAction(role: .colorPicker, icon: ColorPickerIcon(), rightAnchor: triangulation.leftAnchor, constant: -15) {
             
         }
+        */
         
-        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: pickerAction.leftAnchor, constant: -15) {
+        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: separatorView.leftAnchor, constant: -15) {
             self.throttler.send(.tappedToggleCaption)
         }
         

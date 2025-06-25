@@ -360,13 +360,13 @@ import ZTronObservation
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: UIDevice.current.orientation.isPortrait ?
-                    self.viewBelowCarousel().bottomAnchor :
+                    self.constraintsStrategy.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         } else {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: self.isPortrait ?
-                    self.viewBelowCarousel().bottomAnchor :
+                    self.constraintsStrategy.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         }
@@ -387,34 +387,6 @@ import ZTronObservation
 
     open func makeConstraintsStrategy() {
         self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarView != nil)
-    }
-    
-    open func viewBelowCarousel() -> UIView {
-        let filtered = self.thePageVC.view.superview!.constraintsAffectingLayout(for: .vertical).filter { layout in
-            if layout.firstAttribute == .bottom && layout.firstItem === self.thePageVC.view.superview {
-                if layout.secondAttribute != .bottom {
-                    return true
-                } else {
-                    return false
-                }
-            } else {
-                if layout.secondAttribute == .bottom && layout.secondItem === self.thePageVC.view.superview {
-                    if layout.firstAttribute != .bottom {
-                        return true
-                    } else {
-                        return false
-                    }
-                } else {
-                    return false
-                }
-            }
-        }
-        
-        if filtered.first!.firstItem === self.thePageVC.view.superview {
-            return filtered.first!.secondItem as! UIView
-        } else {
-            return filtered.first!.firstItem as! UIView
-        }
     }
     
     public final func toggleCaptionOverlay() {

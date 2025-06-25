@@ -90,4 +90,9 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     public final func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         
     }
+    
+    public func viewBelowCarousel() -> UIView {
+        guard let owner = self.owner else { fatalError() }
+        return owner.bottomBarView
+    }
 }

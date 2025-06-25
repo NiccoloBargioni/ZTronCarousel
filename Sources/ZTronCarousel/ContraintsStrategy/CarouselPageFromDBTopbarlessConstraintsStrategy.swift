@@ -75,4 +75,10 @@ public final class CarouselPageFromDBTopbarlessConstraintsStrategy: ConstraintsS
         self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: owner.myContainerView.safeAreaLayoutGuide.topAnchor)
         self.scrollViewTopContentGuide.isActive = true
     }
+    
+    public func viewBelowCarousel() -> UIView {
+        guard let owner = self.owner else { fatalError() }
+        
+        return owner.captionView.superview!
+    }
 }
