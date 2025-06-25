@@ -93,6 +93,6 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     
     public func viewBelowCarousel() -> UIView {
         guard let owner = self.owner else { fatalError() }
-        return owner.bottomBarView
+        return owner.topbarView?.view ?? owner.bottomBarView
     }
 }
