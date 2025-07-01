@@ -2,14 +2,23 @@ import UIKit
 import SwiftUI
 import ZTronObservation
 import Combine
+import ZTronTheme
 
 
 public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
-    
     private(set) public var lastAction: BottomBarLastAction = .ready
     nonisolated(unsafe) private(set) public var currentImage: String? = nil
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
     public let id: String = "Commander's Bottom Bar"
+    private var theme: (any ZTronTheme)?
+    
+    private var brandColor: UIColor {
+        if let theme = self.theme {
+            return UIColor.fromTheme(theme.colorSet, color: \.brand)
+        } else {
+            return .purple
+        }
+    }
     
     nonisolated(unsafe) private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {
@@ -31,6 +40,11 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         self.throttler.throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: true).sink { action in
             self.lastAction = action
+            
+            if let role = BottomBarActionRole.fromBottomBarAction(action) {
+                self.toggleActive(role)
+            }
+            
             self.pushNotification()
         }
         .store(in: &self.cancellables)
@@ -56,10 +70,11 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             bottomBarView.heightAnchor.constraint(greaterThanOrEqualToConstant: 39)
         ])
         
+        /*
         let currentImageIcon: UIImageView = .init(
             image: UIImage(systemName: "photo.fill")?
                 .withRenderingMode(.alwaysOriginal)
-                .withTintColor(.purple)
+                .withTintColor(self.brandColor)
                 .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 18)))
         )
         
@@ -76,7 +91,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let currentImageLabel = UILabel.init()
         currentImageLabel.text = "2 of 5"
         currentImageLabel.font = .systemFont(ofSize: 14)
-        currentImageLabel.textColor = .purple
+        currentImageLabel.textColor = self.brandColor
         
         bottomBarView.addSubview(currentImageLabel)
         
@@ -89,18 +104,27 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         currentImageLabel.setContentHuggingPriority(.required, for: .vertical)
         currentImageLabel.setContentHuggingPriority(.required, for: .horizontal)
+        */
         
+        /*
         // MARK: - ZOOM
-        let zoomButton = self.addAction(title: "zoom", icon: ZoomShape(), rightAnchor: bottomBarView.rightAnchor, constant: -20) {
+        let zoomButton = self.addAction(
+            role: .fullScreen,
+            icon: ZoomShape(),
+            isStateful: false,
+            rightAnchor: bottomBarView.rightAnchor,
+            constant: -20
+        ) {
             
         }
+        */
         
-        let boundingCircleButton = self.addAction(title: "bounding circle", icon: BoundingCircleIcon(), rightAnchor: zoomButton.leftAnchor, constant: -15) {
+        let boundingCircleButton = self.addAction(role: .boundingCircle, icon: BoundingCircleIcon(), rightAnchor: bottomBarView.rightAnchor, constant: -20) {
             self.throttler.send(.toggleBoundingCircle)
         }
 
         
-        let outlineButton = self.addAction(title: "outline", icon: OutlineIcon(), rightAnchor: boundingCircleButton.leftAnchor, constant: -15) {
+        let outlineButton = self.addAction(role: .outline, icon: OutlineIcon(), rightAnchor: boundingCircleButton.leftAnchor, constant: -15) {
             self.throttler.send(.toggleOutline)
         }
 
@@ -108,7 +132,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let separatorView: UIView = .init()
         bottomBarView.addSubview(separatorView)
         
-        separatorView.backgroundColor = .purple.withAlphaComponent(0.4)
+
+        separatorView.backgroundColor = self.brandColor
         separatorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
@@ -118,16 +143,18 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             separatorView.rightAnchor.constraint(equalTo: outlineButton.leftAnchor, constant: -15)
         ])
         
-        let triangulation = self.addAction(title: "triangulation", icon: TargetIcon(), rightAnchor: separatorView.leftAnchor, constant: -15) {
+        /*
+        let triangulation = self.addAction(role: .triangulate, icon: TargetIcon(), rightAnchor: separatorView.leftAnchor, constant: -15) {
             print("Toggle triangulation")
         }
 
-        let pickerAction = self.addAction(title: "color picker", icon: ColorPickerIcon(), rightAnchor: triangulation.leftAnchor, constant: -15) {
+        let pickerAction = self.addAction(role: .colorPicker, icon: ColorPickerIcon(), rightAnchor: triangulation.leftAnchor, constant: -15) {
             
         }
+        */
         
-        self.addAction(title: "captions", icon: InfoShape(), rightAnchor: pickerAction.leftAnchor, constant: -15) {
-            
+        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: separatorView.leftAnchor, constant: -15) {
+            self.throttler.send(.tappedToggleCaption)
         }
         
         NSLayoutConstraint.activate([
@@ -136,16 +163,31 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             self.safeAreaLayoutGuide.rightAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.rightAnchor),
             self.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.bottomAnchor),
         ])
+        
+        let bottomDivider: UIView = .init()
+        self.addSubview(bottomDivider)
+        
+        bottomDivider.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            bottomDivider.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            bottomDivider.heightAnchor.constraint(equalToConstant: 1.0),
+            bottomDivider.leftAnchor.constraint(equalTo: self.leftAnchor),
+            bottomDivider.rightAnchor.constraint(equalTo: self.rightAnchor),
+        ])
+        
+        bottomDivider.backgroundColor = self.brandColor.withAlphaComponent(0.1)
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
-        title: String,
+        role: BottomBarActionRole,
         icon: S,
+        isStateful: Bool = true,
         rightAnchor: NSLayoutXAxisAnchor,
         constant: CGFloat = 0,
         action: @escaping () -> Void
     ) -> UIView {
-        let action = BottomBarAction(title: title, icon: icon, action: action)
+        let action = BottomBarAction(role: role, icon: icon, isStateful: isStateful, action: action)
         
         if let bottomBarView = self.subviews.first {
             bottomBarView.addSubview(action)
@@ -210,5 +252,31 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         self.cancellables.forEach { $0.cancel() }
     }
     
+    
+    private final func buttonForRole(_ role: BottomBarActionRole) -> (any ActiveTogglableView)? {
+        return self.subviews.first?.subviews.first {
+            return $0.accessibilityIdentifier == role.rawValue
+        } as? (any ActiveTogglableView)
+    }
+    
+    
+    public final func toggleActive(_ role: BottomBarActionRole) {
+        guard let buttonForRole = self.buttonForRole(role) else { return }
+        
+        buttonForRole.toggleActive()
+        self.subviews.first?.layoutIfNeeded()
+    }
+    
+    public final func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
+        guard let buttonForRole = self.buttonForRole(role) else { return }
+
+        buttonForRole.setActive(isActive)
+        self.subviews.first?.layoutIfNeeded()
+    }
+    
+    public final func setTheme(_ theme: any ZTronTheme) {
+        self.theme = theme
+    }
+
 }
 

@@ -2,6 +2,7 @@ import Foundation
 
 public protocol PlaceableDescriptor: Sendable {
     var descriptorType: PlaceableDescriptorType { get }
+    func getIsActive() -> Bool
 }
 
 public struct PlaceableDescriptorType: RawRepresentable, Sendable {

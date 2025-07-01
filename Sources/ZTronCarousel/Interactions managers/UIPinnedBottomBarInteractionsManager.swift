@@ -104,6 +104,25 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
                         }
                     }
                 }
+            } else {
+                guard let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor else { return }
+                guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias else { return }
+                
+                if let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline) {
+                    if let theOutline = outlineDescriptors.first {
+                        owner.setActive(theOutline.getIsActive(), for: .outline)
+                    }
+                }
+                
+                if let boundingCircleDescriptors =
+                        currentMediaDescriptor.getPlaceableDescriptors(
+                            for: PlaceableDescriptorType.boundingCircle
+                        )
+                {
+                    if let theBoundingCircle = boundingCircleDescriptors.first {
+                        owner.setActive(theBoundingCircle.getIsActive(), for: .boundingCircle)
+                    }
+                }
             }
         }
     }

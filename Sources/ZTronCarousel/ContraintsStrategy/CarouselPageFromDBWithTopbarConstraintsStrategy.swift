@@ -20,9 +20,11 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
         
         topbarView.view.snp.makeConstraints { make in
             make.left.right.top.equalTo(owner.scrollView.contentLayoutGuide)
-            make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+            
+            if topbarView.view.intrinsicContentSize.height > 0 {
+                make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+            }
         }
-
     }
     
     public final func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
@@ -104,4 +106,10 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
         }
         self.scrollViewTopContentGuide?.isActive = true
     }
+    
+    public func viewBelowCarousel() -> UIView {
+        guard let owner = self.owner else { fatalError() }
+        return owner.captionView.superview!
+    }
+
 }

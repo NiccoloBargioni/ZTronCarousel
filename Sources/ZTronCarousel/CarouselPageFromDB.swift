@@ -4,10 +4,12 @@ import SwiftUI
 import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
+import ZTronTheme
 
 @MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
     public let mediator: MSAMediator = .init()
-
+    
+    open var theme: (any ZTronTheme)
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
@@ -65,9 +67,10 @@ import ZTronObservation
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory),
-        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
+        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil,
+        theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
-        
+        self.theme = theme
         self.requestedGalleryID = gallery
         
         self.componentsFactory = componentsFactory
@@ -128,7 +131,24 @@ import ZTronObservation
 
         self.view.layer.masksToBounds = true
                 
-        view.backgroundColor = .systemBackground
+        let backgroundView = UIHostingController(rootView: AppBackground())
+        backgroundView.willMove(toParent: self)
+        self.addChild(backgroundView)
+        self.view.addSubview(backgroundView.view)
+        backgroundView.didMove(toParent: self)
+        
+        backgroundView.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        if #available(iOS 16.0, *) {
+            backgroundView.sizingOptions = .intrinsicContentSize
+        }
+        
+        NSLayoutConstraint.activate([
+            backgroundView.view.topAnchor.constraint(equalTo: self.view.topAnchor),
+            backgroundView.view.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            backgroundView.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            backgroundView.view.leftAnchor.constraint(equalTo: self.view.leftAnchor)
+        ])
         
         self.view.addSubview(self.scrollView)
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -144,10 +164,6 @@ import ZTronObservation
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
         
-            if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
-                cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
-            }
-            
             if !self.isPortrait {
                 topbarView.view.isHidden = true
             } else {
@@ -159,21 +175,13 @@ import ZTronObservation
         }
 
         self.scrollView.addSubview(myContainerView)
-        self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
         
         self.thePageVC.willMove(toParent: self)
         addChild(thePageVC)
         
         thePageVC.view.translatesAutoresizingMaskIntoConstraints = false
         myContainerView.addSubview(thePageVC.view)
-        
-        NSLayoutConstraint.activate([
-            thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
-            thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
-            thePageVC.view.bottomAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.bottomAnchor),
-            thePageVC.view.leftAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.leftAnchor),
-        ])
-        
+                
         
         self.bottomBarView = componentsFactory.makeBottomBar()
         self.bottomBarView.layer.zPosition = 3.0
@@ -181,6 +189,7 @@ import ZTronObservation
         self.scrollView.addSubview(self.bottomBarView)
 
         self.bottomBarView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             self.bottomBarView.topAnchor.constraint(equalTo: self.thePageVC.view.bottomAnchor, constant: 5.0),
             self.bottomBarView.leftAnchor.constraint(equalTo: self.thePageVC.view.leftAnchor),
@@ -188,6 +197,20 @@ import ZTronObservation
             self.bottomBarView.heightAnchor.constraint(equalToConstant: 44.0)
         ])
         
+        
+        if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
+            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+        }
+        
+        self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+
+        NSLayoutConstraint.activate([
+            thePageVC.view.topAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.topAnchor),
+            thePageVC.view.rightAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.rightAnchor),
+            thePageVC.view.bottomAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.bottomAnchor),
+            thePageVC.view.leftAnchor.constraint(equalTo: thePageVC.view.superview!.safeAreaLayoutGuide.leftAnchor),
+        ])
+
         
         if !self.isPortrait {
             self.bottomBarView.isHidden = true
@@ -200,30 +223,46 @@ import ZTronObservation
     
         self.captionView = componentsFactory.makeCaptionView()
         
-        let captionViewContainer = BottomSeparatedUIView()
-        self.scrollView.addSubview(captionViewContainer)
-        captionViewContainer.addSubview(captionView)
+        if self.captionView.displayStrategy == .below {
+            let captionViewContainer = BottomSeparatedUIView()
+            self.scrollView.addSubview(captionViewContainer)
+            captionViewContainer.addSubview(captionView)
+            
+            captionViewContainer.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                captionViewContainer.topAnchor.constraint(equalTo: self.bottomBarView.bottomAnchor),
+                captionViewContainer.leftAnchor.constraint(equalTo: self.bottomBarView.leftAnchor),
+                captionViewContainer.rightAnchor.constraint(equalTo: self.bottomBarView.rightAnchor),
+                captionViewContainer.bottomAnchor.constraint(equalTo: self.captionView.bottomAnchor, constant: 10)
+            ])
+            
+            captionViewContainer.backgroundColor = UIColor.tertiarySystemGroupedBackground.withAlphaComponent(0.325)
+            
+            self.captionView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                self.captionView.topAnchor.constraint(equalTo: self.captionView.superview!.topAnchor, constant: 10),
+                self.captionView.rightAnchor.constraint(equalTo: self.captionView.superview!.rightAnchor, constant: -10),
+                self.captionView.leftAnchor.constraint(equalTo: self.captionView.superview!.leftAnchor, constant: 10)
+            ])
+            
+            self.captionView.setContentHuggingPriority(.defaultHigh, for: .vertical)
+            
+            self.view.bringSubviewToFront(captionView)
+        } else {
+            self.scrollView.addSubview(self.captionView)
+            
+            self.captionView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                self.captionView.topAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.topAnchor),
+                self.captionView.rightAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.rightAnchor),
+                self.captionView.bottomAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.bottomAnchor),
+                self.captionView.leftAnchor.constraint(equalTo: self.thePageVC.view.safeAreaLayoutGuide.leftAnchor),
+            ])
+            
+            self.captionView.layer.opacity = .zero
+            self.captionView.isHidden = true
+        }
         
-        captionViewContainer.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            captionViewContainer.topAnchor.constraint(equalTo: self.bottomBarView.bottomAnchor),
-            captionViewContainer.leftAnchor.constraint(equalTo: self.bottomBarView.leftAnchor),
-            captionViewContainer.rightAnchor.constraint(equalTo: self.bottomBarView.rightAnchor),
-            captionViewContainer.bottomAnchor.constraint(equalTo: self.captionView.bottomAnchor, constant: 10)
-        ])
-                
-        captionViewContainer.backgroundColor = UIColor.tertiarySystemGroupedBackground.withAlphaComponent(0.325)
-
-        self.captionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            self.captionView.topAnchor.constraint(equalTo: self.captionView.superview!.topAnchor, constant: 10),
-            self.captionView.rightAnchor.constraint(equalTo: self.captionView.superview!.rightAnchor, constant: -10),
-            self.captionView.leftAnchor.constraint(equalTo: self.captionView.superview!.leftAnchor, constant: 10)
-        ])
-        
-        self.captionView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        
-        self.view.bringSubviewToFront(captionView)
         self.captionView.setDelegate(
             self.interactionsManagersFactory.makeCaptionViewInteractionsManager(owner: self.captionView, mediator: self.mediator)
         )
@@ -238,7 +277,8 @@ import ZTronObservation
         
         scrollViewBottomContentGuide = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
             equalTo: isPortrait ?
-                self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                self.captionView.displayStrategy == .below ?
+                    self.captionView.safeAreaLayoutGuide.bottomAnchor : self.thePageVC.view!.superview!.bottomAnchor :
                 self.myContainerView.safeAreaLayoutGuide.bottomAnchor
             )
 
@@ -296,13 +336,21 @@ import ZTronObservation
                     self.topbarView?.view.isHidden = false
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
-                    self.captionView.superview?.isHidden = false
+                    
+                    if self.captionView.displayStrategy == .below {
+                        self.captionView.superview?.isHidden = false
+                    }
+                    
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
                     self.topbarView?.view.isHidden = true
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
-                    self.captionView.superview?.isHidden = true
+                    
+                    if self.captionView.displayStrategy == .below {
+                        self.captionView.superview?.isHidden = true
+                    }
+
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 }
                 
@@ -332,13 +380,13 @@ import ZTronObservation
         if UIDevice.current.orientation.isValidInterfaceOrientation {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: UIDevice.current.orientation.isPortrait ?
-                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                    self.constraintsStrategy.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         } else {
             constraint = self.scrollView.contentLayoutGuide.bottomAnchor.constraint(
                 equalTo: self.isPortrait ?
-                    self.captionView.safeAreaLayoutGuide.bottomAnchor :
+                    self.constraintsStrategy.viewBelowCarousel().bottomAnchor :
                     self.myContainerView.safeAreaLayoutGuide.bottomAnchor
                 )
         }
@@ -358,13 +406,28 @@ import ZTronObservation
     }
 
     open func makeConstraintsStrategy() {
-        if self.topbarView != nil {
-            self.constraintsStrategy = CarouselPageFromDBWithTopbarConstraintsStrategy(owner: self)
+        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarView != nil)
+    }
+    
+    public final func toggleCaptionOverlay() {
+        if self.captionView.isHidden {
+            self.captionView.isHidden = false
+            
+            UIView.animate(withDuration: 0.3) {
+                self.captionView.layer.opacity = 1.0
+            }
         } else {
-            self.constraintsStrategy = CarouselPageFromDBTopbarlessConstraintsStrategy(owner: self)
+            UIView.animate(withDuration: 0.3) {
+                self.captionView.layer.opacity = 0.0
+            } completion: { _ in
+                self.captionView.isHidden = true
+            }
         }
     }
     
+    public final func registerAlongsideCarousel(_ component: any Component) {
+        self.mediator.register(component)
+    }
 }
 
 

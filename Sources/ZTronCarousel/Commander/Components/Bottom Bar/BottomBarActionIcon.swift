@@ -1,11 +1,15 @@
 import SwiftUI
 import Combine
 
-public struct BottomBarActionIcon<S: SwiftUI.Shape>: ActiveTogglableView {
+public struct BottomBarActionIcon<S: SwiftUI.Shape>: SwiftUI.View, ActiveTogglableView {
     private let shape: S
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
+    
     @State private var isActive: Bool
+    
     private let activityPublisher: PassthroughSubject<Void, Never> = .init()
+    private let setActivityPublisher: PassthroughSubject<Bool, Never> = .init()
+    
     
     public init(shape: S, isInitiallyActive: Bool = false) {
         self.shape = shape
@@ -24,13 +28,22 @@ public struct BottomBarActionIcon<S: SwiftUI.Shape>: ActiveTogglableView {
                     self.isActive.toggle()
                 }
             }
+            .onReceive(self.setActivityPublisher.receive(on: RunLoop.main)) { isActive in
+                self.isActive = isActive
+            }
     }
     
-    public func toggleActive() {
+    @MainActor public func toggleActive() {
         self.activityPublisher.send()
     }
+    
+    @MainActor public func setActive(_ isActive: Bool) {
+        self.setActivityPublisher.send(isActive)
+    }
+    
 }
 
-internal protocol ActiveTogglableView: View {
-    func toggleActive() -> Void
+public protocol ActiveTogglableView: Any {
+    @MainActor func toggleActive() -> Void
+    @MainActor func setActive(_ isActive: Bool) -> Void
 }

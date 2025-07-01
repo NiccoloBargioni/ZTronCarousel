@@ -1,26 +1,34 @@
 import UIKit
 import SwiftUI
 
-public final class BottomBarAction<S: SwiftUI.Shape>: UIView {
+public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableView {
     private let action: () -> Void
-    private let title: String
+    private let role: BottomBarActionRole
     private let icon: S
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
     private var iconView: BottomBarActionIcon<S>!
+    private let isStateful: Bool
     
-    
-    public init(title: String, icon: S, action: @escaping () -> Void) {
+    public init(role: BottomBarActionRole, icon: S, isStateful: Bool = true, action: @escaping () -> Void) {
         self.icon = icon
         self.action = action
-        self.title = title
+        self.role = role
+        self.isStateful = isStateful
         super.init(frame: .zero)
+        
+        self.accessibilityIdentifier = self.role.rawValue
     }
     
     public final func setup() {
         let theButton = UIDimmingBackgroundButton(type: .system)
-        theButton.addAction(UIAction(title: self.title) { _ in
+        
+        theButton.addAction(UIAction(title: self.role.rawValue) { _ in
             self.action()
-            self.toggleActive()
+            
+            /*
+            if self.isStateful {
+                self.toggleActive()
+            }*/
         }, for: .touchUpInside)
                 
         theButton.translatesAutoresizingMaskIntoConstraints = false
@@ -64,6 +72,16 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView {
     
     
     public final func toggleActive() {
+        guard self.isStateful else { return }
+        
         self.iconView.toggleActive()
+        self.layoutIfNeeded()
+    }
+    
+    public final func setActive(_ isActive: Bool) {
+        guard self.isStateful else { return }
+        
+        self.iconView.setActive(isActive)
+        self.layoutIfNeeded()
     }
 }

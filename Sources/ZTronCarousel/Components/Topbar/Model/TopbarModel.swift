@@ -17,11 +17,30 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     }
     
     public let title: String
-    @Published private var selectedItem: Int
-    @Published private var items: [any TopbarComponent]
-    @Published private(set) public var redacted: Bool = true
+    
+    @Published private var selectedItem: Int {
+        didSet {
+            self.selectedItemChangedAction?(self.selectedItem)
+        }
+    }
+    
+    @Published private var items: [any TopbarComponent] {
+        didSet {
+            self.itemsChangedAction?(self.items)
+        }
+    }
+    
+    @Published private(set) public var redacted: Bool = true {
+        didSet {
+            self.redactedChangedAction?(self.redacted)
+        }
+    }
     
     private(set) public var lastAction: TopbarAction = .selectedItemChanged
+    
+    private var selectedItemChangedAction: ((Int) -> Void)? = nil
+    private var itemsChangedAction: (([any TopbarComponent]) -> Void)? = nil
+    private var redactedChangedAction: ((Bool) -> Void)? = nil
     
     public init(items: [TopbarItem], title: String, selectedItem: Int = 0) {
         self.items = items
@@ -111,6 +130,19 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     
     deinit {
         self.delegate?.detach()
+    }
+    
+    
+    public final func onRedactedChange(_ action: @escaping (Bool) -> Void) {
+        self.redactedChangedAction = action
+    }
+    
+    public final func onSelectedItemChanged(_ action: @escaping (Int) -> Void) {
+        self.selectedItemChangedAction = action
+    }
+    
+    public final func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) {
+        self.itemsChangedAction = action
     }
 }
 

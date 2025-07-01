@@ -2,13 +2,18 @@ import Foundation
 import SwiftUI
 import ZTronObservation
 import ZTronSerializable
+import ZTronTheme
 
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
+    
     private let topbarTitle: String?
+    private let theme: (any ZTronTheme)
     
     public init(
-        topbarTitle: String? = nil
+        topbarTitle: String? = nil,
+        theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
+        self.theme = theme
         self.topbarTitle = topbarTitle
     }
 
@@ -25,7 +30,8 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
-        guard let title = self.topbarTitle else { fatalError("Provide a title for topbar in .init()") }
+        guard let title = self.topbarTitle else { return nil }
+        
         let model = TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
@@ -42,11 +48,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
             title: title
         )
         
-        let topbar = UIHostingController<TopbarView>(rootView: TopbarView(topbar: model))
-        
-        if #available(iOS 16.0, *) {
-            topbar.sizingOptions = [.intrinsicContentSize]
-        }
+        let topbar = TopbarViewController(model: model, theme: self.theme)
         
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
         
@@ -54,18 +56,25 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
         
     public func makeBottomBar() -> any AnyBottomBar {
-        return BottomBarView(frame: .zero)
+        let bottomBar = BottomBarView(frame: .zero)
+        bottomBar.setTheme(self.theme)
+        
+        return bottomBar
     }
     
     public func makeCaptionView() -> any AnyCaptionView {
-        let captionView = CaptionView()
-        
-        captionView.maxNumberOfLinesCollapsed = 3
-        captionView.bodyColor = UIColor.label
-        Task(priority: .userInitiated) { @MainActor in
-            captionView.setText(body: "Nullam dignissim quam ut enim volutpat porta posuere ut diam. Praesent efficitur sagittis sapien, ac mollis tellus bibendum sit amet. Sed pharetra, lacus a dictum scelerisque, est dolor tincidunt turpis, vel ornare arcu eros ac ligula. Ut feugiat sagittis ipsum, et vestibulum nulla vehicula ut. Nulla purus leo, feugiat luctus nulla eget, pharetra tempus est.")
-        }
+        let captionView = CaptionOverlay(frame: .zero)
+        captionView.setTheme(self.theme)
         
         return captionView
     }
+    
+    public func makeConstraintsStrategy(owner: CarouselPageFromDB, _ includesTopbar: Bool) -> any ConstraintsStrategy {
+        if includesTopbar {
+            return CommanderWithTopbarConstraintsStrategy(owner: owner)
+        } else {
+            return DefaultZtronComponentsFactory().makeConstraintsStrategy(owner: owner, false)
+        }
+    }
+
 }

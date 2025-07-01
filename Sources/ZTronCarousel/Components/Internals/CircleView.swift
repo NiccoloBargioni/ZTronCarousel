@@ -182,12 +182,12 @@ public final class CircleView: UIView, PlaceableColoredView, @preconcurrency Com
 
         self.circleLayer?.lineWidth = max(
             Self.MIN_OUTLINE_SIZE,
-            (Self.MIN_OUTLINE_SIZE...Self.MAX_OUTLINE_SIZE).larp(1 - zoomProgress)
+            (Self.MIN_OUTLINE_SIZE...Self.MAX_OUTLINE_SIZE).larp((0...1).easeOut((0...1).flip(zoomProgress)))
         )
         
         self.sizeMultiplier = max(
             Self.MIN_SIZE_MULTIPLIER,
-            (Self.MIN_SIZE_MULTIPLIER...Self.MAX_SIZE_MULTIPLIER).larp((1-zoomProgress)*(1-zoomProgress)*(1-zoomProgress))
+            (Self.MIN_SIZE_MULTIPLIER...Self.MAX_SIZE_MULTIPLIER).larp((0...1).pow((0...1).flip(zoomProgress), exp: 3))
         )
     }
     

@@ -25,4 +25,9 @@ import ZTronSerializable
     /// - Has `.defaultHigh` priority for `.vertical`
     /// - Disappears when `.orientation == .landscape`
     func makeCaptionView() -> any AnyCaptionView
+    
+    
+    /// Use this to customize the way views are arranged in the carousel
+    /// - Parameter includesTopbar: Specifies whether or not the carousel should be built to include a topbar
+    func makeConstraintsStrategy(owner: CarouselPageFromDB, _:Bool) -> any ConstraintsStrategy
 }

@@ -10,6 +10,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     
     private var currentGalleryName: String? = nil
     private var acknowledgedTopbar: Bool = false
+    private var currentImage: String? = nil
     
     public init(owner: (any AnyDBLoader), mediator: MSAMediator) {
         self.owner = owner
@@ -69,6 +70,8 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         if let carousel = args.getSource() as? CarouselComponent {
                             if let firstGallery = owner.getGalleries().first {
                                 MainActor.assumeIsolated {
+                                    self.currentImage = carousel.currentMediaDescriptor?.getAssetName()
+
                                     if !self.acknowledgedTopbar && carousel.lastAction == .ready {
                                         do {
                                             self.currentGalleryName = firstGallery.getName()
@@ -133,6 +136,8 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         if let currentGallery = self.currentGalleryName {
             
             Task(priority: .userInitiated) { @MainActor in
+                guard self.currentImage == colorPicker.parentImage else { return }
+                
                 if colorPicker.lastAction == .colorDidChange {
                     if let colorHex = colorPicker.getSelectedColor().hexString {
                         do {
@@ -184,9 +189,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         guard let owner = self.owner else { return }
         guard let currentGallery = self.currentGalleryName else { return }
         
+        
         Task(priority: .userInitiated) { @MainActor in
             guard let currentImage = pinnedBottomBar.currentImage else { return }
-        
+            
             do {
                 if pinnedBottomBar.lastAction == .tappedVariantChange {
                     if let lastTappedVariantDescriptor = pinnedBottomBar.lastTappedVariantDescriptor {

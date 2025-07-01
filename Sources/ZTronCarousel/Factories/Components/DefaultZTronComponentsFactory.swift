@@ -2,13 +2,17 @@ import Foundation
 import SwiftUI
 import ZTronObservation
 import ZTronSerializable
+import ZTronTheme
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
     private let topbarTitle: String?
+    private let theme: any ZTronTheme
     
     public init(
-        topbarTitle: String? = nil
+        topbarTitle: String? = nil,
+        theme: (any ZTronTheme) = ZTronThemeProvider.default()
     ) {
+        self.theme = theme
         self.topbarTitle = topbarTitle
     }
 
@@ -54,7 +58,10 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
     }
         
     public func makeBottomBar() -> any AnyBottomBar {
-        return UICarouselPageBottomBar()
+        let bottomBar = UICarouselPageBottomBar()
+        bottomBar.setTheme(self.theme)
+        
+        return bottomBar
     }
     
     public func makeCaptionView() -> any AnyCaptionView {
@@ -66,6 +73,16 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
             captionView.setText(body: "Nullam dignissim quam ut enim volutpat porta posuere ut diam. Praesent efficitur sagittis sapien, ac mollis tellus bibendum sit amet. Sed pharetra, lacus a dictum scelerisque, est dolor tincidunt turpis, vel ornare arcu eros ac ligula. Ut feugiat sagittis ipsum, et vestibulum nulla vehicula ut. Nulla purus leo, feugiat luctus nulla eget, pharetra tempus est.")
         }
         
+        captionView.setTheme(self.theme)
+        
         return captionView
+    }
+    
+    public func makeConstraintsStrategy(owner: CarouselPageFromDB, _ includesTopbar : Bool) -> any ConstraintsStrategy {
+        if includesTopbar {
+            return CarouselPageFromDBWithTopbarConstraintsStrategy(owner: owner)
+        } else {
+            return CarouselPageFromDBTopbarlessConstraintsStrategy(owner: owner)
+        }
     }
 }

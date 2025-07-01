@@ -23,11 +23,7 @@ public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
             
             //MARK: Topbar title
             HStack {
-                Text(
-                    LocalizedStringKey(
-                        String(self.topbar.title)
-                    )
-                )
+                Text(self.topbar.title.fromLocalized())
                     .padding(.horizontal, 15)
                     .padding(.vertical, 5)
                     .font(.headline)

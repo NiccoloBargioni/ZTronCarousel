@@ -1,6 +1,6 @@
 import ZTronObservation
 import UIKit
-
+import ZTronTheme
 
 @MainActor public protocol AnyBottomBar: Component, AnyObject, UIView {
     @MainActor var lastAction: BottomBarLastAction { get }
@@ -12,6 +12,11 @@ import UIKit
     @MainActor func appendGoBackVariant(icon: String?)
     @MainActor func clearVariantsStack(completion: ((Bool) -> Void)?)
     nonisolated func setCurrentImage(_ to: String)
+    
+    @MainActor func toggleActive(_ role: BottomBarActionRole)
+    @MainActor func setActive(_ isActive: Bool, for role: BottomBarActionRole)
+    
+    @MainActor func setTheme(_ theme: any ZTronTheme)
 }
 
 public enum BottomBarLastAction: Equatable {
@@ -20,4 +25,5 @@ public enum BottomBarLastAction: Equatable {
     case toggleBoundingCircle
     case tappedVariantChange
     case tappedGoBack
+    case tappedToggleCaption
 }
