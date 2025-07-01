@@ -163,6 +163,20 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             self.safeAreaLayoutGuide.rightAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.rightAnchor),
             self.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.bottomAnchor),
         ])
+        
+        let bottomDivider: UIView = .init()
+        self.addSubview(bottomDivider)
+        
+        bottomDivider.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            bottomDivider.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            bottomDivider.heightAnchor.constraint(equalToConstant: 1.0),
+            bottomDivider.leftAnchor.constraint(equalTo: self.leftAnchor),
+            bottomDivider.rightAnchor.constraint(equalTo: self.rightAnchor),
+        ])
+        
+        bottomDivider.backgroundColor = self.brandColor.withAlphaComponent(0.1)
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
