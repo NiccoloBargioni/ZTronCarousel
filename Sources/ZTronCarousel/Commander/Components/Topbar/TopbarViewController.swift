@@ -1,12 +1,15 @@
 import UIKit
 import SwiftUI
+import ZTronTheme
 
 public final class TopbarViewController: UIViewController {
     private let topbarModel: TopbarModel
     private var topbarView: TopbarRouterView!
+    private var theme: any ZTronTheme
     
-    public init(model: TopbarModel) {
+    public init(model: TopbarModel, theme: any ZTronTheme = ZTronThemeProvider.default()) {
         self.topbarModel = model
+        self.theme = theme
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -18,7 +21,7 @@ public final class TopbarViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         
-        self.topbarView = .init(model: self.topbarModel)
+        self.topbarView = .init(model: self.topbarModel, theme: self.theme)
         self.view.backgroundColor = UIColor.clear
                 
         self.view.addSubview(self.topbarView)

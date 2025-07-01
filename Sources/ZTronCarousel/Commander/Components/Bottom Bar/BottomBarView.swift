@@ -2,6 +2,7 @@ import UIKit
 import SwiftUI
 import ZTronObservation
 import Combine
+import ZTronTheme
 
 
 public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
@@ -9,6 +10,15 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     nonisolated(unsafe) private(set) public var currentImage: String? = nil
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
     public let id: String = "Commander's Bottom Bar"
+    private var theme: (any ZTronTheme)?
+    
+    private var brandColor: UIColor {
+        if let theme = self.theme {
+            return UIColor.fromTheme(theme.colorSet, color: \.brand)
+        } else {
+            return .purple
+        }
+    }
     
     nonisolated(unsafe) private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {
@@ -64,7 +74,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let currentImageIcon: UIImageView = .init(
             image: UIImage(systemName: "photo.fill")?
                 .withRenderingMode(.alwaysOriginal)
-                .withTintColor(.purple)
+                .withTintColor(self.brandColor)
                 .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 18)))
         )
         
@@ -81,7 +91,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let currentImageLabel = UILabel.init()
         currentImageLabel.text = "2 of 5"
         currentImageLabel.font = .systemFont(ofSize: 14)
-        currentImageLabel.textColor = .purple
+        currentImageLabel.textColor = self.brandColor
         
         bottomBarView.addSubview(currentImageLabel)
         
@@ -122,7 +132,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let separatorView: UIView = .init()
         bottomBarView.addSubview(separatorView)
         
-        separatorView.backgroundColor = .purple.withAlphaComponent(0.4)
+
+        separatorView.backgroundColor = self.brandColor
         separatorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
@@ -248,5 +259,10 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         buttonForRole.setActive(isActive)
         self.subviews.first?.layoutIfNeeded()
     }
+    
+    public final func setTheme(_ theme: any ZTronTheme) {
+        self.theme = theme
+    }
+
 }
 

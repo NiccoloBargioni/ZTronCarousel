@@ -3,6 +3,7 @@ import Foundation
 import UIKit
 import Combine
 import ZTronObservation
+import ZTronTheme
 
 
 protocol ReadMoreLessViewDelegate: AnyObject {
@@ -10,7 +11,6 @@ protocol ReadMoreLessViewDelegate: AnyObject {
 }
 
 @IBDesignable public final class CaptionView : UIView, Component, AnyCaptionView {
-    
     public let displayStrategy: CaptionDisplayStrategy = .below
     public let id: String = "captions"
     nonisolated(unsafe) private var subscription: AnyCancellable? = nil
@@ -25,6 +25,8 @@ protocol ReadMoreLessViewDelegate: AnyObject {
             interactionsDelegate.detach(or: .ignore)
         }
     }
+    
+    private var theme: (any ZTronTheme)? = nil
         
     
     @IBInspectable var maxNumberOfLinesCollapsed: Int = 3
@@ -218,5 +220,8 @@ protocol ReadMoreLessViewDelegate: AnyObject {
         self.interactionsDelegate = interactionsManager
     }
 
+    public func setTheme(_ theme: any ZTronTheme) {
+        self.theme = theme
+    }
 
 }

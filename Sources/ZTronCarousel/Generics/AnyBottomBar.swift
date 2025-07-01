@@ -1,6 +1,6 @@
 import ZTronObservation
 import UIKit
-
+import ZTronTheme
 
 @MainActor public protocol AnyBottomBar: Component, AnyObject, UIView {
     @MainActor var lastAction: BottomBarLastAction { get }
@@ -15,6 +15,8 @@ import UIKit
     
     @MainActor func toggleActive(_ role: BottomBarActionRole)
     @MainActor func setActive(_ isActive: Bool, for role: BottomBarActionRole)
+    
+    @MainActor func setTheme(_ theme: any ZTronTheme)
 }
 
 public enum BottomBarLastAction: Equatable {

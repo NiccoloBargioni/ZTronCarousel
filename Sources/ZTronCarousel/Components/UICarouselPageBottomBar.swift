@@ -2,6 +2,7 @@ import UIKit
 import ZTronObservation
 import SnapKit
 @preconcurrency import Combine
+import ZTronTheme
 
 public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBottomBar {
     public let id: String = "bottom bar"
@@ -20,6 +21,14 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     
     private(set) public var lastAction: BottomBarLastAction = .ready
     private(set) public var currentImage: String? = nil
+    
+    private var theme: (any ZTronTheme)? = nil
+    
+    private var labelColor: UIColor {
+        let theTheme = self.theme ?? ZTronThemeProvider.default()
+        
+        return UIColor.fromTheme(theTheme.colorSet, color: \.label)
+    }
     
     private var variantsStack: UIStackView?
     private let throttler: PassthroughSubject<BottomBarLastAction, Never> = .init()
@@ -46,7 +55,11 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     public override init(frame: CGRect) {
         super.init(frame: frame)
         
-        self.backgroundColor = UIColor(named: "BottomBar")
+        if let theme = self.theme {
+            self.backgroundColor = UIColor.fromTheme(theme.colorSet, color: \.appBackground)
+        } else {
+            self.backgroundColor = UIColor.fromTheme(ZTronThemeProvider.default().colorSet, color: \.appBackground)
+        }
         
         
         let buttonsHStack = UIStackView(frame: frame)
@@ -69,7 +82,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         
         outlineButton.setImage(UIImage(systemName: "pencil.and.outline")!
             .withRenderingMode(.alwaysOriginal)
-            .withTintColor(UIColor.label)
+            .withTintColor(self.labelColor)
             .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)), for: .normal
         )
         
@@ -86,7 +99,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         
         boundingCircleButton.setImage(UIImage(systemName: "circle.dashed")!
             .withRenderingMode(.alwaysOriginal)
-            .withTintColor(UIColor.label)
+            .withTintColor(self.labelColor)
             .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)), for: .normal
         )
         
@@ -175,7 +188,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         
         goBack.setImage(UIImage(systemName: theIcon)!
             .withRenderingMode(.alwaysOriginal)
-            .withTintColor(UIColor.label)
+            .withTintColor(self.labelColor)
             .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)), for: .normal
         )
 
@@ -205,7 +218,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
                 
                 variantButton.setImage(UIImage(systemName: variantDescriptor.getBottomBarIcon())!
                     .withRenderingMode(.alwaysOriginal)
-                    .withTintColor(UIColor.label)
+                    .withTintColor(self.labelColor)
                     .withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)), for: .normal
                 )
 
@@ -247,6 +260,10 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     public func setActive(_ isActive: Bool, for role: BottomBarActionRole) {
         
     }
-
+    
+    
+    public func setTheme(_ theme: any ZTronTheme) {
+        self.theme = theme
+    }
 }
 

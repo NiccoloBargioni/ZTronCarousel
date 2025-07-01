@@ -4,10 +4,12 @@ import SwiftUI
 import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
+import ZTronTheme
 
 @MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
     public let mediator: MSAMediator = .init()
-
+    
+    open var theme: (any ZTronTheme)
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
@@ -65,9 +67,10 @@ import ZTronObservation
         foreignKeys: SerializableGalleryForeignKeys,
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory),
-        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil
+        interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil,
+        theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
-        
+        self.theme = theme
         self.requestedGalleryID = gallery
         
         self.componentsFactory = componentsFactory
@@ -128,7 +131,24 @@ import ZTronObservation
 
         self.view.layer.masksToBounds = true
                 
-        view.backgroundColor = .systemBackground
+        let backgroundView = UIHostingController(rootView: AppBackground())
+        backgroundView.willMove(toParent: self)
+        self.addChild(backgroundView)
+        self.view.addSubview(backgroundView.view)
+        backgroundView.didMove(toParent: self)
+        
+        backgroundView.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        if #available(iOS 16.0, *) {
+            backgroundView.sizingOptions = .intrinsicContentSize
+        }
+        
+        NSLayoutConstraint.activate([
+            backgroundView.view.topAnchor.constraint(equalTo: self.view.topAnchor),
+            backgroundView.view.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            backgroundView.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            backgroundView.view.leftAnchor.constraint(equalTo: self.view.leftAnchor)
+        ])
         
         self.view.addSubview(self.scrollView)
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false

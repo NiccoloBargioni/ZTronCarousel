@@ -47,7 +47,6 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
                 self.placeablesConstraints.append(Self.PlaceableConstraints())
                 thisPlaceable.translatesAutoresizingMaskIntoConstraints = false
             }
-            
         }
         
         self.placeables.forEach {

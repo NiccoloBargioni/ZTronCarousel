@@ -1,5 +1,6 @@
 import UIKit
 import ZTronObservation
+import ZTronTheme
 
 public final class CaptionOverlay: UIView, AnyCaptionView {
     public let displayStrategy: CaptionDisplayStrategy = .overlay
@@ -14,6 +15,8 @@ public final class CaptionOverlay: UIView, AnyCaptionView {
             delegate?.detach(or: .fail)
         }
     }
+    
+    private var theme: (any ZTronTheme)? = nil
     
     
     override public init(frame: CGRect) {
@@ -39,7 +42,11 @@ public final class CaptionOverlay: UIView, AnyCaptionView {
         self.text.setContentHuggingPriority(.required, for: .vertical)
         self.text.setContentHuggingPriority(.required, for: .horizontal)
         
-        self.backgroundColor = UIColor.colorWithHexString("#0F0C20").withAlphaComponent(0.8)
+        if let theme = self.theme {
+            self.backgroundColor = UIColor.fromTheme(theme.colorSet, color: \.appBackgroundDark).withAlphaComponent(0.8)
+        } else {
+            self.backgroundColor = UIColor.colorWithHexString("#0F0C20").withAlphaComponent(0.8)
+        }
     }
     
     required public init?(coder: NSCoder) {
@@ -69,4 +76,9 @@ public final class CaptionOverlay: UIView, AnyCaptionView {
     nonisolated public func getDelegate() -> (any ZTronObservation.InteractionsManager)? {
         return self.delegate
     }
+    
+    public func setTheme(_ theme: any ZTronTheme) {
+        self.theme = theme
+    }
+
 }

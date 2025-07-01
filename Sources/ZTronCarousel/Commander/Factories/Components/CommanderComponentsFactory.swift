@@ -2,14 +2,18 @@ import Foundation
 import SwiftUI
 import ZTronObservation
 import ZTronSerializable
+import ZTronTheme
 
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
     
     private let topbarTitle: String?
+    private let theme: (any ZTronTheme)
     
     public init(
-        topbarTitle: String? = nil
+        topbarTitle: String? = nil,
+        theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
+        self.theme = theme
         self.topbarTitle = topbarTitle
     }
 
@@ -44,7 +48,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
             title: title
         )
         
-        let topbar = TopbarViewController(model: model)
+        let topbar = TopbarViewController(model: model, theme: self.theme)
         
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
         
@@ -52,11 +56,17 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
         
     public func makeBottomBar() -> any AnyBottomBar {
-        return BottomBarView(frame: .zero)
+        let bottomBar = BottomBarView(frame: .zero)
+        bottomBar.setTheme(self.theme)
+        
+        return bottomBar
     }
     
     public func makeCaptionView() -> any AnyCaptionView {
-        return CaptionOverlay(frame: .zero)
+        let captionView = CaptionOverlay(frame: .zero)
+        captionView.setTheme(self.theme)
+        
+        return captionView
     }
     
     public func makeConstraintsStrategy(owner: CarouselPageFromDB, _ includesTopbar: Bool) -> any ConstraintsStrategy {

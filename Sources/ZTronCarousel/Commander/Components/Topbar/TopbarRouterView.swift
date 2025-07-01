@@ -1,8 +1,8 @@
 import UIKit
 import SwiftUI
+import ZTronTheme
 
 public final class TopbarRouterView: UIView {
-    
     private let topbarModel: TopbarModel
     
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
@@ -16,6 +16,7 @@ public final class TopbarRouterView: UIView {
     }()
     
     private var visibilityIndicator: UIHostingController<VisibilityIndicator> = .init(rootView: VisibilityIndicator())
+    private var theme: (any ZTronTheme)
     
     private var progressIndicator: UIView!
     private var progressIndicatorTotal: UIView!
@@ -26,8 +27,9 @@ public final class TopbarRouterView: UIView {
     private var scrollViewContentLeft: NSLayoutConstraint!
     private var scrollViewContentRight: NSLayoutConstraint!
     
-    public init(model: TopbarModel) {
+    public init(model: TopbarModel, theme: any ZTronTheme = ZTronThemeProvider.default()) {
         self.topbarModel = model
+        self.theme = theme
         super.init(frame: .zero)
         
         self.backgroundColor = UIColor.clear
@@ -76,7 +78,7 @@ public final class TopbarRouterView: UIView {
         }
         
         
-        self.scrollView.backgroundColor = UIColor.systemBackground
+        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
         
         for i in 1..<self.scrollView.subviews.count {
             guard let viewForLogoPrev = (self.scrollView.subviews[i-1] as? any AnyTopbarComponentView)?.viewForLogo() else { continue }
@@ -95,7 +97,7 @@ public final class TopbarRouterView: UIView {
         
         // MARK: - PROGRESS MARKERS
         let progressIndicatorTotal: UIView = .init()
-        progressIndicatorTotal.backgroundColor = disabledColor.withAlphaComponent(0.2)
+        progressIndicatorTotal.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.2)
         
         self.scrollView.addSubview(progressIndicatorTotal)
         progressIndicatorTotal.translatesAutoresizingMaskIntoConstraints = false
@@ -114,7 +116,7 @@ public final class TopbarRouterView: UIView {
         self.progressIndicatorTotal = progressIndicatorTotal
         
         let progressIndicatorCurrent: UIView = .init()
-        progressIndicatorCurrent.backgroundColor = UIColor.purple
+        progressIndicatorCurrent.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand)
         
         self.scrollView.addSubview(progressIndicatorCurrent)
         progressIndicatorCurrent.translatesAutoresizingMaskIntoConstraints = false
@@ -184,8 +186,6 @@ public final class TopbarRouterView: UIView {
                 self.progressIndicatorRight.isActive = false
                 self.progressIndicatorRight = self.progressIndicator.rightAnchor.constraint(equalTo: currentItem.viewForLogo()!.safeAreaLayoutGuide.centerXAnchor)
                 self.progressIndicatorRight.isActive = true
-                
-                self.superview?.layoutIfNeeded()
             }
             
             /*
@@ -308,7 +308,7 @@ public final class TopbarRouterView: UIView {
      
         self.scrollView.centerScrollContent(self.scrollView.subviews[self.topbarModel.getSelectedItem()])
         
-        self.scrollView.backgroundColor = .systemBackground
+        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand)
         
         self.scrollView.addSubview(self.progressIndicator)
         self.progressIndicator.translatesAutoresizingMaskIntoConstraints = false
