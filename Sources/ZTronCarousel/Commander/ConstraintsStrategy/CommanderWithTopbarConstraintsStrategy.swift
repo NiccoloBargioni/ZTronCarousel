@@ -19,7 +19,8 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         guard let topbarView = owner.topbarView else { return }
         
         topbarView.view.snp.makeConstraints { make in
-            make.left.right.equalTo(owner.thePageVC.view).offset(20.0)
+            make.left.equalTo(owner.thePageVC.view).offset(20.0)
+            make.right.equalTo(owner.thePageVC.view).offset(-20.0)
             make.top.equalTo(owner.bottomBarView.snp.bottom).offset(25.0)
             
             if topbarView.view.intrinsicContentSize.height > 0 {
