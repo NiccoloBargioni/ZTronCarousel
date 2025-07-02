@@ -79,6 +79,10 @@ public final class CarouselPageFromDBTopbarlessConstraintsStrategy: ConstraintsS
     public func viewBelowCarousel() -> UIView {
         guard let owner = self.owner else { fatalError() }
         
-        return owner.captionView.superview!
+        if owner.captionView.displayStrategy == .below {
+            return owner.captionView.superview!
+        } else {
+            return owner.bottomBarView
+        }
     }
 }
