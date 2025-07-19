@@ -131,7 +131,7 @@ import ZTronTheme
 
         self.view.layer.masksToBounds = true
                 
-        let backgroundView = UIHostingController(rootView: AppBackground())
+        let backgroundView = UIHostingController(rootView: AppBackground(theme: self.theme.erasedToAnyTheme()))
         backgroundView.willMove(toParent: self)
         self.addChild(backgroundView)
         self.view.addSubview(backgroundView.view)
