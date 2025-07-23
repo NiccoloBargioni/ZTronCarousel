@@ -7,6 +7,7 @@ public enum BottomBarActionRole: String, Hashable, Sendable {
     case triangulate
     case caption
     case colorPicker
+    case variant
     
     public static func fromBottomBarAction(_ action: BottomBarLastAction) -> Self? {
         switch action {

@@ -9,6 +9,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     private(set) public var lastAction: BottomBarLastAction = .ready
     nonisolated(unsafe) private(set) public var currentImage: String? = nil
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
+    
+    
     public let id: String = "Commander's Bottom Bar"
     private var theme: (any ZTronTheme)?
     
@@ -16,7 +18,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         if let theme = self.theme {
             return UIColor.fromTheme(theme.colorSet, color: \.brand)
         } else {
-            return .purple
+            return UIColor.fromTheme(ZTronThemeProvider.default().colorSet, color: \.brand)
         }
     }
     
@@ -34,6 +36,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     private let throttler: PassthroughSubject<BottomBarLastAction, Never> = .init()
     nonisolated(unsafe) private var cancellables: Set<AnyCancellable> = .init()
 
+    private let variantsStack: UIView! = .init(frame: .zero)
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
@@ -69,6 +72,15 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             bottomBarView.leftAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leftAnchor),
             bottomBarView.heightAnchor.constraint(greaterThanOrEqualToConstant: 39)
         ])
+        
+        self.variantsStack.translatesAutoresizingMaskIntoConstraints = false
+        bottomBarView.addSubview(self.variantsStack)
+        
+        NSLayoutConstraint.activate([
+            self.variantsStack.topAnchor.constraint(equalTo: bottomBarView.topAnchor),
+            self.variantsStack.bottomAnchor.constraint(equalTo: bottomBarView.bottomAnchor),
+        ])
+        
         
         /*
         let currentImageIcon: UIImageView = .init(
@@ -132,7 +144,12 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let separatorView: UIView = .init()
         bottomBarView.addSubview(separatorView)
         
+        
+        let zoomButton = self.addAction(role: .variant, systenName: "plus.magnifyingglass", rightAnchor: separatorView.leftAnchor, constant: -15) {
+            self.throttler.send(.toggleOutline)
+        }
 
+        
         separatorView.backgroundColor = self.brandColor
         separatorView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -188,6 +205,46 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         action: @escaping () -> Void
     ) -> UIView {
         let action = BottomBarAction(role: role, icon: icon, isStateful: isStateful, action: action)
+        
+        if let bottomBarView = self.subviews.first {
+            bottomBarView.addSubview(action)
+            action.translatesAutoresizingMaskIntoConstraints = false
+            action.setup()
+            
+            NSLayoutConstraint.activate([
+                action.centerYAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.centerYAnchor),
+                action.rightAnchor.constraint(equalTo: rightAnchor, constant: constant)
+            ])
+            
+            action.setContentHuggingPriority(.required, for: .vertical)
+
+            
+            NSLayoutConstraint.activate([
+                self.safeAreaLayoutGuide.topAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.topAnchor),
+                self.safeAreaLayoutGuide.leftAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.leftAnchor),
+                self.safeAreaLayoutGuide.rightAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.rightAnchor),
+                self.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.bottomAnchor),
+            ])
+        }
+
+        return action
+    }
+    
+    
+    @discardableResult internal final func addAction(
+        role: BottomBarActionRole,
+        systenName: String,
+        isStateful: Bool = true,
+        rightAnchor: NSLayoutXAxisAnchor,
+        constant: CGFloat = 0,
+        action: @escaping () -> Void
+    ) -> UIView {
+        let action = BottomBarAction(
+            role: role,
+            systemName: systenName,
+            isStateful: isStateful,
+            action: action
+        )
         
         if let bottomBarView = self.subviews.first {
             bottomBarView.addSubview(action)
