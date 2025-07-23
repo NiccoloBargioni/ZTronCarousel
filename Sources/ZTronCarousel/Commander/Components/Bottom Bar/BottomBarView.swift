@@ -193,7 +193,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         bottomDivider.backgroundColor = self.brandColor.withAlphaComponent(0.1)
         
         
-        let zoomButton = self.addAction(role: .variant, systenName: "plus.magnifyingglass", rightAnchor: separatorView.leftAnchor, constant: -15) {
+        let zoomButton = self.addAction(role: .variant, systenName: "plus.magnifyingglass", rightAnchor: variantsStack.rightAnchor) {
             self.throttler.send(.toggleOutline)
         }
 
@@ -204,6 +204,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             self.variantsStack.leftAnchor.constraint(equalTo: zoomButton.leftAnchor),
             self.variantsStack.rightAnchor.constraint(equalTo: zoomButton.rightAnchor),
         ])
+        
+        self.variantsStack.backgroundColor = .yellow
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
