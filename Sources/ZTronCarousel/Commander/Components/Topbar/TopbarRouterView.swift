@@ -308,7 +308,7 @@ public final class TopbarRouterView: UIView {
      
         self.scrollView.centerScrollContent(self.scrollView.subviews[self.topbarModel.getSelectedItem()])
         
-        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground).withAlphaComponent(1.ulp)
         
         self.scrollView.addSubview(self.progressIndicator)
         self.progressIndicator.translatesAutoresizingMaskIntoConstraints = false

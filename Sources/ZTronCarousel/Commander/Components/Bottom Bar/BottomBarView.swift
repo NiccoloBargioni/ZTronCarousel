@@ -145,11 +145,6 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         bottomBarView.addSubview(separatorView)
         
         
-        let zoomButton = self.addAction(role: .variant, systenName: "plus.magnifyingglass", rightAnchor: separatorView.leftAnchor, constant: -15) {
-            self.throttler.send(.toggleOutline)
-        }
-
-        
         separatorView.backgroundColor = self.brandColor
         separatorView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -170,9 +165,11 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         }
         */
         
-        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: separatorView.leftAnchor, constant: -15) {
+        let captionButton = self.addAction(role: .caption, icon: InfoShape(), rightAnchor: separatorView.leftAnchor, constant: -15) {
             self.throttler.send(.tappedToggleCaption)
         }
+        
+        
         
         NSLayoutConstraint.activate([
             self.safeAreaLayoutGuide.topAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.topAnchor),
@@ -194,6 +191,19 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         ])
         
         bottomDivider.backgroundColor = self.brandColor.withAlphaComponent(0.1)
+        
+        
+        let zoomButton = self.addAction(role: .variant, systenName: "plus.magnifyingglass", rightAnchor: separatorView.leftAnchor, constant: -15) {
+            self.throttler.send(.toggleOutline)
+        }
+
+        self.variantsStack.addSubview(zoomButton)
+        
+        NSLayoutConstraint.activate([
+            self.variantsStack.leftAnchor.constraint(equalTo: bottomBarView.leftAnchor),
+            self.variantsStack.leftAnchor.constraint(equalTo: zoomButton.leftAnchor),
+            self.variantsStack.rightAnchor.constraint(equalTo: zoomButton.rightAnchor),
+        ])
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
