@@ -89,14 +89,17 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
                 iconImage.translatesAutoresizingMaskIntoConstraints = false
 
                 NSLayoutConstraint.activate([
-                    iconImage.topAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.topAnchor),
+                    iconImage.topAnchor.constraint(greaterThanOrEqualTo: theButton.safeAreaLayoutGuide.topAnchor),
                     iconImage.rightAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.rightAnchor),
-                    iconImage.bottomAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.bottomAnchor),
+                    iconImage.bottomAnchor.constraint(lessThanOrEqualTo: theButton.safeAreaLayoutGuide.bottomAnchor),
                     iconImage.leftAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.leftAnchor),
                 ])
                 
                 iconImage.backgroundColor = .clear
                 iconImage.isUserInteractionEnabled = false
+                
+                iconImage.setContentHuggingPriority(.required, for: .vertical)
+                iconImage.setContentHuggingPriority(.required, for: .horizontal)
             }
             
         }

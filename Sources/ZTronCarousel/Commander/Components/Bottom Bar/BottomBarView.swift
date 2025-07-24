@@ -205,7 +205,6 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             self.variantsStack.rightAnchor.constraint(equalTo: zoomButton.rightAnchor),
         ])
         
-        self.variantsStack.backgroundColor = .yellow
     }
     
     @discardableResult internal final func addAction<S: SwiftUI.Shape>(
