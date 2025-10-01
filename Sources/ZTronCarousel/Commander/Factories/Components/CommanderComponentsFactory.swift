@@ -45,9 +45,9 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: title
+            title: title,
         )
-        
+                
         let topbar = TopbarViewController(model: model, theme: self.theme)
         
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))

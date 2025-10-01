@@ -17,11 +17,20 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     }
     
     public let title: String
+    private let depth: Int
     
+    public var selectedItemStrategy: TopbarItemStrategy {
+        return self.items[self.selectedItem].strategy
+    }
+
     @Published private var selectedItem: Int {
         didSet {
             self.selectedItemChangedAction?(self.selectedItem)
         }
+    }
+    
+    private var selectedComponent: any TopbarComponent {
+        return self.items[self.selectedItem]
     }
     
     @Published private var items: [any TopbarComponent] {
@@ -42,11 +51,17 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     private var itemsChangedAction: (([any TopbarComponent]) -> Void)? = nil
     private var redactedChangedAction: ((Bool) -> Void)? = nil
     
-    public init(items: [TopbarItem], title: String, selectedItem: Int = 0) {
+    public init(
+        items: [TopbarItem],
+        title: String,
+        selectedItem: Int = 0,
+        depth: Int = 0
+    ) {
         self.items = items
         self.title = title
         self.selectedItem = selectedItem
         self.id = "\(title) topbar"
+        self.depth = depth
     }
     
     public func count() -> Int {
@@ -61,8 +76,18 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     public func setSelectedItem(item: Int) {
         assert(item >= 0 && item < self.items.count)
         self.selectedItem = item
-        self.lastAction = .selectedItemChanged
-        self.delegate?.pushNotification(eventArgs: .init(source: self))
+        if self.selectedItemStrategy == .leaf {
+            self.lastAction = .selectedItemChanged
+            self.delegate?.pushNotification(eventArgs: .init(source: self))
+        } else {
+            self.lastAction = .loadSubgallery
+            self.delegate?.pushNotification(
+                eventArgs: LoadSubgalleryRequestEventMessage(
+                    source: self,
+                    master: self.selectedComponent.getName()
+                ),
+            )
+        }
     }
     
     public func getSelectedItem() -> Int {
@@ -78,8 +103,19 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
             return $0.getName() == itemNamed
         }) {
             self.selectedItem = requestedItemIndex
-            self.lastAction = .selectedItemChanged
-            self.pushNotification()
+            
+            if self.selectedItemStrategy == .leaf {
+                self.lastAction = .selectedItemChanged
+                self.pushNotification()
+            } else {
+                self.lastAction = .loadSubgallery
+                self.delegate?.pushNotification(
+                    eventArgs: LoadSubgalleryRequestEventMessage(
+                        source: self,
+                        master: self.selectedComponent.getName()
+                    ),
+                )
+            }
         }
     }
     
@@ -94,9 +130,19 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     public func replaceItems(with items: [any TopbarComponent]) {
         self.selectedItem = 0
         self.items = items
-        self.lastAction = .itemsReplaced
         
-        self.delegate?.pushNotification(eventArgs: .init(source: self))
+        if self.selectedItemStrategy == .leaf {
+            self.lastAction = .itemsReplaced
+            self.delegate?.pushNotification(eventArgs: .init(source: self))
+        } else {
+            self.lastAction = .loadSubgallery
+            self.delegate?.pushNotification(
+                eventArgs: LoadSubgalleryRequestEventMessage(
+                    source: self,
+                    master: self.selectedComponent.getName()
+                ),
+            )
+        }
     }
     
     // MARK: - Component
@@ -132,6 +178,9 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.delegate?.detach()
     }
     
+    public final func getDepth() -> Int {
+        return self.depth
+    }
     
     public final func onRedactedChange(_ action: @escaping (Bool) -> Void) {
         self.redactedChangedAction = action
@@ -144,6 +193,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     public final func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) {
         self.itemsChangedAction = action
     }
+    
 }
 
 public enum TopbarAction {

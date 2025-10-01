@@ -8,13 +8,10 @@ import ZTronSerializable
 public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sendable, AnyDBLoader {
     public let id: String = "db loader"
     @InteractionsManaging(setupOr: .ignore, detachOr: .fail) private var delegate: (any MSAInteractionsManager)? = nil
-    
     public let fk: SerializableGalleryForeignKeys
     
-    @Published private var galleries: [SerializedGalleryModel] = [] // mutable array of immutable objects
-    @Published private var medias: [any ZTronVisualMediaDescriptor] = []
-    
     private(set) public var lastAction: DBLoaderAction = .ready
+    private var currentDepth: Int = 0
     
     public init(with foreignKeys: SerializableGalleryForeignKeys) {
         self.fk = foreignKeys
@@ -30,21 +27,37 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 map: self.fk.getMap(),
                 tab: self.fk.getTab(),
                 tool: self.fk.getTool(),
-                gallery: master!
+                gallery: master!,
+                options: [.imagesCount, .subgalleriesCount, .nestingLevel]
             ) :
             try DBMS.CRUD.readFirstLevelOfGalleriesForTool(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
                 tab: self.fk.getTab(),
-                tool: self.fk.getTool()
+                tool: self.fk.getTool(),
+                options: [.imagesCount, .subgalleriesCount, .nestingLevel]
             )
             
             guard let galleries = firstLevel[.galleries] as? [SerializedGalleryModel] else { fatalError() }
-            self.galleries = galleries
             self.lastAction = .galleriesLoaded
             
-            self.delegate?.pushNotification(eventArgs: .init(source: self))
+            self.currentDepth += 1
+            self.delegate?.pushNotification(
+                eventArgs: GalleriesLoadedEventMessage(
+                    source: self,
+                    galleries: galleries.enumerated().map({ i, galleryModel in
+                        return ZTronGalleryDescriptor(
+                            from: galleryModel,
+                            with: nil,
+                            master: master,
+                            imagesCount: (firstLevel[.imagesCount] as? [Int])?[i] ?? nil,
+                            subgalleriesCount: (firstLevel[.subgalleriesCount] as? [Int])?[i] ?? nil,
+                            nestingLevel: (firstLevel[.nestingLevel] as? [Int])?[i] ?? nil
+                        )
+                    })
+                )
+            )
             
             return .commit
         }
@@ -65,7 +78,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             
             
             guard let fetchedMedias = firstLevel[.medias] as? [any SerializedVisualMediaModel] else { fatalError() }
-            self.medias = fetchedMedias.enumerated().map { i, media in
+            let processedMedias: [any ZTronVisualMediaDescriptor] = fetchedMedias.enumerated().map { i, media in
                 var placeables: [any PlaceableDescriptor] = []
                 var outlineBoundingBox: CGRect? = nil
                 
@@ -125,9 +138,12 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             }
             
             self.lastAction = .imagesLoaded
-            Task { @MainActor in
-                self.delegate?.pushNotification(eventArgs: .init(source: self))
-            }
+            self.delegate?.pushNotification(
+                eventArgs: MediasLoadedEventMessage(
+                    source: self,
+                    medias: processedMedias
+                )
+            )
             
             return .commit
         }
@@ -325,15 +341,15 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
     public func getLastAction() -> DBLoaderAction {
         return self.lastAction
     }
-    
-    public func getGalleries() -> [SerializedGalleryModel] {
-        return Array(self.galleries)
+            
+    public final func setCurrentDepth(_ depth: Int) {
+        self.currentDepth = depth
     }
     
-    public func getMedias() -> [any ZTronVisualMediaDescriptor] {
-        return Array(self.medias)
+    public final func getCurrentDepth() -> Int {
+        return self.currentDepth
     }
-        
+    
     // MARK: - COMPONENT
     public func getDelegate() -> (any ZTronObservation.InteractionsManager)? {
         return self.delegate

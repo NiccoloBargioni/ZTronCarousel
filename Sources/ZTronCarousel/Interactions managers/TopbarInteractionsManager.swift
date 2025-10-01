@@ -30,16 +30,30 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
         
         
         if let dbLoader = (args.getSource() as? (any AnyDBLoader)) {
-            let newTopbarItems = dbLoader.getGalleries().map({ galleryModel in
-                return TopbarItem(icon: galleryModel.getAssetsImageName() ?? "placeHolder", name: galleryModel.getName())
-            })
-            
-            if dbLoader.lastAction == .galleriesLoaded {
-                Task(priority: .userInitiated) { @MainActor in
-                    owner.replaceItems(with: newTopbarItems)
-                    owner.setIsRedacted(to: false)
+            if let args = ((args as? MSAArgs)?.getPayload() as? GalleriesLoadedEventMessage) {
+                
+                let newTopbarItems = args.galleries.map({ galleryModel in
+                    let nestingLevel = galleryModel.getNestingLevel()
+                    
+                    let isLeaf: Bool = (galleryModel.getImagesCount() ?? 1) > 0 && (galleryModel.getSubgalleriesCount() ?? 0) <= 0
+                    
+                    return TopbarItem(
+                        icon: galleryModel.getAssetsImageName() ?? "placeHolder",
+                        name: galleryModel.getName(),
+                        strategy: isLeaf ? .leaf : .passthrough(depth: nestingLevel ?? .zero)
+                    )
+                })
+                
+                if owner.getDepth() == dbLoader.getCurrentDepth() {
+                    if dbLoader.lastAction == .galleriesLoaded {
+                        Task(priority: .userInitiated) { @MainActor in
+                            owner.replaceItems(with: newTopbarItems)
+                            owner.setIsRedacted(to: false)
+                        }
+                    }
                 }
             }
+            
         } else {
             if let searchController = args.getSource() as? any AnySearchController {
                 if searchController.lastAction == .imageSelected {

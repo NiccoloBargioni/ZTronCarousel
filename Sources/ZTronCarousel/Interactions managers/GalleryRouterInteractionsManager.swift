@@ -30,7 +30,9 @@ open class GalleryRouterInteractionsManager: MSAInteractionsManager, @unchecked 
         
         if let dbLoader = args.getSource() as? (any AnyDBLoader) {
             if dbLoader.lastAction == .imagesLoaded {
-                owner.onImagesChanged(dbLoader.getMedias())
+                if let mediasChangedArgs = ((args as? MSAArgs)?.getPayload() as? MediasLoadedEventMessage) {
+                    owner.onImagesChanged(mediasChangedArgs.medias)
+                }
             }
         }
     }
