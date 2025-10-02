@@ -1,20 +1,28 @@
 import UIKit
 import SkeletonView
+import ZTronTheme
 
 public final class TopbarComponentView: UIView, AnyTopbarComponentView {
     private var component: any TopbarComponent
     private var action: UIAction
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
-
+    private let theme: any ZTronTheme
+    
     weak private var logoView: UIView? = nil
     weak private var titleView: UILabel? = nil
     
     
     private var isActive: Bool = false
     
-    public init(component: any TopbarComponent, action: UIAction) {
+    public init(
+        component: any TopbarComponent,
+        action: UIAction,
+        theme: any ZTronTheme = ZTronThemeProvider.default()
+    ) {
         self.component = component
         self.action = action
+        self.theme = theme
+        
         super.init(frame: .zero)
 
         setup()
@@ -43,6 +51,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         title.text = self.component.getName().fromLocalized()
         title.textColor = self.disabledColor // self.currentIndex != i ? disabledColor : .label
         title.numberOfLines = 0
+        
         title.font = .systemFont(
             ofSize: 10,
             weight: .regular

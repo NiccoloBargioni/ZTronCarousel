@@ -43,10 +43,14 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: title
+            title: title,
         )
         
-        let topbar = UIHostingController<TopbarView>(rootView: TopbarView(topbar: model))
+        let topbar = UIHostingController<TopbarView>(
+            rootView: TopbarView(
+                topbar: model
+            )
+        )
         
         if #available(iOS 16.0, *) {
             topbar.sizingOptions = [.intrinsicContentSize]
