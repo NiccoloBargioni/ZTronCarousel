@@ -72,9 +72,10 @@ public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTr
              
         }
         .frame(maxWidth: .infinity)
-        .background {
-            Color(self.theme, value: \.visitedMaterial)
-        }
+        /*.background {
+            //Color(self.theme, value: \.visitedMaterial)
+        }*/
+        .gradientAppBackground()
         .redacted(reason: self.topbar.redacted ? .placeholder : [])
     }
     
