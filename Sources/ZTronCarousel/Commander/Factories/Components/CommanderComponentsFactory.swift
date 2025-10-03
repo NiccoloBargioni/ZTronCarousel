@@ -33,6 +33,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeTopbar(mediator: MSAMediator, nestingLevel: Int, maximumDepth: Int) -> UIViewController? {
+        
         return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel, maxDepth: maximumDepth)
     }
     

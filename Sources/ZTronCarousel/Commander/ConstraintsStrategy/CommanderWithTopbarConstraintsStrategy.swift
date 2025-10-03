@@ -60,7 +60,7 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         pgvcTop = owner.myContainerView.topAnchor.constraint(
             equalTo: owner.topbarViews.count < 2 ?
                 owner.scrollView.contentLayoutGuide.topAnchor :
-                    owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
+                    owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
         )
         
         pgvcTop.isActive = true
@@ -90,7 +90,7 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         self.pgvcTop = owner.myContainerView.topAnchor.constraint(
             equalTo: owner.topbarViews.count < 2 ?
                 owner.scrollView.contentLayoutGuide.topAnchor :
-                    owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
+                    owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
         )
 
         self.pgvcTop.isActive = true
