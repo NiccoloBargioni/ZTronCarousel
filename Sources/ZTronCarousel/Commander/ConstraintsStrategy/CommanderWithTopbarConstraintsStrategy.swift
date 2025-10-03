@@ -111,7 +111,7 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     }
     
     
-    private func pinTopbarToTop(_ topbar: UIViewController) {
+    private func pinTopbarBelowCarousel(_ topbar: UIViewController) {
         guard let owner = self.owner else { return }
         
         topbar.view.snp.makeConstraints { make in
@@ -125,7 +125,7 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         }
     }
     
-    private func pinTopbarBelowCarousel(_ topbar: UIViewController) {
+    private func pinTopbarToTop(_ topbar: UIViewController) {
         guard let owner = self.owner else { return }
         
         topbar.view.snp.makeConstraints { make in
