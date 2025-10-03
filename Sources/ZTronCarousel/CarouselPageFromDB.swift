@@ -145,9 +145,7 @@ import ZTronDataModel
             }
             
             Task(priority: .high) {
-                if gallery == nil {
-                    self.dbLoader.setCurrentDepth(-1)
-                }
+                self.dbLoader.setCurrentDepth(-1)
                 
                 try self.dbLoader.loadFirstLevelGalleries(gallery)
             }
