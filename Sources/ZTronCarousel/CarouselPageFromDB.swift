@@ -15,7 +15,7 @@ import ZTronDataModel
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
-    private(set) public var topbarView: UIViewController? = nil
+    private(set) public var topbarViews: [UIViewController] = []
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
 
@@ -122,11 +122,17 @@ import ZTronDataModel
         }
         
         if let gallerySubtreeLength = self.gallerySubtreeLength {
-            self.topbarView = self.componentsFactory.makeTopbar(
-                mediator: self.mediator,
-                nestingLevel: 0,
-                maximumDepth: gallerySubtreeLength
-            )
+            for nestingLevel in 0..<gallerySubtreeLength {
+                if let topbar = self.componentsFactory.makeTopbar(
+                    mediator: self.mediator,
+                    nestingLevel: nestingLevel,
+                    maximumDepth: gallerySubtreeLength
+                ) {
+                    self.topbarViews.append(topbar)
+                } else {
+                    fatalError("Unable to make topbar for level \(nestingLevel)")
+                }
+            }
         }
         
         self.bottomBarView = nil
@@ -208,17 +214,17 @@ import ZTronDataModel
         
         self.scrollView.layer.zPosition = 2.0
         
-        if let topbarView = self.topbarView {
+        for topbarView in self.topbarViews {
             topbarView.willMove(toParent: self)
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
-        
+            
             if !self.isPortrait {
                 topbarView.view.isHidden = true
             } else {
                 topbarView.view.isHidden = false
             }
-                    
+            
             topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
             topbarView.view.layer.zPosition = 3.0
         }
@@ -248,7 +254,17 @@ import ZTronDataModel
         
         
         if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
-            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+            if let gallerySubtreeLength = self.gallerySubtreeLength {
+                for nestingLevel in 0..<gallerySubtreeLength {
+                    cs.makeTopbarConstraints(
+                        for: self.isPortrait ? .portrait : .landscapeLeft,
+                        nestingLevel: nestingLevel,
+                        maxDepth: gallerySubtreeLength
+                    )
+                }
+            } else {
+                fatalError("Unable to acquire subtree length rooted in \(String(describing: self.requestedGalleryID))/\(self.dbLoader.fk.getTool())")
+            }
         }
         
         self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
@@ -317,7 +333,9 @@ import ZTronDataModel
         )
         
         thePageVC.didMove(toParent: self)
-        self.topbarView?.didMove(toParent: self)
+        for topbar in self.topbarViews {
+            topbar.didMove(toParent: self)
+        }
         
         self.thePageVC.setDelegate(
             self.interactionsManagersFactory
@@ -382,7 +400,10 @@ import ZTronDataModel
                 )
                 
                 if size.width < size.height {
-                    self.topbarView?.view.isHidden = false
+                    for topbarview in self.topbarViews {
+                        topbarview.view.isHidden = false
+                    }
+                    
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
                     
@@ -392,7 +413,10 @@ import ZTronDataModel
                     
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
-                    self.topbarView?.view.isHidden = true
+                    for topbar in self.topbarViews {
+                        topbar.view.isHidden = true
+                    }
+                    
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
                     
@@ -416,7 +440,10 @@ import ZTronDataModel
                         self.limitViewDidLayoutCalls = Int.max
                     }
                     
-                    self.topbarView?.view.invalidateIntrinsicContentSize()
+                    for topbarView in self.topbarViews {
+                        topbarView.view.invalidateIntrinsicContentSize()
+                    }
+                    
                     super.onRotationCompletion()
                 }
             }
@@ -456,7 +483,7 @@ import ZTronDataModel
     }
 
     open func makeConstraintsStrategy() {
-        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarView != nil)
+        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarViews.count > 0)
     }
     
     public final func toggleCaptionOverlay() {

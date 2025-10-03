@@ -14,18 +14,30 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         self.owner = owner
     }
     
-    public final func makeTopbarConstraints(for orientation: UIDeviceOrientation) {
+    public final func makeTopbarConstraints(
+        for orientation: UIDeviceOrientation,
+        nestingLevel: Int,
+        maxDepth: Int
+    ) {
         guard let owner = owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard owner.topbarViews.count > nestingLevel else { return }
+        assert(nestingLevel < owner.topbarViews.count)
         
-        topbarView.view.snp.makeConstraints { make in
-            make.left.equalTo(owner.thePageVC.view).offset(20.0)
-            make.right.equalTo(owner.thePageVC.view).offset(-20.0)
-            make.top.equalTo(owner.bottomBarView.snp.bottom).offset(25.0)
+        let topbarView = owner.topbarViews[nestingLevel]
+        
+        switch nestingLevel {
+            case 0:
+                if maxDepth > 1 {
+                    self.pinTopbarToTop(topbarView)
+                } else {
+                    self.pinTopbarBelowCarousel(topbarView)
+                }
             
-            if topbarView.view.intrinsicContentSize.height > 0 {
-                make.height.equalTo(topbarView.view.intrinsicContentSize.height)
-            }
+            case 1:
+                self.pinTopbarBelowCarousel(topbarView)
+            
+            default:
+                self.stackTopbarAtNestingLevel(topbarView, nestingLevel: nestingLevel)
         }
     }
     
@@ -94,6 +106,54 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     
     public func viewBelowCarousel() -> UIView {
         guard let owner = self.owner else { fatalError() }
-        return owner.topbarView?.view ?? owner.bottomBarView
+        
+        return owner.topbarViews.last?.view ?? owner.bottomBarView
+    }
+    
+    
+    private func pinTopbarToTop(_ topbar: UIViewController) {
+        guard let owner = self.owner else { return }
+        
+        topbar.view.snp.makeConstraints { make in
+            make.left.equalTo(owner.thePageVC.view).offset(20.0)
+            make.right.equalTo(owner.thePageVC.view).offset(-20.0)
+            make.top.equalTo(owner.bottomBarView.snp.bottom).offset(25.0)
+            
+            if topbar.view.intrinsicContentSize.height > 0 {
+                make.height.equalTo(topbar.view.intrinsicContentSize.height)
+            }
+        }
+    }
+    
+    private func pinTopbarBelowCarousel(_ topbar: UIViewController) {
+        guard let owner = self.owner else { return }
+        
+        topbar.view.snp.makeConstraints { make in
+            make.left.right.top.equalTo(owner.scrollView.contentLayoutGuide)
+            
+            if topbar.view.intrinsicContentSize.height > 0 {
+                make.height.equalTo(topbar.view.intrinsicContentSize.height)
+            }
+        }
+    }
+    
+    private func stackTopbarAtNestingLevel(
+        _ topbar: UIViewController,
+        nestingLevel: Int
+    ) {
+        guard let owner = self.owner else { return }
+        guard owner.topbarViews.count > nestingLevel else { return }
+        guard nestingLevel >= 1 else { return }
+        
+        let previousTopbar = owner.topbarViews[nestingLevel - 1]
+        
+        topbar.view.snp.makeConstraints { make in
+            make.left.right.equalTo(owner.scrollView.contentLayoutGuide)
+            make.top.equalTo(previousTopbar.view.snp.bottom)
+            
+            if topbar.view.intrinsicContentSize.height > 0 {
+                make.height.equalTo(topbar.view.intrinsicContentSize.height)
+            }
+        }
     }
 }

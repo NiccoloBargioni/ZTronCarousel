@@ -8,5 +8,6 @@ import UIKit
     
     func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) -> Void
     func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) -> Void
+    
     func viewBelowCarousel() -> UIView
 }
