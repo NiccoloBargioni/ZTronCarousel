@@ -57,7 +57,11 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         pgvcWidth = owner.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
         pgvcWidth.isActive = true
         
-        pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
+        pgvcTop = owner.myContainerView.topAnchor.constraint(
+            equalTo: owner.topbarViews.count < 2 ?
+                owner.scrollView.contentLayoutGuide.topAnchor :
+                    owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
+        )
         
         pgvcTop.isActive = true
     }
@@ -67,7 +71,9 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         guard let owner = self.owner else { return }
         
         self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
-            equalTo: owner.myContainerView.topAnchor
+            equalTo: (owner.topbarViews.count < 2) ?
+                owner.myContainerView.topAnchor :
+                owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
         )
         
         self.scrollViewTopContentGuide?.isActive = true
@@ -81,7 +87,11 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         
         self.pgvcTop.isActive = false
         
-        self.pgvcTop = owner.myContainerView.topAnchor.constraint(equalTo: owner.scrollView.contentLayoutGuide.topAnchor)
+        self.pgvcTop = owner.myContainerView.topAnchor.constraint(
+            equalTo: owner.topbarViews.count < 2 ?
+                owner.scrollView.contentLayoutGuide.topAnchor :
+                    owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
+        )
 
         self.pgvcTop.isActive = true
         
