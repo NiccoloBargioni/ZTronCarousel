@@ -169,6 +169,7 @@ import ZTronDataModel
                 self.searchController = nil
             }
             
+            
             Task(priority: .high) {
                 self.dbLoader.setCurrentDepth(-1)
                 

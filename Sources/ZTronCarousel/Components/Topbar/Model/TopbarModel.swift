@@ -60,7 +60,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.items = items
         self.title = title
         self.selectedItem = selectedItem
-        self.id = "\(title) topbar"
+        self.id = "\(title) topbar \(depth)"
         self.depth = depth
     }
     

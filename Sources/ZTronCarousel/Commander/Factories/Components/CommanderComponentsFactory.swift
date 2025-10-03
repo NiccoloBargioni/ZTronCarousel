@@ -78,7 +78,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
             title: title,
-            depth: depth
+            depth: 3
         )
                 
         switch depth {
