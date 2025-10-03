@@ -22,7 +22,7 @@ import ZTronSerializable
     
     /// - Constraints will depend upon which topbar this is.
     /// - Disappears when `.orientation == .landscape`
-    func makeTopbar(mediator: MSAMediator, nestingLevel: Int) -> UIViewController?
+    func makeTopbar(mediator: MSAMediator, nestingLevel: Int, maximumDepth: Int) -> UIViewController?
     
     
     /// - Pinned to left and right of carousel

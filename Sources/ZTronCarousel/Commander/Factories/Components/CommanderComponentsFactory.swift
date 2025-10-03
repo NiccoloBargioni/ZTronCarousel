@@ -58,7 +58,9 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
         }
     }
 
-    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0) -> UIViewController? {
+    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0, maxDepth: Int = 0) -> UIViewController? {
+        guard maxDepth >= depth else { return nil }
+        guard maxDepth > 0 else { return nil }
         guard let title = self.topbarTitle else { return nil }
         
         let model = TopbarModel(
@@ -80,29 +82,38 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
                 
         switch depth {
             case 0:
-                let topbar = UIHostingController<TopbarView>(
-                    rootView: TopbarView(
-                        topbar: model
-                    )
-                )
-                
-                if #available(iOS 16.0, *) {
-                    topbar.sizingOptions = [.intrinsicContentSize]
-                }
-                model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
-                return topbar
-            
+                return maxDepth > 1 ?
+                    self.makeTopGalleriesNavigationBar(mediator: mediator, model: model) :
+                    self.makeSubgalleriesRouter(mediator: mediator, model: model)
+                    
             case 1:
-                let topbar = TopbarViewController(model: model, theme: self.theme)
-                
-                model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
-                
-                return topbar
-
+                return self.makeSubgalleriesRouter(mediator: mediator, model: model)
+            
             default:
-                fatalError(
-                    "At the time, no default topbar view style is provided for depth > 1. Please extend this implementation by composition and fallback to default for depth <= 1, providing your own implementation for depth > 1."
-                )
+                fatalError("At this time no default style is provided for galleries with 3 or more layers of topbars, since at the time being, there is no such a gallery that has more than 2 levels. Provide your own implementation, I suggest you to write a class that implements ZTronComponentsFactory and composes CommanderComponentsFactory, forwarding calls to makeTopbar to it for depth <= 1, and provides custom implementation for depth > 1")
         }
+    }
+    
+    private final func makeSubgalleriesRouter(mediator: MSAMediator, model: TopbarModel) -> UIViewController {
+        let topbar = TopbarViewController(model: model, theme: self.theme)
+        
+        model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
+        
+        return topbar
+    }
+
+    
+    private final func makeTopGalleriesNavigationBar(mediator: MSAMediator, model: TopbarModel) -> UIViewController {
+        let topbar = UIHostingController<TopbarView>(
+            rootView: TopbarView(
+                topbar: model
+            )
+        )
+        
+        if #available(iOS 16.0, *) {
+            topbar.sizingOptions = [.intrinsicContentSize]
+        }
+        model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
+        return topbar
     }
 }
