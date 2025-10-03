@@ -117,6 +117,10 @@ import ZTronTheme
             }
             
             Task(priority: .high) {
+                if gallery == nil {
+                    self.dbLoader.setCurrentDepth(-1)
+                }
+                
                 try self.dbLoader.loadFirstLevelGalleries(gallery)
             }
         }
@@ -401,6 +405,7 @@ import ZTronTheme
         if let gallery = self.requestedGalleryID {
             try self.dbLoader.loadImagesForGallery(gallery)
         } else {
+            self.dbLoader.setCurrentDepth(-1)
             try self.dbLoader.loadFirstLevelGalleries(nil)
         }
     }

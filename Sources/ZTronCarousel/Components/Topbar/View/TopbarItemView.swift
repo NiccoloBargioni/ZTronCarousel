@@ -1,44 +1,44 @@
 import SwiftUI
+import ZTronTheme
 
-public struct TopbarItemView: View {
+public struct TopbarItemView<T: ZTronTheme>: View {
     private var tool: any TopbarComponent
     private let isActive: Bool
     
-    private var glowColor: SwiftUI.Color = .cyan
+    private var glowColor: SwiftUI.Color
     private var shouldHighlightText: Bool = true
+    private var theme: T
     
-    public init(tool: any TopbarComponent, isActive: Bool) {
+    public init(
+        tool: any TopbarComponent,
+        isActive: Bool,
+        theme: T = ZTronThemeProvider.default().erasedToAnyTheme()
+    ) {
         self.tool = tool
         self.isActive = isActive
+        self.theme = theme
+        
+        self.glowColor = Color(self.theme, value: \.sunsetSky)
     }
-
+    
     public var body: some View {
-    VStack {
-        TopbarItemShopWindow(icon: tool.getIcon(), isActive: isActive)
-            .glowColor(self.glowColor)
-      Text(
-        LocalizedStringKey(
-          String(
-            tool.getName()
-          )
-        )
-      )
-      .fontWeight(
-        self.shouldHighlightText && isActive ? .bold : .regular
-      )
-      .foregroundColor(
-        self.shouldHighlightText && self.isActive
-            ? self.glowColor : Color(UIColor.label)
-      )
-      .font(.caption2)
-      .frame(minWidth: TopbarItemShopWindow.radius, idealWidth: TopbarItemShopWindow.radius + 10, maxWidth: TopbarItemShopWindow.radius * 3)
+        VStack {
+            TopbarItemShopWindow(icon: tool.getIcon(), isActive: isActive)
+                .glowColor(self.glowColor)
+            
+            Text(tool.getName().fromLocalized())
+                .font(
+                    theme: self.theme,
+                    font: \.caption2, weight: self.shouldHighlightText && isActive ? .bold : .regular
+                )
+               .foregroundColor(
+                    self.shouldHighlightText && self.isActive
+                    ? self.glowColor : Color(self.theme, value: \.label)
+                )
+                .frame(minWidth: TopbarItemShopWindow.radius, idealWidth: TopbarItemShopWindow.radius + 10, maxWidth: TopbarItemShopWindow.radius * 3)
+        }
+        .lineLimit(nil)
     }
-    .lineLimit(nil)
-    }
-}
-
-#Preview {
-    TopbarItemView(tool: TopbarItem(icon: "arrowHeadIcon", name: "Arrow head"), isActive: true)
 }
 
 public extension TopbarItemView {

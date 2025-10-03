@@ -12,8 +12,18 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
     private let game: String
     private let searchToken: ZTronGallerySearchTokenDescriptor?
     private let master: String?
+    private let imagesCount: Int?
+    private let subgalleriesCount: Int?
+    private let nestingLevel: Int?
     
-    public init(from: SerializedGalleryModel, with token: SerializedSearchTokenModel?, master: String?) {
+    public init(
+        from: SerializedGalleryModel,
+        with token: SerializedSearchTokenModel?,
+        master: String?,
+        imagesCount: Int? = nil,
+        subgalleriesCount: Int? = nil,
+        nestingLevel: Int? = nil
+    ) {
         self.name = from.getName()
         self.position = from.getPosition()
         self.assetsImageName = from.getAssetsImageName()
@@ -33,6 +43,10 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
             self.searchToken = nil
         }
         
+        self.imagesCount = imagesCount
+        self.subgalleriesCount = subgalleriesCount
+        self.nestingLevel = nestingLevel
+        
         self.master = master
         
         self.description = """
@@ -41,7 +55,10 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
             position: \(self.position),
             assetsImageName: \(String(describing: self.assetsImageName)),
             master: \(String(describing: self.master))
-            token: \(self.searchToken == nil ? "nil" : self.searchToken!.description)
+            token: \(self.searchToken == nil ? "nil" : self.searchToken!.description),
+            imagesCount: \(String(describing: self.imagesCount)),
+            subgalleriesCount: \(String(describing: self.subgalleriesCount)),
+            nestingLevel: \(String(describing: self.nestingLevel)),
             FOREIGN_KEYS: (
                 tool: \(self.tool),
                 tab: \(self.tab),
@@ -59,6 +76,9 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
         self.name = try container.decode(String.self, forKey: .name)
         self.position = try container.decode(Int.self, forKey: .position)
         self.assetsImageName = try container.decode(String?.self, forKey: .assetsImageName)
+        self.imagesCount = try container.decode(Int?.self, forKey: .imagesCount)
+        self.subgalleriesCount = try container.decode(Int?.self, forKey: .subgalleriesCount)
+        self.nestingLevel = try container.decode(Int?.self, forKey: .nestingLevel)
         self.tool = try container.decode(String.self, forKey: .tool)
         self.tab = try container.decode(String.self, forKey: .tab)
         self.map = try container.decode(String.self, forKey: .map)
@@ -72,6 +92,9 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
         case name
         case position
         case assetsImageName
+        case imagesCount
+        case subgalleriesCount
+        case nestingLevel
         case tool
         case tab
         case map
@@ -87,6 +110,9 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
         try container.encode(self.name, forKey: .name)
         try container.encode(self.position, forKey: .position)
         try container.encode(self.assetsImageName, forKey: .assetsImageName)
+        try container.encode(self.imagesCount, forKey: .imagesCount)
+        try container.encode(self.subgalleriesCount, forKey: .subgalleriesCount)
+        try container.encode(self.nestingLevel, forKey: .nestingLevel)
         try container.encode(self.tool, forKey: .tool)
         try container.encode(self.tab, forKey: .tab)
         try container.encode(self.map, forKey: .map)
@@ -107,7 +133,19 @@ public final class ZTronGalleryDescriptor: Sendable, Hashable, CustomStringConve
     public func getAssetsImageName() -> String? {
         return self.assetsImageName
     }
+    
+    public func getImagesCount() -> Int? {
+        return self.imagesCount
+    }
+    
+    public func getSubgalleriesCount() -> Int? {
+        return self.subgalleriesCount
+    }
         
+    public func getNestingLevel() -> Int? {
+        return self.nestingLevel
+    }
+    
     public func getTool() -> String {
         return self.tool
     }

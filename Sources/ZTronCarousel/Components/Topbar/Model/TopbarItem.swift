@@ -1,12 +1,18 @@
 import Foundation
 
 public final class TopbarItem: TopbarComponent {
+    public let strategy: TopbarItemStrategy
     private let icon: String
     private let name: String
     
-    public init(icon: String, name: String) {
+    public init(
+        icon: String,
+        name: String,
+        strategy: TopbarItemStrategy = .leaf
+    ) {
         self.icon = icon
         self.name = name
+        self.strategy = strategy
     }
     
     public func getIcon() -> String {

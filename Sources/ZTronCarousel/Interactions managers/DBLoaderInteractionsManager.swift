@@ -7,7 +7,6 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
     weak private var owner: (any AnyDBLoader)?
     weak private var mediator: MSAMediator?
     
-    
     private var currentGalleryName: String? = nil
     private var acknowledgedTopbar: Bool = false
     private var currentImage: String? = nil
@@ -68,17 +67,14 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         self.handleSearchControllerNotifications(searchController)
                     } else {
                         if let carousel = args.getSource() as? CarouselComponent {
-                            if let firstGallery = owner.getGalleries().first {
-                                MainActor.assumeIsolated {
-                                    self.currentImage = carousel.currentMediaDescriptor?.getAssetName()
+                            MainActor.assumeIsolated {
+                                self.currentImage = carousel.currentMediaDescriptor?.getAssetName()
 
-                                    if !self.acknowledgedTopbar && carousel.lastAction == .ready {
-                                        do {
-                                            self.currentGalleryName = firstGallery.getName()
-                                            try owner.loadImagesForGallery(firstGallery.getName())
-                                        } catch {
-                                            fatalError(error.localizedDescription)
-                                        }
+                                if !self.acknowledgedTopbar && carousel.lastAction == .ready {
+                                    do {
+                                        try owner.loadImagesForGallery(nil)
+                                    } catch {
+                                        fatalError(error.localizedDescription)
                                     }
                                 }
                             }
@@ -111,6 +107,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
         if topbar.lastAction == .loadSubgallery {
             if let args = ((arg as? MSAArgs)?.getPayload() as? LoadSubgalleryRequestEventMessage) {
                 do {
+                    owner.setCurrentDepth(topbar.getDepth())
                     try owner.loadFirstLevelGalleries(args.master)
                 } catch {
                     fatalError(error.localizedDescription)

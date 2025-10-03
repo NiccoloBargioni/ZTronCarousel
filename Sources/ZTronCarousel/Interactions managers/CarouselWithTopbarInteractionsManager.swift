@@ -44,13 +44,15 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                 
         if let loader = (args.getSource() as? (any AnyDBLoader)) {
             if loader.lastAction == .imagesLoaded {
-                let newImages = loader.getMedias()
-                
-                Task(priority: .userInitiated) { @MainActor in
-                    owner.viewModel?.thePageVC.replaceAllMedias(with: newImages, present: self.requestedImageIndex)
-                    self.requestedImageIndex = 0
+                if let mediaChangedArgs = ((args as? MSAArgs)?.getPayload() as? MediasLoadedEventMessage) {
+                    let newImages = mediaChangedArgs.medias
                     
-                    owner.show()
+                    Task(priority: .userInitiated) { @MainActor in
+                        owner.viewModel?.thePageVC.replaceAllMedias(with: newImages, present: self.requestedImageIndex)
+                        self.requestedImageIndex = 0
+                        
+                        owner.show()
+                    }
                 }
             } else {
                 if loader.lastAction == .galleriesLoaded && !self.topbarDiscovered && !didLoadInitialImages {

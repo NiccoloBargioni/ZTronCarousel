@@ -6,8 +6,8 @@ public protocol AnyDBLoader: Component, AnyObject {
     var fk: SerializableGalleryForeignKeys { get }
     var lastAction: DBLoaderAction { get }
     
-    func getGalleries() -> [SerializedGalleryModel]
-    func getMedias() -> [any ZTronVisualMediaDescriptor]
+    func setCurrentDepth(_ depth: Int)
+    func getCurrentDepth() -> Int
     
     func loadFirstLevelGalleries(_:String?) throws -> Void
     func loadImagesForGallery(_ theGallery: String?) throws -> Void

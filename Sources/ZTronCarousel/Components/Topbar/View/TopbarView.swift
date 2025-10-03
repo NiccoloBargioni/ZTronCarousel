@@ -1,20 +1,25 @@
 import SwiftUI
+import ZTronTheme
 
-public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
+public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTronTheme {
     @ObservedObject private var topbar: M
     private let itemBuilder: (_: any TopbarComponent, _: Bool) -> I
+    private let theme: T
     
     public init(
         topbar: M,
+        themeProvider: T = ZTronThemeProvider.default().erasedToAnyTheme(),
         @ViewBuilder item: @escaping (_: any TopbarComponent, _: Bool) -> I = { component, active in
             return TopbarItemView(
                 tool: component,
-                isActive: active
+                isActive: active,
+                theme: ZTronThemeProvider.default().erasedToAnyTheme()
             )
         }
     ) {
         self._topbar = ObservedObject(wrappedValue: topbar)
         self.itemBuilder = item
+        self.theme = themeProvider
     }
     
     public var body: some View {
@@ -24,12 +29,11 @@ public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
             //MARK: Topbar title
             HStack {
                 Text(self.topbar.title.fromLocalized())
+                    .font(theme: self.theme, font: \.headline)
                     .padding(.horizontal, 15)
                     .padding(.vertical, 5)
-                    .font(.headline)
                     .foregroundColor(
-                        Color(UIColor.label)
-                            .opacity(0.7)
+                        Color(self.theme, value: \.brand).opacity(0.7)
                     )
                 Spacer()
             }
@@ -68,10 +72,10 @@ public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
              
         }
         .frame(maxWidth: .infinity)
-        .background {
-            Color(UIColor.label)
-                .opacity(0.05)
-        }
+        /*.background {
+            //Color(self.theme, value: \.visitedMaterial)
+        }*/
+        .gradientAppBackground()
         .redacted(reason: self.topbar.redacted ? .placeholder : [])
     }
     
@@ -92,7 +96,8 @@ public struct TopbarView<M, I>: View where I: View, M: AnyTopbarModel {
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: "Select a charm"
-        )
+            title: "Select a charm",
+        ),
+        themeProvider: ZTronThemeProvider.default().erasedToAnyTheme()
     )
 }
