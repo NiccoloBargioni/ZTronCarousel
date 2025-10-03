@@ -102,6 +102,8 @@ import ZTronDataModel
                         tool: foreignKeys.getTool()
                     ) {
                         print("MAXIMUM DEPTH OF A GALLERY ROOTED IN \(gallery) IS \(maxDepth)")
+                    } else {
+                        fatalError("Unable to read maximum depth of \(gallery)")
                     }
                 } else {
                     if let maxDepth = try? DBMS.CRUD.readMaxDepthOfGalleryForTool(
