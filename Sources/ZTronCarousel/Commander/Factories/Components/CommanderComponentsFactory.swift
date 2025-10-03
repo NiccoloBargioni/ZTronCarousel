@@ -5,7 +5,6 @@ import ZTronSerializable
 import ZTronTheme
 
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
-    
     private let topbarTitle: String?
     private let theme: (any ZTronTheme)
     
@@ -30,31 +29,13 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
-        guard let title = self.topbarTitle else { return nil }
-        
-        let model = TopbarModel(
-            items: [
-                .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
-                .init(icon: "billiardBall8Icon", name: "Pallina biliardo"),
-                .init(icon: "binocularIcon", name: "Binocolo"),
-                .init(icon: "bootsIcon", name: "Stivali"),
-                .init(icon: "fishIcon", name: "Pesce"),
-                .init(icon: "frogIcon", name: "Rana"),
-                .init(icon: "maskIcon", name: "Maschera"),
-                .init(icon: "pacifierIcon", name: "Ciuccio"),
-                .init(icon: "ringIcon", name: "Anello"),
-                .init(icon: "shovelIcon", name: "Pala"),
-            ],
-            title: title,
-        )
-                
-        let topbar = TopbarViewController(model: model, theme: self.theme)
-        
-        model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
-        
-        return topbar
+        return self.makeTopbarCommon(mediator: mediator)
     }
-        
+    
+    public func makeTopbar(mediator: MSAMediator, nestingLevel: Int) -> UIViewController? {
+        return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel)
+    }
+    
     public func makeBottomBar() -> any AnyBottomBar {
         let bottomBar = BottomBarView(frame: .zero)
         bottomBar.setTheme(self.theme)
@@ -77,4 +58,51 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
         }
     }
 
+    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0) -> UIViewController? {
+        guard let title = self.topbarTitle else { return nil }
+        
+        let model = TopbarModel(
+            items: [
+                .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
+                .init(icon: "billiardBall8Icon", name: "Pallina biliardo"),
+                .init(icon: "binocularIcon", name: "Binocolo"),
+                .init(icon: "bootsIcon", name: "Stivali"),
+                .init(icon: "fishIcon", name: "Pesce"),
+                .init(icon: "frogIcon", name: "Rana"),
+                .init(icon: "maskIcon", name: "Maschera"),
+                .init(icon: "pacifierIcon", name: "Ciuccio"),
+                .init(icon: "ringIcon", name: "Anello"),
+                .init(icon: "shovelIcon", name: "Pala"),
+            ],
+            title: title,
+            depth: depth
+        )
+                
+        switch depth {
+            case 0:
+                let topbar = UIHostingController<TopbarView>(
+                    rootView: TopbarView(
+                        topbar: model
+                    )
+                )
+                
+                if #available(iOS 16.0, *) {
+                    topbar.sizingOptions = [.intrinsicContentSize]
+                }
+                model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
+                return topbar
+            
+            case 1:
+                let topbar = TopbarViewController(model: model, theme: self.theme)
+                
+                model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
+                
+                return topbar
+
+            default:
+                fatalError(
+                    "At the time, no default topbar view style is provided for depth > 1. Please extend this implementation by composition and fallback to default for depth <= 1, providing your own implementation for depth > 1."
+                )
+        }
+    }
 }

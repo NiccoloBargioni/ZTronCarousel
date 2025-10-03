@@ -78,7 +78,7 @@ public final class TopbarRouterView: UIView {
         }
         
         
-        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+        self.scrollView.backgroundColor = .clear//UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
         
         for i in 1..<self.scrollView.subviews.count {
             guard let viewForLogoPrev = (self.scrollView.subviews[i-1] as? any AnyTopbarComponentView)?.viewForLogo() else { continue }

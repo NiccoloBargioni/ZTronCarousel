@@ -5,6 +5,7 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 import ZTronTheme
+import ZTronDataModel
 
 @MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
     public let mediator: MSAMediator = .init()
@@ -90,6 +91,33 @@ import ZTronTheme
         self.makeConstraintsStrategy()
         
         Task(priority: .userInitiated) {
+            try DBMS.transaction { dbConnection in
+                if let gallery = gallery {
+                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfSubgalleryRootedInGallery(
+                        for: dbConnection,
+                        master: gallery,
+                        game: foreignKeys.getGame(),
+                        map: foreignKeys.getMap(),
+                        tab: foreignKeys.getTab(),
+                        tool: foreignKeys.getTool()
+                    ) {
+                        print("MAXIMUM DEPTH OF A GALLERY ROOTED IN \(gallery) IS \(maxDepth)")
+                    }
+                } else {
+                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfGalleryForTool(
+                        for: dbConnection,
+                        game: foreignKeys.getGame(),
+                        map: foreignKeys.getMap(),
+                        tab: foreignKeys.getTab(),
+                        tool: foreignKeys.getTool()
+                    ) {
+                        print("MAXIMUM DEPTH OF A GALLERY ROOTED IN \(foreignKeys.getTool()) IS \(maxDepth)")
+                    }
+                }
+                
+                return .commit
+            }
+            
             self.carouselModel.viewModel = self
             
             self.carouselModel.setDelegate(
