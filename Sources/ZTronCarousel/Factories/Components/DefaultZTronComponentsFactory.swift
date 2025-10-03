@@ -29,11 +29,11 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
     }
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
-        return self.makeTopbarCommon(mediator: mediator, depth: 0)
+        return self.makeTopbarCommon(mediator: mediator, depth: 0, maxDepth: 1)
     }
     
-    public func makeTopbar(mediator: MSAMediator, nestingLevel: Int) -> UIViewController? {
-        return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel)
+    public func makeTopbar(mediator: MSAMediator, nestingLevel: Int, maximumDepth: Int) -> UIViewController? {
+        return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel, maxDepth: maximumDepth)
     }
     
     public func makeBottomBar() -> any AnyBottomBar {
@@ -66,8 +66,10 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
     }
     
     
-    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = .zero) -> UIViewController? {
-        guard let title = self.topbarTitle else { fatalError("Provide a title for topbar in .init()") }
+    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0, maxDepth: Int) -> UIViewController? {
+        guard maxDepth >= depth else { return nil }
+        guard maxDepth > 0 else { return nil }
+        guard let title = self.topbarTitle else { return nil }
         
         let model = TopbarModel(
             items: [
@@ -83,8 +85,33 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
             title: title,
+            depth: depth
         )
+                
+        switch depth {
+            case 0:
+                return maxDepth > 1 ?
+                    self.makeTopGalleriesNavigationBar(mediator: mediator, model: model) :
+                    self.makeSubgalleriesRouter(mediator: mediator, model: model)
+                    
+            case 1:
+                return self.makeSubgalleriesRouter(mediator: mediator, model: model)
+            
+            default:
+                fatalError("At this time no default style is provided for galleries with 3 or more layers of topbars, since at the time being, there is no such a gallery that has more than 2 levels. Provide your own implementation, I suggest you to write a class that implements ZTronComponentsFactory and composes CommanderComponentsFactory, forwarding calls to makeTopbar to it for depth <= 1, and provides custom implementation for depth > 1")
+        }
+    }
+    
+    private final func makeSubgalleriesRouter(mediator: MSAMediator, model: TopbarModel) -> UIViewController {
+        let topbar = TopbarViewController(model: model, theme: self.theme)
         
+        model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
+        
+        return topbar
+    }
+
+    
+    private final func makeTopGalleriesNavigationBar(mediator: MSAMediator, model: TopbarModel) -> UIViewController {
         let topbar = UIHostingController<TopbarView>(
             rootView: TopbarView(
                 topbar: model
@@ -94,9 +121,7 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
         if #available(iOS 16.0, *) {
             topbar.sizingOptions = [.intrinsicContentSize]
         }
-        
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
-        
         return topbar
     }
 }

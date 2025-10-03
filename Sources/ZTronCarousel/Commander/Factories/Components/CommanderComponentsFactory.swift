@@ -29,11 +29,11 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     }
     
     public func makeTopbar(mediator: MSAMediator) -> UIViewController? {
-        return self.makeTopbarCommon(mediator: mediator)
+        return self.makeTopbarCommon(mediator: mediator, maxDepth: 0)
     }
     
-    public func makeTopbar(mediator: MSAMediator, nestingLevel: Int) -> UIViewController? {
-        return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel)
+    public func makeTopbar(mediator: MSAMediator, nestingLevel: Int, maximumDepth: Int) -> UIViewController? {
+        return self.makeTopbarCommon(mediator: mediator, depth: nestingLevel, maxDepth: maximumDepth)
     }
     
     public func makeBottomBar() -> any AnyBottomBar {
@@ -58,7 +58,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
         }
     }
 
-    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0, maxDepth: Int = 0) -> UIViewController? {
+    private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0, maxDepth: Int) -> UIViewController? {
         guard maxDepth >= depth else { return nil }
         guard maxDepth > 0 else { return nil }
         guard let title = self.topbarTitle else { return nil }

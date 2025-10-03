@@ -15,11 +15,12 @@ import ZTronDataModel
     private let dbLoader: any AnyDBLoader
     private let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
-    public let topbarView: UIViewController?
+    private(set) public var topbarView: UIViewController? = nil
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
 
     private let requestedGalleryID: String?
+    private var gallerySubtreeLength: Int? = nil
     
     public let myContainerView: UIView = {
         let v = UIView()
@@ -82,15 +83,10 @@ import ZTronDataModel
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
         self.thePageVC = .init(with: self.pageFactory, medias: [])
-                
-        self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
-        self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
         
-        self.makeConstraintsStrategy()
-        
-        Task(priority: .userInitiated) {
+        do {
             try DBMS.transaction { dbConnection in
                 if let gallery = gallery {
                     if let maxDepth = try? DBMS.CRUD.readMaxDepthOfSubgalleryRootedInGallery(
@@ -101,7 +97,7 @@ import ZTronDataModel
                         tab: foreignKeys.getTab(),
                         tool: foreignKeys.getTool()
                     ) {
-                        print("MAXIMUM DEPTH OF A GALLERY ROOTED IN \(gallery) IS \(maxDepth)")
+                        self.gallerySubtreeLength = maxDepth
                     } else {
                         fatalError("Unable to read maximum depth of \(gallery)")
                     }
@@ -113,12 +109,33 @@ import ZTronDataModel
                         tab: foreignKeys.getTab(),
                         tool: foreignKeys.getTool()
                     ) {
-                        print("MAXIMUM DEPTH OF A GALLERY ROOTED IN \(foreignKeys.getTool()) IS \(maxDepth)")
+                        self.gallerySubtreeLength = maxDepth
+                    } else {
+                        fatalError("Unable to read maximum depth of gallery rooted in \(foreignKeys.getTool())")
                     }
                 }
                 
                 return .commit
             }
+        } catch {
+            fatalError(error.localizedDescription)
+        }
+        
+        if let gallerySubtreeLength = self.gallerySubtreeLength {
+            self.topbarView = self.componentsFactory.makeTopbar(
+                mediator: self.mediator,
+                nestingLevel: 0,
+                maximumDepth: gallerySubtreeLength
+            )
+        }
+        
+        self.bottomBarView = nil
+        
+        
+        self.makeConstraintsStrategy()
+        
+        
+        Task(priority: .userInitiated) {
             
             self.carouselModel.viewModel = self
             

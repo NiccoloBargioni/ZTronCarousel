@@ -15,7 +15,7 @@ import ZTronSerializable
     @available(
         *,
          deprecated,
-         renamed: "makeTopbar(mediator:nestingLevel:)",
+         renamed: "makeTopbar(mediator:nestingLevel:maximumDepth:)",
          message: "Consider switching to topbar factory that takes nesting level into account"
     )
     func makeTopbar(mediator: MSAMediator) -> UIViewController?
