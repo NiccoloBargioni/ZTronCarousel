@@ -6,6 +6,11 @@ internal extension UIView {
                constraint.secondAnchor == self.rightAnchor
     }
     
+    private func involvesLeftAnchor(_ constraint: NSLayoutConstraint) -> Bool {
+        return constraint.firstAnchor == self.leftAnchor ||
+               constraint.secondAnchor == self.leftAnchor
+    }
+    
     func removeAllRightAnchorConstraints() {
         for constraint in self.constraints {
             if involvesRightAnchor(constraint) {
@@ -28,8 +33,31 @@ internal extension UIView {
             }
             
             currentSuperview = superview.superview
+        }        
+    }
+    
+    func removeAllLeftAnchorConstraints() {
+        for constraint in self.constraints {
+            if involvesLeftAnchor(constraint) {
+                self.removeConstraint(constraint)
+            }
         }
-        
-        print("REMOVED \(removedConstraintsCount) LEFT ANCHOR CONSTRAINTS")
+
+        var removedConstraintsCount: Int = .zero
+        var currentSuperview = self.superview
+        while let superview = currentSuperview {
+            for constraint in superview.constraints {
+                let involvesThisView =
+                    (constraint.firstItem as? UIView) == self ||
+                    (constraint.secondItem as? UIView) == self
+
+                if involvesThisView && involvesLeftAnchor(constraint) {
+                    superview.removeConstraint(constraint)
+                    removedConstraintsCount += 1
+                }
+            }
+            
+            currentSuperview = superview.superview
+        }
     }
 }

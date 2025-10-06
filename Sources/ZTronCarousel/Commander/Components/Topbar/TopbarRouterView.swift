@@ -182,7 +182,7 @@ public final class TopbarRouterView: UIView {
     ///
     /// - Note: At this point it is assumed that `topbarModel.items == items`
     @MainActor internal final func onItemsChanged(_ items: [any TopbarComponent]) {
-        let itemSubviews = self.scrollView.subviews.compactMap { subview in
+        var itemSubviews = self.scrollView.subviews.compactMap { subview in
             return subview as? any AnyTopbarComponentView
         }
         
@@ -213,7 +213,12 @@ public final class TopbarRouterView: UIView {
         
         if itemSubviews.count >= items.count {
             for i in 0..<items.count {
-                itemSubviews[i].replaceModel(with: items[i])
+                if UIImage.exists(items[i].getName()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
+                    !UIImage.exists(items[i].getName()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
+                    itemSubviews[i].replaceModel(with: items[i])
+                } else {
+                    replaceNthComponentSubview(i, itemSubviews: &itemSubviews)
+                }
             }
             
             if itemSubviews.count > items.count {
@@ -228,7 +233,12 @@ public final class TopbarRouterView: UIView {
             }
         } else {
             for i in 0..<itemSubviews.count {
-                itemSubviews[i].replaceModel(with: items[i])
+                if UIImage.exists(items[i].getName()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
+                    !UIImage.exists(items[i].getName()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
+                    itemSubviews[i].replaceModel(with: items[i])
+                } else {
+                    replaceNthComponentSubview(i, itemSubviews: &itemSubviews)
+                }
             }
             
             for i in itemSubviews.count..<items.count {
@@ -304,7 +314,7 @@ public final class TopbarRouterView: UIView {
         }
     }
     
-    private final func makeTopbarItemForModel(ofIndex i: Int) {
+    @discardableResult private final func makeTopbarItemForModel(ofIndex i: Int, insertAtIndex: Int? = nil) -> any AnyTopbarComponentView {
         let topbarComponent = self.topbarModel.get(i)
         
         
@@ -315,7 +325,6 @@ public final class TopbarRouterView: UIView {
                 self.topbarModel.setSelectedItem(item: i)
             },
             diameter: self.diameter,
-            theme: self.theme
         ) :
         AnonymousTopbarComponentView(
             component: topbarComponent,
@@ -324,12 +333,17 @@ public final class TopbarRouterView: UIView {
                 self.topbarModel.setSelectedItem(item: i)
             },
             diameter: self.diameter,
-            theme: self.theme
         )
         
         topbarComponentContainer.accessibilityIdentifier = "\(self.topbarModel.get(i).getName())"
         
-        self.scrollView.addSubview(topbarComponentContainer)
+        if let atIndex = insertAtIndex {
+            self.scrollView.insertSubview(topbarComponentContainer, at: atIndex)
+            assert(topbarComponentContainer.superview == self.scrollView)
+        } else {
+            self.scrollView.addSubview(topbarComponentContainer)
+        }
+        
         topbarComponentContainer.translatesAutoresizingMaskIntoConstraints = false
         
         if self.topbarModel.getSelectedItem() == i {
@@ -353,5 +367,70 @@ public final class TopbarRouterView: UIView {
         
         topbarComponentContainer.setContentHuggingPriority(.required, for: .vertical)
         topbarComponentContainer.setContentHuggingPriority(.required, for: .horizontal)
+        
+        return topbarComponentContainer
+    }
+    
+    @discardableResult private final func replaceNthComponentSubview(_ n: Int, itemSubviews: inout [any AnyTopbarComponentView]) -> (any AnyTopbarComponentView)? {
+        assert(n >= 0 && n < self.scrollView.subviews.count)
+        assert(n >= 0 && n < self.topbarModel.count())
+        
+        if let indexOfItem = self.scrollView.subviews.firstIndex(of: itemSubviews[n]) {
+            itemSubviews[n].removeFromSuperview()
+            self.scrollView.layoutIfNeeded()
+            
+            let previousSubview = n > 0 ? itemSubviews[n - 1] : nil
+            let nextSubview = n < itemSubviews.count - 1 ? itemSubviews[n + 1] : nil
+            
+            let newViewForCurrent = self.makeTopbarItemForModel(ofIndex: n, insertAtIndex: indexOfItem)
+            itemSubviews[n] = newViewForCurrent
+            
+            
+            if let previousSubview = previousSubview {
+                self.scrollView.layoutIfNeeded()
+
+                NSLayoutConstraint.activate([
+                    newViewForCurrent.leftAnchor.constraint(equalTo: previousSubview.safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
+                ])
+                
+                self.scrollView.layoutIfNeeded()
+            }
+            
+            if let nextSubview = nextSubview {
+                self.scrollView.layoutIfNeeded()
+                
+                NSLayoutConstraint.activate([
+                    nextSubview.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
+                ])
+            }
+            
+            if n == 0 {
+                NSLayoutConstraint.activate([
+                    self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: newViewForCurrent.leftAnchor, constant: -5),
+                    self.progressIndicatorTotal.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor),
+                ])
+                
+                if let logoView = newViewForCurrent.viewForLogo() {
+                    NSLayoutConstraint.activate([
+                        self.progressIndicatorTotal.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor),
+                        self.progressIndicator.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor),
+                        self.progressIndicator.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor),
+                    ])
+                }
+            } else {
+                if n == itemSubviews.count - 1 {
+                    NSLayoutConstraint.activate([
+                        self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: newViewForCurrent.rightAnchor),
+                        self.progressIndicatorTotal.rightAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor)
+                    ])
+                    
+                    self.scrollView.layoutIfNeeded()
+                }
+            }
+            
+            return newViewForCurrent
+        } else {
+            return nil
+        }
     }
 }
