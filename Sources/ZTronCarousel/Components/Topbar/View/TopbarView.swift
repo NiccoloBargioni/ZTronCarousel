@@ -28,12 +28,12 @@ public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTr
             
             //MARK: Topbar title
             HStack {
-                Text(self.topbar.title.fromLocalized())
-                    .font(theme: self.theme, font: \.headline)
+                Text(self.topbar.title.fromLocalized().capitalized)
+                    .font(theme: self.theme, font: \.headline, weight: .semibold)
                     .padding(.horizontal, 15)
                     .padding(.vertical, 5)
                     .foregroundColor(
-                        Color(self.theme, value: \.brand).opacity(0.7)
+                        Color(self.theme, value: \.label).opacity(0.7)
                     )
                 Spacer()
             }
