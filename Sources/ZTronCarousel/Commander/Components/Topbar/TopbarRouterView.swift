@@ -49,7 +49,7 @@ public final class TopbarRouterView: UIView {
         }
         
         
-        self.scrollView.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+        self.scrollView.backgroundColor = .clear
         
         for i in 1..<self.scrollView.subviews.count {
             guard let viewForLogoPrev = (self.scrollView.subviews[i-1] as? any AnyTopbarComponentView)?.viewForLogo() else { continue }
@@ -113,38 +113,8 @@ public final class TopbarRouterView: UIView {
         
         self.progressIndicatorTotal.accessibilityIdentifier = "background completion indicator"
         self.progressIndicator.accessibilityIdentifier = "foreground completion indicator"
-        
-        /*
-        self.addSubview(visibilityIndicator.view)
-        
-        self.visibilityIndicator.view.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let viewForLogoCurrent = (self.scrollView.subviews[self.topbarModel.getSelectedItem()] as? any AnyTopbarComponentView)?.viewForLogo()  {
-            NSLayoutConstraint.activate([
-                self.visibilityIndicator.view.centerYAnchor.constraint(equalTo: viewForLogoCurrent.centerYAnchor, constant: -20)
-            ])
-            
-            self.visibilityIndicatorRight = self.visibilityIndicator.view.centerXAnchor.constraint(equalTo: viewForLogoCurrent.centerXAnchor, constant: 20)
-            self.visibilityIndicatorRight.isActive = true
-        }
-
-        
-        self.visibilityIndicator.view.setContentHuggingPriority(.required, for: .vertical)
-        self.visibilityIndicator.view.setContentHuggingPriority(.required, for: .horizontal)
-        self.visibilityIndicator.view.backgroundColor = .clear
-         */
 
         self.topbarModel.onItemsReplaced(self.onItemsChanged(_:))
-        
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.topbarModel.replaceItems(with: [
-                TopbarItem(icon: "black.cat.dojo", name: "Black Cat Dojo"),
-                TopbarItem(icon: "disco.inferno", name: "Disco Inferno"),
-                TopbarItem(icon: "rat.king.liar", name: "Rat King Liar"),
-                TopbarItem(icon: "black.cat.dojo", name: "Black Cat Dojo"),
-            ])
-        }
     }
     
     required public init?(coder: NSCoder) {
@@ -183,23 +153,7 @@ public final class TopbarRouterView: UIView {
         UIView.animate(withDuration: 0.25) { @MainActor in
             self.scrollView.layoutIfNeeded()
         }
-            
-        /*
-        UIView.animate(withDuration: 0.125) {
-            self.visibilityIndicator.view.layer.opacity = 0.0
-        } completion: { _ in
-            self.visibilityIndicatorRight.isActive = false
-            self.visibilityIndicatorRight = self.visibilityIndicator.view.centerXAnchor.constraint(
-                equalTo: currentItem.viewForLogo()!.safeAreaLayoutGuide.centerXAnchor,
-                constant: 40 - 13
-            )
-            self.visibilityIndicatorRight.isActive = true
-            
-            UIView.animate(withDuration: 0.25) {
-                self.visibilityIndicator.view.layer.opacity = 1.0
-            }
-        }*/
-
+        
         self.scrollView.centerScrollContent(self.nthComponentView(self.topbarModel.getSelectedItem())!)
     }
     
