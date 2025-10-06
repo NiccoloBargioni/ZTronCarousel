@@ -185,11 +185,13 @@ public final class TopbarRouterView: UIView {
         var itemSubviews = self.scrollView.subviews.compactMap { subview in
             return subview as? any AnyTopbarComponentView
         }
-        
+            
+        #if DEBUG
         items.enumerated().forEach { i, item in
-            assert(item.getName() == self.topbarModel.get(i).getName())
-            assert(item.getIcon() == self.topbarModel.get(i).getIcon())
+            assert(item.getName().fromLocalized() == self.topbarModel.get(i).getName().fromLocalized())
+            assert(item.getIcon().fromLocalized() == self.topbarModel.get(i).getIcon().fromLocalized())
         }
+        #endif
         
         if itemSubviews.count != items.count {
             self.scrollView.constraints.compactMap { constraint in
@@ -213,8 +215,8 @@ public final class TopbarRouterView: UIView {
         
         if itemSubviews.count >= items.count {
             for i in 0..<items.count {
-                if UIImage.exists(items[i].getName()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
-                    !UIImage.exists(items[i].getName()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
+                if UIImage.exists(items[i].getIcon()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
+                    !UIImage.exists(items[i].getIcon()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
                     itemSubviews[i].replaceModel(with: items[i])
                 } else {
                     replaceNthComponentSubview(i, itemSubviews: &itemSubviews)
@@ -233,8 +235,8 @@ public final class TopbarRouterView: UIView {
             }
         } else {
             for i in 0..<itemSubviews.count {
-                if UIImage.exists(items[i].getName()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
-                    !UIImage.exists(items[i].getName()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
+                if UIImage.exists(items[i].getIcon()) && (itemSubviews[i] as? TopbarComponentView) != nil ||
+                    !UIImage.exists(items[i].getIcon()) && (itemSubviews[i] as? AnonymousTopbarComponentView) != nil {
                     itemSubviews[i].replaceModel(with: items[i])
                 } else {
                     replaceNthComponentSubview(i, itemSubviews: &itemSubviews)

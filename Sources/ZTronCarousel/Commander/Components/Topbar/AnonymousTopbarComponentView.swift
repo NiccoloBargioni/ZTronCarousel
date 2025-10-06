@@ -66,7 +66,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         topbarComponentAvatar.layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.1).cgColor
         
         let title: UILabel = .init()
-        title.text = self.component.getName()
+        title.text = self.component.getName().fromLocalized()
         title.textColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled)
         title.numberOfLines = 0
         title.font = .systemFont(
@@ -222,7 +222,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
     }
     
     public func replaceModel(with model: any TopbarComponent) {
-        self.viewForTitle()?.text = "\(model.getName())"
+        self.viewForTitle()?.text = "\(model.getName().fromLocalized())"
         
         self.component = model
     }

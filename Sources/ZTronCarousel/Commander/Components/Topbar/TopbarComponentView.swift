@@ -50,7 +50,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         
         
         let title: UILabel = .init()
-        title.text = self.component.getName()
+        title.text = self.component.getName().fromLocalized()
         title.textColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled)
         title.numberOfLines = 2
         title.font = .systemFont(
@@ -151,7 +151,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
     
 
     public func replaceModel(with model: any TopbarComponent) {
-        self.viewForTitle()?.text = model.getName()
+        self.viewForTitle()?.text = model.getName().fromLocalized()
         
         if let logoView = self.viewForLogo() as? UIImageView {
             logoView.image = UIImage(named: model.getIcon())
