@@ -216,7 +216,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             logoView.subviews[0].removeAllSubviewsConstraints()
         }
         
-        logoView?.subviews[0].layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand).withAlphaComponent(0.1).cgColor
+        logoView?.subviews[0].layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.1).cgColor
 
         self.isActive = false
     }
