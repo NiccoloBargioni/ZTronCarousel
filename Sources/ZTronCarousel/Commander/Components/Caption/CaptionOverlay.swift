@@ -16,14 +16,14 @@ public final class CaptionOverlay: UIView, AnyCaptionView {
         }
     }
     
-    private var theme: (any ZTronTheme)? = nil
+    private var theme: (any ZTronTheme) = ZTronThemeProvider.default().erasedToAnyTheme()
     
     
     override public init(frame: CGRect) {
         super.init(frame: frame)
         
         self.text = UILabel()
-        self.text.font = .systemFont(ofSize: 10)
+        self.text.font = UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSubheadline)
         self.text.textColor = .white
         
         self.text.text = ""
@@ -42,11 +42,7 @@ public final class CaptionOverlay: UIView, AnyCaptionView {
         self.text.setContentHuggingPriority(.required, for: .vertical)
         self.text.setContentHuggingPriority(.required, for: .horizontal)
         
-        if let theme = self.theme {
-            self.backgroundColor = UIColor.fromTheme(theme.colorSet, color: \.appBackgroundDark).withAlphaComponent(0.8)
-        } else {
-            self.backgroundColor = UIColor.colorWithHexString("#0F0C20").withAlphaComponent(0.8)
-        }
+        self.backgroundColor = UIColor.fromTheme(theme.colorSet, color: \.appBackgroundDark).withAlphaComponent(0.8)
     }
     
     required public init?(coder: NSCoder) {

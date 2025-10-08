@@ -137,7 +137,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         guard let label = self.titleView else { return }
         
         label.animate(
-            font: .systemFont(ofSize: 12, weight: .bold),
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiCaption2),
             textColor: .label,
             duration: 0.25
         )
@@ -172,7 +172,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         guard let label = self.titleView else { return }
 
         label.animate(
-            font: .systemFont(ofSize: 10, weight: .regular),
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSmaller),
             textColor: UIColor.fromTheme(self.theme.colorSet, color: \.disabled),
             duration: 0.25
         )
@@ -207,7 +207,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         guard let label = self.titleView else { return }
         
         label.animate(
-            font: .systemFont(ofSize: 10, weight: .regular),
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSmaller),
             textColor: UIColor.fromTheme(self.theme.colorSet, color: \.disabled),
             duration: 0.25
         )

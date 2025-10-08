@@ -435,4 +435,35 @@ public final class TopbarRouterView: UIView {
             return nil
         }
     }
+    
+    private final func collapse() -> Void {
+        self.scrollView.subviews.forEach { subview in
+            UIView.animate(withDuration: 0.25) {
+                subview.layer.opacity = 0
+            } completion: { _ in
+                subview.isHidden = true
+            }
+        }
+        
+        UIView.animate(withDuration: 0.25) {
+            self.scrollView.layer.opacity = 0
+        } completion: { _ in
+            self.scrollView.isHidden = true
+        }
+    }
+    
+    private final func expand() -> Void {
+        self.scrollView.isHidden = false
+        UIView.animate(withDuration: 0.25) {
+            self.scrollView.layer.opacity = 1
+        }
+
+        self.scrollView.subviews.forEach { subview in
+            subview.layer.isHidden = false
+
+            UIView.animate(withDuration: 0.25) {
+                subview.layer.opacity = 1
+            }
+        }
+    }
 }
