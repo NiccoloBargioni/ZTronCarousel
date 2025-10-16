@@ -90,6 +90,9 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
             case 1:
                 return self.makeSubgalleriesRouter(mediator: mediator, model: model)
             
+            case 2:
+                return self.makeSubgalleriesRouter(mediator: mediator, model: model)
+            
             default:
                 fatalError("At this time no default style is provided for galleries with 3 or more layers of topbars, since at the time being, there is no such a gallery that has more than 2 levels. Provide your own implementation, I suggest you to write a class that implements ZTronComponentsFactory and composes CommanderComponentsFactory, forwarding calls to makeTopbar to it for depth <= 1, and provides custom implementation for depth > 1")
         }
