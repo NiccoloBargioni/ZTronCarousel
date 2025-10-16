@@ -141,7 +141,8 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             self.delegate?.pushNotification(
                 eventArgs: MediasLoadedEventMessage(
                     source: self,
-                    medias: processedMedias
+                    medias: processedMedias,
+                    depth: theGallery != nil ? self.currentDepth : 0
                 )
             )
             

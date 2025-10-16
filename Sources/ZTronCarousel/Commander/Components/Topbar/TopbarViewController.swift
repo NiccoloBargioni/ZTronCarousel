@@ -36,6 +36,14 @@ public final class TopbarViewController: UIViewController {
             self.topbarView.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor),
             self.topbarView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
         ])
+        
+        self.topbarModel.onHideRequest {
+            self.topbarView.collapse()
+        }
+        
+        self.topbarModel.onShowRequest {
+            self.topbarView.expand()
+        }
     }
     
     override public func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {

@@ -1,10 +1,16 @@
 import SwiftUI
 import ZTronTheme
+import Combine
 
 public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTronTheme {
     @ObservedObject private var topbar: M
     private let itemBuilder: (_: any TopbarComponent, _: Bool) -> I
     private let theme: T
+    
+    private let sendVisibilityMessage: PassthroughSubject<Bool, Never> = .init()
+    
+    @State private var shouldShowTopbar: Bool = true
+    @Namespace private var animations
     
     public init(
         topbar: M,
@@ -24,61 +30,81 @@ public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTr
     
     public var body: some View {
         //MARK: - Topbar
-         VStack(alignment: .leading, spacing: 0) {
-            
-            //MARK: Topbar title
-            HStack {
-                Text(self.topbar.title.fromLocalized().capitalized)
-                    .font(theme: self.theme, font: \.headline, weight: .semibold)
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 5)
-                    .foregroundColor(
-                        Color(self.theme, value: \.label).opacity(0.7)
-                    )
-                Spacer()
+        Group {
+            if self.shouldShowTopbar {
+                self.Topbar()
+                    .matchedGeometryEffect(id: "topbar", in: self.animations)
+            } else {
+                self.Topbar()
+                    .matchedGeometryEffect(id: "topbar", in: self.animations).hidden()
             }
-            
-            Divider()
-                .padding(0)
-            
-            //MARK: Topbar item selection view
-            ScrollView(.horizontal, showsIndicators: false) {
-                ScrollViewReader { scroll in
-                    HStack(alignment: .top, spacing: 25) {
-                        ForEach(0..<topbar.count(), id:\.self) { i in
-                            Button(action: {
-                                withAnimation(.easeOut(duration: 0.5)) {
-                                    topbar.setSelectedItem(item: i)
-                                }
-                            }) {
-                                self.itemBuilder(
-                                    topbar.get(i),
-                                    topbar.getSelectedItem() == i
-                                )
-                            }
-                            .id(i)
-                        }
-                        
-                    }
-                    .frame(maxHeight: 100)
-                    .onChange(of: self.topbar.getSelectedItem()) { newSelectedItemIndex in
-                        withAnimation(.linear(duration: 0.25)) {
-                            scroll.scrollTo(newSelectedItemIndex, anchor: .center)
-                        }
-                    }
-                }
-            }
-            .padding()
-             
         }
-        .frame(maxWidth: .infinity)
-        /*.background {
-            //Color(self.theme, value: \.visitedMaterial)
-        }*/
-        .gradientAppBackground()
-        .redacted(reason: self.topbar.redacted ? .placeholder : [])
+        .onAppear {
+            self.topbar.onHideRequest {
+                self.sendVisibilityMessage.send(false)
+            }
+            
+            self.topbar.onShowRequest {
+                self.sendVisibilityMessage.send(true)
+            }
+        }
     }
     
+    @ViewBuilder private func Topbar() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+           
+           //MARK: Topbar title
+           HStack {
+               Text(self.topbar.title.fromLocalized().capitalized)
+                   .font(theme: self.theme, font: \.headline, weight: .semibold)
+                   .padding(.horizontal, 15)
+                   .padding(.vertical, 5)
+                   .foregroundColor(
+                       Color(self.theme, value: \.label).opacity(0.7)
+                   )
+               Spacer()
+           }
+           
+           Divider()
+               .padding(0)
+           
+           //MARK: Topbar item selection view
+           ScrollView(.horizontal, showsIndicators: false) {
+               ScrollViewReader { scroll in
+                   HStack(alignment: .top, spacing: 25) {
+                       ForEach(0..<topbar.count(), id:\.self) { i in
+                           Button(action: {
+                               withAnimation(.easeOut(duration: 0.5)) {
+                                   topbar.setSelectedItem(item: i)
+                               }
+                           }) {
+                               self.itemBuilder(
+                                   topbar.get(i),
+                                   topbar.getSelectedItem() == i
+                               )
+                           }
+                           .id(i)
+                       }
+                       
+                   }
+                   .frame(maxHeight: 100)
+                   .onChange(of: self.topbar.getSelectedItem()) { newSelectedItemIndex in
+                       withAnimation(.linear(duration: 0.25)) {
+                           scroll.scrollTo(newSelectedItemIndex, anchor: .center)
+                       }
+                   }
+               }
+           }
+           .padding()
+            
+       }
+       .frame(maxWidth: .infinity)
+       .gradientAppBackground()
+       .redacted(reason: self.topbar.redacted ? .placeholder : [])
+       .onReceive(self.sendVisibilityMessage.receive(on: RunLoop.main)) { show in
+           self.shouldShowTopbar = show
+       }
+    }
 }
 
 #Preview {

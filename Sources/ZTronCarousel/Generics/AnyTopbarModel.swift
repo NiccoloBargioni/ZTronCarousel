@@ -32,6 +32,12 @@ public protocol AnyTopbarModel: Component, AnyObject, ObservableObject {
     func onRedactedChange(_ action: @escaping (Bool) -> Void) -> Void
     func onSelectedItemChanged(_ action: @escaping (Int) -> Void) -> Void
     func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) -> Void
+    
+    func hide() -> Void
+    func show() -> Void
+    
+    func onHideRequest(_ action: @escaping () -> Void)
+    func onShowRequest(_ action: @escaping () -> Void)
 }
 
 public extension AnyTopbarModel {

@@ -7,9 +7,9 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
     private var pgvcHeight: NSLayoutConstraint!
     private var pgvcWidth: NSLayoutConstraint!
     private var pgvcTop: NSLayoutConstraint!
-
+    
     private var scrollViewTopContentGuide: NSLayoutConstraint?
-
+    
     public init(owner: CarouselPageFromDB) {
         self.owner = owner
     }
@@ -26,18 +26,18 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         let topbarView = owner.topbarViews[nestingLevel]
         
         switch nestingLevel {
-            case 0:
-                if maxDepth > 1 {
-                    self.pinTopbarToTop(topbarView)
-                } else {
-                    self.pinTopbarBelowCarousel(topbarView)
-                }
-            
-            case 1:
+        case 0:
+            if maxDepth > 1 {
+                self.pinTopbarToTop(topbarView)
+            } else {
                 self.pinTopbarBelowCarousel(topbarView)
+            }
             
-            default:
-                self.stackTopbarAtNestingLevel(topbarView, nestingLevel: nestingLevel)
+        case 1:
+            self.pinTopbarBelowCarousel(topbarView)
+            
+        default:
+            self.stackTopbarAtNestingLevel(topbarView, nestingLevel: nestingLevel)
         }
     }
     
@@ -46,38 +46,40 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         
         let size = owner.computeContentSizeThatFits()
         owner.myContainerView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         owner.myContainerView.snp.makeConstraints { make in
             make.centerX.equalTo(owner.view.safeAreaLayoutGuide)
         }
         
         pgvcHeight = owner.myContainerView.heightAnchor.constraint(equalToConstant: size.height)
         pgvcHeight.isActive = true
-
+        
         pgvcWidth = owner.myContainerView.widthAnchor.constraint(equalToConstant: size.width)
         pgvcWidth.isActive = true
         
         pgvcTop = owner.myContainerView.topAnchor.constraint(
-            equalTo: owner.topbarViews.count < 2 ?
-                owner.scrollView.contentLayoutGuide.topAnchor :
-                    owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
+            equalTo: orientation.isLandscape ? owner.scrollView.contentLayoutGuide.topAnchor :
+                owner.topbarViews.count < 2 ?
+            owner.scrollView.contentLayoutGuide.topAnchor :
+                owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
         )
         
         pgvcTop.isActive = true
     }
     
-
+    
     public final func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
         
         self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
-            equalTo: (owner.topbarViews.count < 2) ?
-                owner.myContainerView.topAnchor :
+            equalTo: orientation.isLandscape ? owner.myContainerView.topAnchor :
+                (owner.topbarViews.count < 2) ?
+            owner.myContainerView.topAnchor :
                 owner.topbarViews[0].view.safeAreaLayoutGuide.topAnchor
         )
         
         self.scrollViewTopContentGuide?.isActive = true
-
+        
         owner.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: owner.scrollView.frameLayoutGuide.leftAnchor).isActive = true
         owner.scrollView.contentLayoutGuide.rightAnchor.constraint(equalTo: owner.scrollView.frameLayoutGuide.rightAnchor).isActive = true
     }
@@ -88,11 +90,12 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         self.pgvcTop.isActive = false
         
         self.pgvcTop = owner.myContainerView.topAnchor.constraint(
-            equalTo: owner.topbarViews.count < 2 ?
-                owner.scrollView.contentLayoutGuide.topAnchor :
-                    owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
+            equalTo: orientation.isLandscape ? owner.scrollView.contentLayoutGuide.topAnchor :
+                owner.topbarViews.count < 2 ?
+            owner.scrollView.contentLayoutGuide.topAnchor :
+                owner.topbarViews[0].view.safeAreaLayoutGuide.bottomAnchor
         )
-
+        
         self.pgvcTop.isActive = true
         
         self.pgvcHeight.isActive = false

@@ -52,6 +52,16 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
                         }
                     }
                 }
+            } else {
+                if let args = ((args as? MSAArgs)?.getPayload() as? MediasLoadedEventMessage) {
+                    let depthOfImage = args.depth
+                    // An image with one topbar is at depth 0, An image under two topbars is at depth 1 and so on
+                    if owner.getDepth() > args.depth {
+                        owner.hide()
+                    } else {
+                        owner.show()
+                    }
+                }
             }
             
         } else {

@@ -55,6 +55,9 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     private var itemsChangedAction: (([any TopbarComponent]) -> Void)? = nil
     private var redactedChangedAction: ((Bool) -> Void)? = nil
     
+    private var onHideAction: (() -> Void)? = nil
+    private var onShowAction: (() -> Void)? = nil
+    
     public init(
         items: [TopbarItem],
         title: String,
@@ -198,6 +201,21 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.itemsChangedAction = action
     }
     
+    public final func onHideRequest(_ action: @escaping () -> Void) {
+        self.onHideAction = action
+    }
+    
+    public final func onShowRequest(_ action: @escaping () -> Void) {
+        self.onShowAction = action
+    }
+    
+    public final func hide() {
+        self.onHideAction?()
+    }
+    
+    public final func show() {
+        self.onShowAction?()
+    }
 }
 
 public enum TopbarAction {
