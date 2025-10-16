@@ -15,7 +15,13 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     private var colorPicker: UIColorPickerViewController!
     
     private static let MIN_LINE_WIDTH: CGFloat = 5
-    private static let MAX_LINE_WIDTH: CGFloat = 37
+    private var maxLineWidth: CGFloat {
+        if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.7 {
+            return 7.5
+        } else {
+            return 37.0
+        }
+    }
     
     private var delegate: OutlineInteractionsManager? = nil
     
@@ -44,7 +50,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         self.svgURL = url
         self.normalizedAABB = descriptor.getOutlineBoundingBox()
         
-        self.lineWidth = Self.MAX_LINE_WIDTH
+        self.lineWidth = self.maxLineWidth
         
         self.parentImage = descriptor.getParentImage()
         
