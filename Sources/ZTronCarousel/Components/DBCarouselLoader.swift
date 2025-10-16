@@ -134,15 +134,23 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 @unknown default:
                     fatalError("Please update the code in \(#file)@\(#line) in \(#function) to accomodate for the added media types")
                 }
-                
             }
+            
+            let depth = theGallery != nil ? try DBMS.CRUD.readGalleryNestingDepth(
+                for: db,
+                game: self.fk.getGame(),
+                map: self.fk.getMap(),
+                tab: self.fk.getTab(),
+                tool: self.fk.getTool(),
+                gallery: theGallery!
+            ) ?? 0 : 0
             
             self.lastAction = .imagesLoaded
             self.delegate?.pushNotification(
                 eventArgs: MediasLoadedEventMessage(
                     source: self,
                     medias: processedMedias,
-                    depth: theGallery != nil ? self.currentDepth : 0
+                    depth: max(0, depth - 1)
                 )
             )
             
