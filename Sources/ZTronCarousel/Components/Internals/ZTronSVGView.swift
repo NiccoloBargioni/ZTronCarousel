@@ -16,7 +16,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     private static let MIN_LINE_WIDTH: CGFloat = 5
     private var maxLineWidth: CGFloat {
-        if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.7 {
+        if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.07 {
             return 7.5
         } else {
             return 37.0
