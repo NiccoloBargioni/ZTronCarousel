@@ -375,7 +375,7 @@ import ZTronDataModel
             
             curWidth = myContainerView.frame.width
             self.constraintsStrategy.updatePageWrapperConstraintsForTransition(
-                to: myContainerView.frame.width > myContainerView.frame.height ? .landscapeLeft : .portrait,
+                to: self.view.frame.size.width > self.view.frame.size.height ? .landscapeLeft : .portrait,
                 sizeAfterTransition: myContainerView.superview!.frame.size
             )
         }
