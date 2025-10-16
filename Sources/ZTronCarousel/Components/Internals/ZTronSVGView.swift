@@ -50,11 +50,12 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         self.svgURL = url
         self.normalizedAABB = descriptor.getOutlineBoundingBox()
         
-        self.lineWidth = self.maxLineWidth
-        
+        self.lineWidth = .zero
         self.parentImage = descriptor.getParentImage()
         
         super.init(frame: .zero)
+        
+        self.lineWidth = self.maxLineWidth
         
         var strokeColor = UIColor.colorWithHexString(descriptor.getColorHex())
         strokeColor = strokeColor.withAlphaComponent(descriptor.getOpacity())
@@ -126,7 +127,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     public func updateForZoom(_ scrollView: UIScrollView) {
         self.lineWidth = max(
             Self.MIN_LINE_WIDTH,
-            (Self.MIN_LINE_WIDTH...Self.MAX_LINE_WIDTH).larp(
+            (Self.MIN_LINE_WIDTH...self.maxLineWidth).larp(
                 1 - (scrollView.zoomScale - scrollView.minimumZoomScale)/(scrollView.maximumZoomScale - scrollView.minimumZoomScale)
             )
         )
