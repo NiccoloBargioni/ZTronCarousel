@@ -159,7 +159,7 @@ public final class CommanderWithTopbarConstraintsStrategy: CarouselWithTopbarCon
         
         topbar.view.snp.makeConstraints { make in
             make.left.right.equalTo(owner.scrollView.contentLayoutGuide)
-            make.top.equalTo(previousTopbar.view.snp.bottom)
+            make.top.equalTo(previousTopbar.view.snp.bottom).offset(15.0)
             
             if topbar.view.intrinsicContentSize.height > 0 {
                 make.height.equalTo(topbar.view.intrinsicContentSize.height)

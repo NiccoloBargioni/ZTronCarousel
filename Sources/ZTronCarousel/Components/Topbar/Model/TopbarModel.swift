@@ -20,7 +20,11 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     private let depth: Int
     
     public var selectedItemStrategy: TopbarItemStrategy {
-        return self.items[self.selectedItem].strategy
+        if self.selectedItem < self.items.count {
+            return self.items[self.selectedItem].strategy
+        } else {
+            return .passthrough(depth: depth)
+        }
     }
 
     @Published private var selectedItem: Int {
