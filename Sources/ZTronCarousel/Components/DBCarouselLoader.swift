@@ -150,7 +150,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 eventArgs: MediasLoadedEventMessage(
                     source: self,
                     medias: processedMedias,
-                    depth: max(0, depth - 1)
+                    depth: depth
                 )
             )
             
