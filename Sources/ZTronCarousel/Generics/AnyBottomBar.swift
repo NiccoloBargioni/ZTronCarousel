@@ -23,7 +23,7 @@ public enum BottomBarLastAction: Equatable {
     case ready
     case toggleOutline
     case toggleBoundingCircle
-    case tappedVariantChange
+    case tappedVariantChange(ImageVariantDescriptor)
     case tappedGoBack
     case tappedToggleCaption
 }

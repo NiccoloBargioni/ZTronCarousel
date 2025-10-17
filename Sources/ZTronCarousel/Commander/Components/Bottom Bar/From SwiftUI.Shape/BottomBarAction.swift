@@ -16,13 +16,13 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         self.isStateful = isStateful
         super.init(frame: .zero)
         
-        self.accessibilityIdentifier = self.role.rawValue
+        self.accessibilityIdentifier = String(describing: self.role)
     }
     
     public final func setup() {
         let theButton = UIDimmingBackgroundButton(type: .system)
         
-        theButton.addAction(UIAction(title: self.role.rawValue) { _ in
+        theButton.addAction(UIAction(title: String(describing: role)) { _ in
             self.action()
             
             /*

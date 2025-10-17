@@ -1,7 +1,7 @@
 import Foundation
 import ZTronDataModel
 
-public final class ImageVariantDescriptor: Sendable, Equatable {
+public final class ImageVariantDescriptor: Sendable, Equatable, Hashable {
     private let master: String
     private let slave: String
     private let variant: String
@@ -69,5 +69,10 @@ public final class ImageVariantDescriptor: Sendable, Equatable {
             lhs.boundingFrame != nil && rhs.boundingFrame != nil &&
             lhs.boundingFrame!.equalTo(rhs.boundingFrame!)
         )
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.master)
+        hasher.combine(self.slave)
     }
 }
