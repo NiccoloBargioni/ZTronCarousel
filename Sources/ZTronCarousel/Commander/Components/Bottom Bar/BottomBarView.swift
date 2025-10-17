@@ -254,11 +254,10 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         NSLayoutConstraint.activate([
             action.centerYAnchor.constraint(equalTo: self.variantsStack.safeAreaLayoutGuide.centerYAnchor),
             action.leftAnchor.constraint(equalTo: leftAnchor, constant: constant),
-            action.safeAreaLayoutGuide.topAnchor.constraint(equalTo: self.variantsStack.safeAreaLayoutGuide.topAnchor),
-            action.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: self.variantsStack.safeAreaLayoutGuide.bottomAnchor)
         ])
         
         action.setContentHuggingPriority(.required, for: .horizontal)
+        action.setContentHuggingPriority(.required, for: .vertical)
 
         return action
     }
@@ -350,7 +349,11 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     
     private final func buttonForRole(_ role: BottomBarActionRole) -> (any ActiveTogglableView)? {
         return self.subviews.first?.subviews.first {
-            return $0.accessibilityIdentifier == String(describing: role)
+            if case .tappedVariantChange(let variant) = self.lastAction {
+                return $0.accessibilityIdentifier == variant.getSlave()
+            } else {
+                return $0.accessibilityIdentifier == String(describing: role)
+            }
         } as? (any ActiveTogglableView)
     }
     

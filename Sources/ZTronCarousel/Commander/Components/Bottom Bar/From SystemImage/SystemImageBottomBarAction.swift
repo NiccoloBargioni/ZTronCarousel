@@ -29,7 +29,11 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
         self.theme = theme
         super.init(frame: .zero)
         
-        self.accessibilityIdentifier = String(describing: self.role)
+        if case .variant(let variant) = role {
+            self.accessibilityIdentifier = variant.getSlave()
+        } else {
+            self.accessibilityIdentifier = String(describing: self.role)
+        }
     }
     
     public final func setup() {
