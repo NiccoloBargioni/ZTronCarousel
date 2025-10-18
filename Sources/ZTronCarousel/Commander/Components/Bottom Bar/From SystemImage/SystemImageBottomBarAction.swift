@@ -55,13 +55,14 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
                 UIImage(systemName: self.icon)?
                     .withRenderingMode(.alwaysOriginal)
                     .withTintColor(UIColor.fromTheme(self.theme.colorSet, color: \.label))
-                    .withConfiguration((UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)))
+                    .withConfiguration((UIImage.SymbolConfiguration(font: .systemFont(ofSize: 18, weight: .bold), scale: .large)))
         )
         
         buttonIcon.contentMode = .scaleAspectFit
         
         theButton.addSubview(buttonIcon)
         buttonIcon.translatesAutoresizingMaskIntoConstraints = false
+        buttonIcon.isUserInteractionEnabled = false
         
         NSLayoutConstraint.activate([
             buttonIcon.topAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.topAnchor),

@@ -299,7 +299,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             role: .backToPreviousVariant,
             icon: icon ?? "arrow.uturn.left",
             leftAnchor: lastVariantAnchor,
-            constant: 20) {
+            constant: self.variantsStack.subviews.count > 0 ? 20 : 10
+        ) {
                 self.throttler.send(.tappedGoBack)
             }
         
@@ -346,13 +347,23 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     
     
     private final func buttonForRole(_ role: BottomBarActionRole) -> (any ActiveTogglableView)? {
-        return self.subviews.first?.subviews.first {
-            if case .tappedVariantChange(let variant) = self.lastAction {
-                return $0.accessibilityIdentifier == variant.getSlave()
+        func searchInVariantsStack(identifier: String) -> (any ActiveTogglableView)? {
+            return self.variantsStack.subviews.first {
+                return $0.accessibilityIdentifier == identifier
+            } as? (any ActiveTogglableView)
+        }
+        
+        if case .tappedVariantChange(let variant) = self.lastAction {
+            return searchInVariantsStack(identifier: variant.getSlave())
+        } else {
+            if self.lastAction == .tappedGoBack {
+                return searchInVariantsStack(identifier: String(describing: role))
             } else {
-                return $0.accessibilityIdentifier == String(describing: role)
+                return self.subviews.first?.subviews.first {
+                    return $0.accessibilityIdentifier == String(describing: role)
+                } as? (any ActiveTogglableView)
             }
-        } as? (any ActiveTogglableView)
+        }
     }
     
     
