@@ -69,10 +69,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         if let carousel = args.getSource() as? CarouselComponent {
                             MainActor.assumeIsolated {
                                 self.currentImage = carousel.currentMediaDescriptor?.getAssetName()
-
+                                
                                 if !self.acknowledgedTopbar && carousel.lastAction == .ready {
                                     do {
-                                        try owner.loadImagesForGallery(nil)
+                                        self.currentGalleryName = try owner.loadImagesForGallery(nil)
                                     } catch {
                                         fatalError(error.localizedDescription)
                                     }

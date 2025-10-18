@@ -10,7 +10,7 @@ public protocol AnyDBLoader: Component, AnyObject {
     func getCurrentDepth() -> Int
     
     func loadFirstLevelGalleries(_:String?) throws -> Void
-    func loadImagesForGallery(_ theGallery: String?) throws -> Void
+    @discardableResult func loadImagesForGallery(_ theGallery: String?) throws -> String?
     func loadGalleriesGraph() throws -> Void
     func loadImagesForSearch() throws -> Void
     

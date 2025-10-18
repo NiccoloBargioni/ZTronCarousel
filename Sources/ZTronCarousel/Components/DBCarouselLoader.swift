@@ -63,7 +63,9 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         }
     }
     
-    public func loadImagesForGallery(_ theGallery: String?) throws {
+    public func loadImagesForGallery(_ theGallery: String?) throws -> String? {
+        var loadedGalleryName: String? = theGallery
+        
         try DBMS.transaction { db in
             let firstLevel = try
                 DBMS.CRUD.readFirstLevelMasterImagesForGallery(
@@ -145,6 +147,10 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 gallery: theGallery!
             ) ?? 0 : 0
             
+            if let firstImage = fetchedMedias.first {
+                loadedGalleryName = firstImage.getGallery()
+            }
+            
             self.lastAction = .imagesLoaded
             self.delegate?.pushNotification(
                 eventArgs: MediasLoadedEventMessage(
@@ -156,6 +162,8 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
             
             return .commit
         }
+        
+        return loadedGalleryName
     }
     
     
