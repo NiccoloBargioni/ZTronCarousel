@@ -192,7 +192,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
             
             do {
                 if case .tappedVariantChange(let variant) = pinnedBottomBar.lastAction {
-                    try self.owner?.loadImageDescriptor(
+                    try owner.loadImageDescriptor(
                         imageID: variant.getSlave(),
                         in: currentGallery,
                         variantDescriptor: variant

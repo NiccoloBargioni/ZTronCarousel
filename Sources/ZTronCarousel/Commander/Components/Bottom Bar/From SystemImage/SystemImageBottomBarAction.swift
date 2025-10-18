@@ -58,6 +58,7 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
                     .withConfiguration((UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)))
         )
         
+        buttonIcon.contentMode = .scaleAspectFit
         
         theButton.addSubview(buttonIcon)
         buttonIcon.translatesAutoresizingMaskIntoConstraints = false
@@ -83,6 +84,9 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
             theButton.rightAnchor.constraint(equalTo: self.safeAreaLayoutGuide.rightAnchor),
             theButton.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor),
             theButton.leftAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leftAnchor),
+            
+            self.widthAnchor.constraint(equalToConstant: 18.0),
+            self.heightAnchor.constraint(equalToConstant: 18.0)
         ])
         
         self.buttonView = theButton

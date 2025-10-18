@@ -256,8 +256,6 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             action.leftAnchor.constraint(equalTo: leftAnchor, constant: constant),
         ])
         
-        action.setContentHuggingPriority(.required, for: .horizontal)
-        action.setContentHuggingPriority(.required, for: .vertical)
 
         return action
     }

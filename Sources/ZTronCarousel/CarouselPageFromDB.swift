@@ -33,6 +33,7 @@ import ZTronDataModel
         let scrollView = UIScrollView()
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.delaysContentTouches = false
         
         return scrollView
     }()

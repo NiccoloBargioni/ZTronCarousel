@@ -16,7 +16,11 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         self.isStateful = isStateful
         super.init(frame: .zero)
         
-        self.accessibilityIdentifier = String(describing: self.role)
+        if case .variant(let variant) = role {
+            self.accessibilityIdentifier = variant.getSlave()
+        } else {
+            self.accessibilityIdentifier = String(describing: self.role)
+        }
     }
     
     public final func setup() {
