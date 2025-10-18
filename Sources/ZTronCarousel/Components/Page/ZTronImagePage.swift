@@ -89,6 +89,14 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     @MainActor public final func attachAnimation(_ animationDescriptor: ImageVariantDescriptor, forward: Bool = true) {
         guard self.lastAction != .animationEnded else { fatalError() }
         
+        let boundingFrame = animationDescriptor.getBoundingFrame()
+        
+        guard boundingFrame.size.width <= 0.95 && boundingFrame.size.height <= 0.95 else {
+            self.lastAction = .animationEnded
+            self.pushNotification()
+            return
+        }
+        
         let animation: any VariantAnimation = forward ? UIVariantChangedForwardAnimation(
             target: animationDescriptor.getSlave(),
             bundle: .main,
