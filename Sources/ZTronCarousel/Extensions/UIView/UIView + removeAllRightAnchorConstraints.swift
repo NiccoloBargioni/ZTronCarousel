@@ -1,6 +1,6 @@
 import UIKit
 
-internal extension UIView {
+public extension UIView {
     private func involvesRightAnchor(_ constraint: NSLayoutConstraint) -> Bool {
         return constraint.firstAnchor == self.rightAnchor ||
                constraint.secondAnchor == self.rightAnchor
