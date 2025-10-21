@@ -26,11 +26,13 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
     private let disabledColor: UIColor
 
     private let fillBorders: Bool
+    private let cornerRadius: CGFloat
     
     public init(
         component: any TopbarComponent,
         action: UIAction,
         diameter: CGFloat = 30.0,
+        cornerRadius: CGFloat? = nil,
         theme: any ZTronTheme = ZTronThemeProvider.default(),
         fillBorders: Bool = false,
         accentColor: UIColor? = nil,
@@ -41,7 +43,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         self.component = component
         self.action = action
         self.diameter = diameter
-        
+        self.cornerRadius = cornerRadius ?? diameter / 2.0
         self.accentColor = accentColor ?? UIColor.fromTheme(theme.colorSet, color: \.brand)
         self.highlightColor = highlightColor ?? UIColor.fromTheme(theme.colorSet, color: \.brand)
         self.disabledColor = disabledColor ?? UIColor.fromTheme(theme.colorSet, color: \.disabled)
@@ -80,8 +82,8 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
 
         topbarComponentContainer.addSubview(topbarComponentAvatarWrapper)
         topbarComponentAvatar.translatesAutoresizingMaskIntoConstraints = false
-        topbarComponentAvatar.layer.cornerRadius = self.diameter / 2.0
-        topbarComponentAvatar.layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.1).cgColor
+        topbarComponentAvatar.layer.cornerRadius = self.cornerRadius
+        topbarComponentAvatar.layer.backgroundColor = self.disabledColor.withAlphaComponent(0.1).cgColor
         
         let title: UILabel = .init()
         title.text = self.component.getName().fromLocalized()
