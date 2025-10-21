@@ -13,7 +13,8 @@ public final class TopbarViewController: UIViewController {
 
     
     public init(
-        model: TopbarModel, theme: any ZTronTheme = ZTronThemeProvider.default(),
+        model: AnyTopbarViewModel,
+        theme: any ZTronTheme = ZTronThemeProvider.default(),
         diameter: CGFloat = 40.0,
         makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
             
