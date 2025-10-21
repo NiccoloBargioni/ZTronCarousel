@@ -20,17 +20,35 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
     private var isActive: Bool = false
     private let theme: any ZTronTheme
     
+    
+    private let accentColor: UIColor
+    private let highlightColor: UIColor
+    private let disabledColor: UIColor
+
+    private let fillBorders: Bool
+    
     public init(
         component: any TopbarComponent,
         action: UIAction,
         diameter: CGFloat = 30.0,
-        theme: any ZTronTheme = ZTronThemeProvider.default()
+        theme: any ZTronTheme = ZTronThemeProvider.default(),
+        fillBorders: Bool = false,
+        accentColor: UIColor? = nil,
+        highlightColor: UIColor? = nil,
+        disabledColor: UIColor? = nil
+        
     ) {
         self.component = component
         self.action = action
         self.diameter = diameter
+        
+        self.accentColor = accentColor ?? UIColor.fromTheme(theme.colorSet, color: \.brand)
+        self.highlightColor = highlightColor ?? UIColor.fromTheme(theme.colorSet, color: \.brand)
+        self.disabledColor = disabledColor ?? UIColor.fromTheme(theme.colorSet, color: \.disabled)
         self.theme = theme
+        self.fillBorders = fillBorders
         super.init(frame: .zero)
+        
         
         self.backgroundColor = .clear
 
@@ -67,7 +85,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         
         let title: UILabel = .init()
         title.text = self.component.getName().fromLocalized()
-        title.textColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled)
+        title.textColor = self.disabledColor
         title.numberOfLines = 0
         title.font = .systemFont(
             ofSize: 10,
@@ -147,7 +165,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
                 subview.removeFromSuperview()
             }
 
-            let eyeLayer = UIHostingController(rootView: EyeShape().fill(Color(self.theme.erasedToAnyTheme(), value: \.brand)))
+            let eyeLayer = UIHostingController(rootView: EyeShape().fill(Color(self.highlightColor)))
             eyeLayer.view.backgroundColor = .clear
             
             logoView.subviews.first?.addSubview(eyeLayer.view)
@@ -160,7 +178,12 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
                 eyeLayer.view.centerYAnchor.constraint(equalTo: logoView.subviews.first!.centerYAnchor),
             ])
             
-            logoView.subviews.first?.layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand).withAlphaComponent(0.1).cgColor
+            logoView.subviews.first?.layer.backgroundColor = self.highlightColor.withAlphaComponent(0.1).cgColor
+            
+            if self.fillBorders {
+                logoView.subviews.first?.layer.borderColor = self.highlightColor.withAlphaComponent(0.1).cgColor
+                logoView.subviews.first?.layer.borderWidth = 1.0
+            }
         } else {
             fatalError()
         }
@@ -195,7 +218,12 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
                 checkmarkLayer.view.centerYAnchor.constraint(equalTo: logoView.centerYAnchor),
             ])
             
-            logoView.subviews.first?.layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand).withAlphaComponent(0.1).cgColor
+            logoView.subviews.first?.layer.backgroundColor = self.accentColor.withAlphaComponent(0.1).cgColor
+            if self.fillBorders {
+                logoView.subviews.first?.layer.borderColor = self.accentColor.withAlphaComponent(0.1).cgColor
+                logoView.subviews.first?.layer.borderWidth = 1.0
+            }
+
         } else {
             fatalError()
         }
@@ -216,8 +244,13 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             logoView.subviews[0].removeAllSubviewsConstraints()
         }
         
-        logoView?.subviews[0].layer.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.1).cgColor
-
+        logoView?.subviews[0].layer.backgroundColor = self.disabledColor.withAlphaComponent(0.1).cgColor
+        
+        if self.fillBorders {
+            logoView?.subviews.first?.layer.borderColor = self.disabledColor.withAlphaComponent(0.1).cgColor
+            logoView?.subviews.first?.layer.borderWidth = 1.0
+        }
+        
         self.isActive = false
     }
     

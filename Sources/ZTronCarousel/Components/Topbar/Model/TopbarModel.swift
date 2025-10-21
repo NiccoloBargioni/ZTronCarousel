@@ -2,7 +2,7 @@ import Foundation
 import ZTronObservation
 
 
-public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
+public final class TopbarModel : ObservableObject, Component, AnyTopbarModel, AnyTopbarViewModel {
     public let id: String
     private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {

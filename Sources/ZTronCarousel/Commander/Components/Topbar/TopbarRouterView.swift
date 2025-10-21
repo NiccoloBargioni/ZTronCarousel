@@ -4,7 +4,7 @@ import ZTronTheme
 
 public final class TopbarRouterView: UIView {
     
-    private let topbarModel: TopbarModel
+    private let topbarModel: AnyTopbarViewModel
     private var scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.translatesAutoresizingMaskIntoConstraints = false
@@ -20,10 +20,35 @@ public final class TopbarRouterView: UIView {
     private var progressIndicatorRight: NSLayoutConstraint!
     private let diameter: CGFloat
     
-    public init(model: TopbarModel, diameter: CGFloat = 30.0, theme: any ZTronTheme = ZTronThemeProvider.default()) {
+    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+    private var makeViewForLogo: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+    
+    public init(
+        model: AnyTopbarViewModel,
+        diameter: CGFloat = 30.0,
+        theme: any ZTronTheme = ZTronThemeProvider.default(),
+        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+            
+            return TopbarComponentView(
+                component: component,
+                action: action,
+                diameter: diameter,
+            )
+        },
+        makeViewForLogo: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+            
+            return AnonymousTopbarComponentView(
+                component: component,
+                action: action,
+                diameter: diameter,
+            )
+        }
+    ) {
         self.topbarModel = model
         self.diameter = diameter
         self.theme = theme
+        self.makeViewForImage = makeViewForImage
+        self.makeViewForLogo = makeViewForLogo
         super.init(frame: .zero)
         
         self.backgroundColor = UIColor.clear
@@ -319,23 +344,15 @@ public final class TopbarRouterView: UIView {
     @discardableResult private final func makeTopbarItemForModel(ofIndex i: Int, insertAtIndex: Int? = nil) -> any AnyTopbarComponentView {
         let topbarComponent = self.topbarModel.get(i)
         
+        let action: UIAction = UIAction(title: "Skip to topbar item \(i)") { _ in
+            self.updateCurrentSelection(i)
+            self.topbarModel.setSelectedItem(item: i)
+        }
         
-        let topbarComponentContainer: any AnyTopbarComponentView = UIImage.exists(topbarComponent.getIcon()) ? TopbarComponentView(
-            component: topbarComponent,
-            action: UIAction(title: "Skip to topbar item \(i)") { _ in
-                self.updateCurrentSelection(i)
-                self.topbarModel.setSelectedItem(item: i)
-            },
-            diameter: self.diameter,
-        ) :
-        AnonymousTopbarComponentView(
-            component: topbarComponent,
-            action: UIAction(title: "Skip to topbar item \(i)") { _ in
-                self.updateCurrentSelection(i)
-                self.topbarModel.setSelectedItem(item: i)
-            },
-            diameter: self.diameter,
-        )
+        let topbarComponentContainer: any AnyTopbarComponentView = UIImage.exists(topbarComponent.getIcon()) ?
+            self.makeViewForImage(topbarComponent, action, self.diameter):
+        self.makeViewForLogo(topbarComponent, action, self.diameter)
+        
         
         topbarComponentContainer.accessibilityIdentifier = "\(self.topbarModel.get(i).getName())"
         

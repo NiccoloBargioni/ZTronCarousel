@@ -3,15 +3,43 @@ import SwiftUI
 import ZTronTheme
 
 public final class TopbarViewController: UIViewController {
-    private let topbarModel: TopbarModel
+    private let topbarModel: AnyTopbarViewModel
     private var topbarView: TopbarRouterView!
     private var theme: any ZTronTheme
     private let diameter: CGFloat
     
-    public init(model: TopbarModel, theme: any ZTronTheme = ZTronThemeProvider.default(), diameter: CGFloat = 40.0) {
+    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+    private var makeViewForLogo: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+
+    
+    public init(
+        model: TopbarModel, theme: any ZTronTheme = ZTronThemeProvider.default(),
+        diameter: CGFloat = 40.0,
+        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+            
+            return TopbarComponentView(
+                component: component,
+                action: action,
+                diameter: diameter,
+            )
+        },
+        makeViewForLogo: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+            
+            return AnonymousTopbarComponentView(
+                component: component,
+                action: action,
+                diameter: diameter,
+                fillBorders: false,
+            )
+        }
+    ) {
         self.topbarModel = model
         self.theme = theme
         self.diameter = diameter
+        
+        self.makeViewForImage = makeViewForImage
+        self.makeViewForLogo = makeViewForLogo
+        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -23,7 +51,14 @@ public final class TopbarViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         
-        self.topbarView = .init(model: self.topbarModel, diameter: self.diameter, theme: self.theme)
+        self.topbarView = .init(
+            model: self.topbarModel,
+            diameter: self.diameter,
+            theme: self.theme,
+            makeViewForImage: self.makeViewForImage,
+            makeViewForLogo: self.makeViewForLogo
+        )
+        
         self.view.backgroundColor = UIColor.clear
         self.topbarView.backgroundColor = UIColor.clear
                 
