@@ -52,7 +52,7 @@ public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTr
     
     @ViewBuilder private func Topbar() -> some View {
         VStack(alignment: .leading, spacing: 0) {
-           
+           /*
            //MARK: Topbar title
            HStack {
                Text(self.topbar.title.fromLocalized().capitalized)
@@ -67,7 +67,8 @@ public struct TopbarView<M, I, T>: View where I: View, M: AnyTopbarModel, T: ZTr
            
            Divider()
                .padding(0)
-           
+           */
+            
            //MARK: Topbar item selection view
            ScrollView(.horizontal, showsIndicators: false) {
                ScrollViewReader { scroll in
