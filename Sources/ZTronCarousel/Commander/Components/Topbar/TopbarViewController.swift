@@ -16,6 +16,7 @@ public final class TopbarViewController: UIViewController {
         model: AnyTopbarViewModel,
         theme: any ZTronTheme = ZTronThemeProvider.default(),
         diameter: CGFloat = 40.0,
+        cornerRadius: CGFloat? = nil,
         makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
             
             return TopbarComponentView(
@@ -94,6 +95,11 @@ public final class TopbarViewController: UIViewController {
     
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+    }
+    
+    
+    public final func updateCurrentSelection(_ index: Int) {
+        self.topbarView.updateCurrentSelection(index)
     }
 }
 
