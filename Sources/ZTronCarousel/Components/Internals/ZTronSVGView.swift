@@ -19,6 +19,8 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     private var overrideWidth: CGFloat? = nil
     private var overrideHeight: CGFloat? = nil
     
+    private var lastContainerSize: CGSize? = nil
+    
     private static let MIN_LINE_WIDTH: CGFloat = 5
     private var maxLineWidth: CGFloat {
         if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.07 {
@@ -102,6 +104,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     public final func resize(for containerSize: CGSize) {
         guard let svgView = self.svgView else { return }
         guard let svgLayer = self.svgLayer else { return }
+        
         let newRect = CGRect(
             x: self.getOrigin(for: containerSize).x,
             y: self.getOrigin(for: containerSize).y,
@@ -112,6 +115,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         svgLayer.resizeToFit(newRect)
         svgView.bounds = CGRect(origin: .zero, size: newRect.size)
         
+        self.lastContainerSize = containerSize
         self.layoutIfNeeded()
     }
     
@@ -209,28 +213,36 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     internal func overrideOffsetX(_ x: CGFloat) -> Void {
         assert(x >= 0 && x <= 1)
         self.overrideOffsetX = x
-        self.setNeedsLayout()
-        self.superview?.layoutIfNeeded()
+        
+        if let lastContainerSize = self.lastContainerSize {
+            self.resize(for: lastContainerSize)
+        }
     }
     
     internal func overrideOffsetY(_ y: CGFloat) -> Void {
         assert(y >= 0 && y <= 1)
         self.overrideOffsetY = y
-        self.setNeedsLayout()
-        self.superview?.layoutIfNeeded()
+
+        if let lastContainerSize = self.lastContainerSize {
+            self.resize(for: lastContainerSize)
+        }
     }
     
     internal func overrideSizeWidth(_ width: CGFloat) -> Void {
         assert(width >= 0 && width <= 1)
         self.overrideWidth = width
-        self.setNeedsLayout()
-        self.superview?.layoutIfNeeded()
+
+        if let lastContainerSize = self.lastContainerSize {
+            self.resize(for: lastContainerSize)
+        }
     }
     
     internal func overrideSizeHeight(_ height: CGFloat) -> Void {
         assert(height >= 0 && height <= 1)
         self.overrideHeight = height
-        self.setNeedsLayout()
-        self.superview?.layoutIfNeeded()
+
+        if let lastContainerSize = self.lastContainerSize {
+            self.resize(for: lastContainerSize)
+        }
     }
 }
