@@ -13,7 +13,7 @@ import ZTronDataModel
     open var theme: (any ZTronTheme)
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
-    private let carouselModel: (any AnyViewModel)
+    public let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
     private(set) public var topbarViews: [UIViewController] = []
     private(set) public var bottomBarView: (any AnyBottomBar)!
