@@ -20,9 +20,13 @@ public final class OutlineInteractionsManager: MSAInteractionsManager, @unchecke
                 }
             }
         } else {
-            Task(priority: .userInitiated) { @MainActor in 
-                if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
-                    self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .ignore)
+            if let carouselModel = eventArgs.getSource() as? (any AnyViewModel) {
+                self.mediator?.signalInterest(owner, to: carouselModel)
+            } else {
+                Task(priority: .userInitiated) { @MainActor in
+                    if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
+                        self.mediator?.signalInterest(owner, to: pinnedBottomBar, or: .ignore)
+                    }
                 }
             }
         }
@@ -44,6 +48,32 @@ public final class OutlineInteractionsManager: MSAInteractionsManager, @unchecke
                 Task(priority: .userInitiated) { @MainActor in
                     if pinnedBottomBar.currentImage == owner.parentImage && pinnedBottomBar.lastAction == .toggleOutline {
                         owner.toggle()
+                    }
+                }
+            } else {
+                if let carouselModel = args.getSource() as? (any AnyViewModel) {
+                    if case .updateOutlineOffsetX(let newOffsetX) = carouselModel.lastAction {
+                        Task(priority: .userInitiated) { @MainActor in
+                            owner.overrideOffsetX(newOffsetX)
+                        }
+                    } else {
+                        if case .updateOutlineOffsetY(let newOffsetY) = carouselModel.lastAction {
+                            Task(priority: .userInitiated) { @MainActor in
+                                owner.overrideOffsetY(newOffsetY)
+                            }
+                        } else {
+                            if case .updateSizeWidth(let newWidth) = carouselModel.lastAction {
+                                Task(priority: .userInitiated) { @MainActor in
+                                    owner.overrideSizeWidth(newWidth)
+                                }
+                            } else {
+                                if case .updateSizeHeight(let newHeight) = carouselModel.lastAction {
+                                    Task(priority: .userInitiated) { @MainActor in
+                                        owner.overrideSizeHeight(newHeight)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

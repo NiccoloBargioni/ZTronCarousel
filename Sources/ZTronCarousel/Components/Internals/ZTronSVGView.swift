@@ -14,6 +14,11 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     private var svgLayer: SVGLayer!
     private var colorPicker: UIColorPickerViewController!
     
+    private var overrideOffsetX: CGFloat? = nil
+    private var overrideOffsetY: CGFloat? = nil
+    private var overrideWidth: CGFloat? = nil
+    private var overrideHeight: CGFloat? = nil
+    
     private static let MIN_LINE_WIDTH: CGFloat = 5
     private var maxLineWidth: CGFloat {
         if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.07 {
@@ -112,15 +117,15 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     public final func getOrigin(for containerSize: CGSize) -> CGPoint {
         return CGPoint(
-            x: containerSize.width * self.normalizedAABB.origin.x,
-            y: containerSize.height * self.normalizedAABB.origin.y
+            x: containerSize.width * (self.overrideOffsetX ?? self.normalizedAABB.origin.x),
+            y: containerSize.height * (self.overrideOffsetY ?? self.normalizedAABB.origin.y)
         )
     }
     
     public final func getSize(for containerSize: CGSize) -> CGSize {
         return CGSize(
-            width: containerSize.width * self.normalizedAABB.width,
-            height: containerSize.height * self.normalizedAABB.height
+            width: containerSize.width * (self.overrideWidth ?? self.normalizedAABB.width),
+            height: containerSize.height * (self.overrideHeight ?? self.normalizedAABB.height)
         )
     }
     
@@ -199,5 +204,33 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     public func dismantle() {
         self.setDelegate(nil)
+    }
+    
+    internal func overrideOffsetX(_ x: CGFloat) -> Void {
+        assert(x >= 0 && x <= 1)
+        self.overrideOffsetX = x
+        self.setNeedsLayout()
+        self.superview?.layoutIfNeeded()
+    }
+    
+    internal func overrideOffsetY(_ y: CGFloat) -> Void {
+        assert(y >= 0 && y <= 1)
+        self.overrideOffsetY = y
+        self.setNeedsLayout()
+        self.superview?.layoutIfNeeded()
+    }
+    
+    internal func overrideSizeWidth(_ width: CGFloat) -> Void {
+        assert(width >= 0 && width <= 1)
+        self.overrideWidth = width
+        self.setNeedsLayout()
+        self.superview?.layoutIfNeeded()
+    }
+    
+    internal func overrideSizeHeight(_ height: CGFloat) -> Void {
+        assert(height >= 0 && height <= 1)
+        self.overrideHeight = height
+        self.setNeedsLayout()
+        self.superview?.layoutIfNeeded()
     }
 }

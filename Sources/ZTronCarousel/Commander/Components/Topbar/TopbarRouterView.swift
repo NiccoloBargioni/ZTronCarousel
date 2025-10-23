@@ -9,6 +9,7 @@ public final class TopbarRouterView: UIView {
         let sv = UIScrollView()
         sv.translatesAutoresizingMaskIntoConstraints = false
         sv.showsHorizontalScrollIndicator = false
+        sv.showsVerticalScrollIndicator = false
         
         return sv
     }()
@@ -299,6 +300,8 @@ public final class TopbarRouterView: UIView {
         
         assert(self.allComponentSubviews().count == items.count)
         assert(self.allComponentSubviews().count == self.topbarModel.count())
+        
+        self.updateCurrentSelection(self.topbarModel.getSelectedItem())
     }
     
     private final func firstComponentView() -> (any AnyTopbarComponentView)? {
