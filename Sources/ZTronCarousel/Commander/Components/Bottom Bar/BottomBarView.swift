@@ -270,7 +270,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
                 role: .variant(variantDescriptor),
                 icon: variantDescriptor.getBottomBarIcon(),
                 leftAnchor: i > 0 ? variantButtons[i - 1].safeAreaLayoutGuide.rightAnchor : self.variantsStack.leftAnchor,
-                constant: 20) {
+                constant: i > 0 ? 20 : 0) {
                     self.throttler.send(.tappedVariantChange(variantDescriptor))
                     self.lastTappedVariantDescriptor = variantDescriptor
                 }
@@ -299,7 +299,7 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             role: .backToPreviousVariant,
             icon: icon ?? "arrow.uturn.left",
             leftAnchor: lastVariantAnchor,
-            constant: self.variantsStack.subviews.count > 0 ? 20 : 10
+            constant: self.variantsStack.subviews.count > 0 ? 20 : 0
         ) {
                 self.throttler.send(.tappedGoBack)
             }

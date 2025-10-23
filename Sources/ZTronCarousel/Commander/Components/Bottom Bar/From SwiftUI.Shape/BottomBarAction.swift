@@ -7,6 +7,7 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
     private let icon: S
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
     private var iconView: BottomBarActionIcon<S>!
+    private var iconViewController: UIViewController!
     private let isStateful: Bool
     
     public init(role: BottomBarActionRole, icon: S, isStateful: Bool = true, action: @escaping () -> Void) {
@@ -37,7 +38,10 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
                 
         theButton.translatesAutoresizingMaskIntoConstraints = false
         
-        let buttonIcon = UIHostingController(rootView: BottomBarActionIcon(shape: self.icon))
+        let buttonIcon = UIHostingController(rootView: BottomBarActionIcon(
+            shape: self.icon,
+            isInitiallyActive: self.role == .outline || self.role == .boundingCircle
+        ))
         
         if #available(iOS 16, *) {
             buttonIcon.sizingOptions = .intrinsicContentSize
@@ -55,6 +59,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         
         buttonIcon.view.backgroundColor = .clear
         buttonIcon.view.isUserInteractionEnabled = false
+        
+        self.iconViewController = buttonIcon
         
         self.addSubview(theButton)
         
@@ -79,6 +85,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         guard self.isStateful else { return }
         
         self.iconView.toggleActive()
+        self.iconViewController.view.invalidateIntrinsicContentSize()
+        
         self.layoutIfNeeded()
     }
     
@@ -86,6 +94,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         guard self.isStateful else { return }
         
         self.iconView.setActive(isActive)
+        self.iconViewController.view.invalidateIntrinsicContentSize()
+
         self.layoutIfNeeded()
     }
 }
