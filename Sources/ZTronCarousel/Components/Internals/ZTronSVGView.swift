@@ -30,6 +30,8 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
                     )
                     
                     self.svgLayer.resizeToFit(self.svgView.frame)
+                    self.superview?.setNeedsLayout()
+                    self.superview?.layoutIfNeeded()
                 }
             }
         }
@@ -50,6 +52,8 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
                     )
                     
                     self.svgLayer.resizeToFit(self.svgView.frame)
+                    self.superview?.setNeedsLayout()
+                    self.superview?.layoutIfNeeded()
                 }
             }
         }
