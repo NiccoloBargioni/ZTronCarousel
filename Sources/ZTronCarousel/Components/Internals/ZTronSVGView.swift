@@ -14,10 +14,38 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     private var svgLayer: SVGLayer!
     private var colorPicker: UIColorPickerViewController!
     
-    private var overrideOffsetX: CGFloat? = nil
-    private var overrideOffsetY: CGFloat? = nil
-    private var overrideWidth: CGFloat? = nil
-    private var overrideHeight: CGFloat? = nil
+    private var overrideOffsetX: CGFloat? = nil {
+        didSet {
+            if let lastContainerSize = self.lastContainerSize {
+                self.resize(for: lastContainerSize)
+                self.superview?.needsUpdateConstraints()
+            }
+        }
+    }
+    private var overrideOffsetY: CGFloat? = nil {
+        didSet {
+            if let lastContainerSize = self.lastContainerSize {
+                self.resize(for: lastContainerSize)
+                self.superview?.needsUpdateConstraints()
+            }
+        }
+    }
+    private var overrideWidth: CGFloat? = nil {
+        didSet {
+            if let lastContainerSize = self.lastContainerSize {
+                self.resize(for: lastContainerSize)
+                self.superview?.needsUpdateConstraints()
+            }
+        }
+    }
+    private var overrideHeight: CGFloat? = nil {
+        didSet {
+            if let lastContainerSize = self.lastContainerSize {
+                self.resize(for: lastContainerSize)
+                self.superview?.needsUpdateConstraints()
+            }
+        }
+    }
     
     private var lastContainerSize: CGSize? = nil
     
@@ -240,9 +268,5 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     internal func overrideSizeHeight(_ height: CGFloat) -> Void {
         assert(height >= 0 && height <= 1)
         self.overrideHeight = height
-
-        if let lastContainerSize = self.lastContainerSize {
-            self.resize(for: lastContainerSize)
-        }
     }
 }
