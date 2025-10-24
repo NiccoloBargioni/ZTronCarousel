@@ -457,7 +457,7 @@ public final class TopbarRouterView: UIView {
     }
     
     internal final func collapse() -> Void {
-        guard !self.isHidden else { return }
+        guard !self.scrollView.isHidden else { return }
         
         self.scrollView.subviews.forEach { subview in
             UIView.animate(withDuration: 0.25) {
@@ -475,7 +475,7 @@ public final class TopbarRouterView: UIView {
     }
     
     internal final func expand() -> Void {
-        guard self.isHidden else { return }
+        guard self.scrollView.isHidden else { return }
         
         self.scrollView.isHidden = false
         UIView.animate(withDuration: 0.25) {
