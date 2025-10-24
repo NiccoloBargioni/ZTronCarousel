@@ -49,6 +49,12 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
                         Task(priority: .userInitiated) { @MainActor in
                             owner.replaceItems(with: newTopbarItems)
                             owner.setIsRedacted(to: false)
+                            
+                            if newTopbarItems.count <= 0 {
+                                owner.hide()
+                            } else {
+                                owner.show()
+                            }
                         }
                     }
                 }
