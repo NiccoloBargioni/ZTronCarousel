@@ -50,7 +50,7 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
                             owner.replaceItems(with: newTopbarItems)
                             owner.setIsRedacted(to: false)
                             
-                            if newTopbarItems.count <= 0 {
+                            if newTopbarItems.count <= 1 {
                                 owner.hide()
                             } else {
                                 owner.show()
