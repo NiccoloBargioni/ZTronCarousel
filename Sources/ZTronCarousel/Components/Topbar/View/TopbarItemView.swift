@@ -31,6 +31,7 @@ public struct TopbarItemView<T: ZTronTheme>: View {
                     theme: self.theme,
                     font: \.caption2, weight: self.shouldHighlightText && isActive ? .bold : .regular
                 )
+                .lineLimit(2)
                .foregroundColor(
                     self.shouldHighlightText && self.isActive
                     ? self.glowColor : Color(self.theme, value: \.label)

@@ -3,6 +3,7 @@ import ZTronObservation
 
 public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
     public let id: String = "viewModel"
+    private(set) public var lastAction: CarouselFromDBLastAction = .ready
     weak public var viewModel: CarouselPageFromDB?
     @InteractionsManaging(setupOr: .ignore, detachOr: .fail) var delegate: (any MSAInteractionsManager)? = nil
     
@@ -70,4 +71,39 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
     deinit {
         self.delegate?.detach()
     }
+    
+    
+    public func updateOutlineOriginX(_ x: CGFloat) {
+        assert(x >= 0 && x <= 1)
+        self.lastAction = .updateOutlineOffsetX(x)
+        self.pushNotification()
+    }
+    
+    public func updateOutlineOriginY(_ y: CGFloat) {
+        assert(y >= 0 && y <= 1)
+        self.lastAction = .updateOutlineOffsetY(y)
+        self.pushNotification()
+    }
+    
+    public func updateOutlineWidth(_ width: CGFloat) {
+        assert(width >= 0 && width <= 1)
+        self.lastAction = .updateSizeWidth(width)
+        self.pushNotification()
+    }
+    
+    public func updateOutlineHeight(_ height: CGFloat) {
+        assert(height >= 0 && height <= 1)
+        self.lastAction = .updateSizeHeight(height)
+        self.pushNotification()
+    }
+
+}
+
+
+public enum CarouselFromDBLastAction {
+    case ready
+    case updateOutlineOffsetX(CGFloat)
+    case updateOutlineOffsetY(CGFloat)
+    case updateSizeWidth(CGFloat)
+    case updateSizeHeight(CGFloat)
 }

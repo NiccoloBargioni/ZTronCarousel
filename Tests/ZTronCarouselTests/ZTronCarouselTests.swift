@@ -113,4 +113,26 @@ public final class MockDBLoader: AnyDBLoader {
     #expect(loader.galleries.count == 4)
 }
 
+
+@Test func testDynamicTypes() async throws {
+    class SomeBaseClass {
+        internal var foo: Int = .zero
+    }
+    
+    class SubclassA: SomeBaseClass {
+        
+    }
+    
+    class SubclassB: SomeBaseClass {
+        
+    }
+    
+    let a = SubclassA()
+    let a1 = SubclassA()
+    let b = SubclassB()
+    
+    
+    #expect(sameType(a, b) == false)
+    #expect(sameType(a, a1) == true)
+}
 #endif

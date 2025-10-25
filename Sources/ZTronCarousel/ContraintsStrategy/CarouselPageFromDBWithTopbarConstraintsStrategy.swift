@@ -14,22 +14,59 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
         self.owner = owner
     }
     
-    public final func makeTopbarConstraints(for orientation: UIDeviceOrientation) {
+    public final func makeTopbarConstraints(
+        for orientation: UIDeviceOrientation,
+        nestingLevel: Int,
+        maxDepth: Int
+    ) {
         guard let owner = owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard maxDepth > 0 else { return }
+        assert(maxDepth >= nestingLevel)
+        assert(nestingLevel < owner.topbarViews.count)
+        guard owner.topbarViews.count > nestingLevel else { return }
         
-        topbarView.view.snp.makeConstraints { make in
-            make.left.right.top.equalTo(owner.scrollView.contentLayoutGuide)
-            
-            if topbarView.view.intrinsicContentSize.height > 0 {
-                make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+        let topbarView = owner.topbarViews[nestingLevel]
+        
+        if nestingLevel == 0 {
+            topbarView.view.snp.makeConstraints { make in
+                make.left.right.top.equalTo(owner.scrollView.contentLayoutGuide)
+                
+                if topbarView.view.intrinsicContentSize.height > 0 {
+                    make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+                }
+            }
+        } else {
+            if nestingLevel == 1 {
+                topbarView.view.snp.makeConstraints { make in
+                    make.left.equalTo(owner.thePageVC.view)
+                    make.right.equalTo(owner.thePageVC.view)
+                    make.top.equalTo(owner.bottomBarView.snp.bottom).offset(25.0)
+                    
+                    if topbarView.view.intrinsicContentSize.height > 0 {
+                        make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+                    }
+                }
+            } else {
+                let previousTopbar = owner.topbarViews[nestingLevel - 1]
+                
+                topbarView.view.snp.makeConstraints { make in
+                    make.left.equalTo(owner.thePageVC.view)
+                    make.right.equalTo(owner.thePageVC.view)
+                    make.top.equalTo(previousTopbar.view.snp.bottom)
+                    
+                    if topbarView.view.intrinsicContentSize.height > 0 {
+                        make.height.equalTo(topbarView.view.intrinsicContentSize.height)
+                    }
+                }
             }
         }
+        
+        
     }
     
     public final func makePageWrapperConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard let topbarView = owner.topbarViews.first else { return }
         
         let size = owner.computeContentSizeThatFits()
         owner.myContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -52,7 +89,7 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
 
     public final func makeScrollViewContentConstraints(for orientation: UIDeviceOrientation) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard let topbarView = owner.topbarViews.first else { return }
         
         self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(
             equalTo: orientation.isPortrait ?
@@ -68,7 +105,7 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
     
     public final func updatePageWrapperConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard let topbarView = owner.topbarViews.first else { return }
         
         self.pgvcTop.isActive = false
         
@@ -98,12 +135,13 @@ public final class CarouselPageFromDBWithTopbarConstraintsStrategy: CarouselWith
     
     public final func updateScrollViewContentConstraintsForTransition(to orientation: UIDeviceOrientation, sizeAfterTransition: CGSize) {
         guard let owner = self.owner else { return }
-        guard let topbarView = owner.topbarView else { return }
+        guard let topbarView = owner.topbarViews.first else { return }
         
         self.scrollViewTopContentGuide?.isActive = false
-        if orientation.isPortrait && owner.topbarView != nil {
+        if orientation.isPortrait {
             self.scrollViewTopContentGuide = owner.scrollView.contentLayoutGuide.topAnchor.constraint(equalTo: topbarView.view.safeAreaLayoutGuide.topAnchor)
         }
+        
         self.scrollViewTopContentGuide?.isActive = true
     }
     

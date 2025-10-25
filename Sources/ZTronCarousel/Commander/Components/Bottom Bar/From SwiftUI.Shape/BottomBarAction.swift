@@ -7,6 +7,7 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
     private let icon: S
     private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
     private var iconView: BottomBarActionIcon<S>!
+    private var iconViewController: UIViewController!
     private let isStateful: Bool
     
     public init(role: BottomBarActionRole, icon: S, isStateful: Bool = true, action: @escaping () -> Void) {
@@ -16,13 +17,17 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         self.isStateful = isStateful
         super.init(frame: .zero)
         
-        self.accessibilityIdentifier = self.role.rawValue
+        if case .variant(let variant) = role {
+            self.accessibilityIdentifier = variant.getSlave()
+        } else {
+            self.accessibilityIdentifier = String(describing: self.role)
+        }
     }
     
     public final func setup() {
         let theButton = UIDimmingBackgroundButton(type: .system)
         
-        theButton.addAction(UIAction(title: self.role.rawValue) { _ in
+        theButton.addAction(UIAction(title: String(describing: role)) { _ in
             self.action()
             
             /*
@@ -33,7 +38,10 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
                 
         theButton.translatesAutoresizingMaskIntoConstraints = false
         
-        let buttonIcon = UIHostingController(rootView: BottomBarActionIcon(shape: self.icon))
+        let buttonIcon = UIHostingController(rootView: BottomBarActionIcon(
+            shape: self.icon,
+            isInitiallyActive: self.role == .outline || self.role == .boundingCircle
+        ))
         
         if #available(iOS 16, *) {
             buttonIcon.sizingOptions = .intrinsicContentSize
@@ -51,6 +59,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         
         buttonIcon.view.backgroundColor = .clear
         buttonIcon.view.isUserInteractionEnabled = false
+        
+        self.iconViewController = buttonIcon
         
         self.addSubview(theButton)
         
@@ -75,6 +85,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         guard self.isStateful else { return }
         
         self.iconView.toggleActive()
+        self.iconViewController.view.invalidateIntrinsicContentSize()
+        
         self.layoutIfNeeded()
     }
     
@@ -82,6 +94,8 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         guard self.isStateful else { return }
         
         self.iconView.setActive(isActive)
+        self.iconViewController.view.invalidateIntrinsicContentSize()
+
         self.layoutIfNeeded()
     }
 }

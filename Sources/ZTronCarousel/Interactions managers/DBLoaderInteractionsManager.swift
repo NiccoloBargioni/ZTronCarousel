@@ -69,10 +69,10 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         if let carousel = args.getSource() as? CarouselComponent {
                             MainActor.assumeIsolated {
                                 self.currentImage = carousel.currentMediaDescriptor?.getAssetName()
-
+                                
                                 if !self.acknowledgedTopbar && carousel.lastAction == .ready {
                                     do {
-                                        try owner.loadImagesForGallery(nil)
+                                        self.currentGalleryName = try owner.loadImagesForGallery(nil)
                                     } catch {
                                         fatalError(error.localizedDescription)
                                     }
@@ -191,14 +191,12 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
             guard let currentImage = pinnedBottomBar.currentImage else { return }
             
             do {
-                if pinnedBottomBar.lastAction == .tappedVariantChange {
-                    if let lastTappedVariantDescriptor = pinnedBottomBar.lastTappedVariantDescriptor {
-                        try self.owner?.loadImageDescriptor(
-                            imageID: lastTappedVariantDescriptor.getSlave(),
-                            in: currentGallery,
-                            variantDescriptor: lastTappedVariantDescriptor
-                        )
-                    }
+                if case .tappedVariantChange(let variant) = pinnedBottomBar.lastAction {
+                    try owner.loadImageDescriptor(
+                        imageID: variant.getSlave(),
+                        in: currentGallery,
+                        variantDescriptor: variant
+                    )
                 } else {
                     if pinnedBottomBar.lastAction == .tappedGoBack {
                         if let lastTappedVariantDescriptor = pinnedBottomBar.lastTappedVariantDescriptor {

@@ -26,7 +26,7 @@ protocol ReadMoreLessViewDelegate: AnyObject {
         }
     }
     
-    private var theme: (any ZTronTheme)? = nil
+    private var theme: (any ZTronTheme) = ZTronThemeProvider.default()
         
     
     @IBInspectable var maxNumberOfLinesCollapsed: Int = 3
@@ -50,13 +50,13 @@ protocol ReadMoreLessViewDelegate: AnyObject {
         }
     }
         
-    @IBInspectable var bodyLabelFont: UIFont = .systemFont(ofSize: 14) {
+    @IBInspectable var bodyLabelFont: UIFont {
         didSet{
             bodyLabel.font = bodyLabelFont
         }
     }
     
-    @IBInspectable var moreLessButtonFont: UIFont = .systemFont(ofSize: 12) {
+    @IBInspectable var moreLessButtonFont: UIFont {
         didSet{
             moreLessButton.titleLabel!.font = moreLessButtonFont as UIFont
         }
@@ -124,11 +124,15 @@ protocol ReadMoreLessViewDelegate: AnyObject {
     // MARK: Initialisers
     
     override init(frame: CGRect) {
+        self.bodyLabelFont = UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSubheadline)
+        self.moreLessButtonFont = UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiCaption2)
         super.init(frame: frame)
         configureViews()
     }
     
     required init?(coder aDecoder: NSCoder) {
+        self.bodyLabelFont = UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSubheadline)
+        self.moreLessButtonFont = UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiCaption2)
         super.init(coder: aDecoder)
         configureViews()
     }

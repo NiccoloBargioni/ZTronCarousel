@@ -63,7 +63,9 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         }
     }
     
-    public func loadImagesForGallery(_ theGallery: String?) throws {
+    public func loadImagesForGallery(_ theGallery: String?) throws -> String? {
+        var loadedGalleryName: String? = theGallery
+        
         try DBMS.transaction { db in
             let firstLevel = try
                 DBMS.CRUD.readFirstLevelMasterImagesForGallery(
@@ -134,19 +136,34 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 @unknown default:
                     fatalError("Please update the code in \(#file)@\(#line) in \(#function) to accomodate for the added media types")
                 }
-                
+            }
+            
+            let depth = theGallery != nil ? try DBMS.CRUD.readGalleryNestingDepth(
+                for: db,
+                game: self.fk.getGame(),
+                map: self.fk.getMap(),
+                tab: self.fk.getTab(),
+                tool: self.fk.getTool(),
+                gallery: theGallery!
+            ) ?? 0 : 0
+            
+            if let firstImage = fetchedMedias.first {
+                loadedGalleryName = firstImage.getGallery()
             }
             
             self.lastAction = .imagesLoaded
             self.delegate?.pushNotification(
                 eventArgs: MediasLoadedEventMessage(
                     source: self,
-                    medias: processedMedias
+                    medias: processedMedias,
+                    depth: depth
                 )
             )
             
             return .commit
         }
+        
+        return loadedGalleryName
     }
     
     

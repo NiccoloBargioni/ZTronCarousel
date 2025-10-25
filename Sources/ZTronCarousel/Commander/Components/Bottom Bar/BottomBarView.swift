@@ -20,6 +20,9 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         }
     }
     
+    private var variantsStack: UIView!
+    private var variantsStackRightAnchor: NSLayoutConstraint?
+    
     nonisolated(unsafe) private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {
             guard let delegate = self.delegate else { return }
@@ -132,9 +135,24 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         let separatorView: UIView = .init()
         bottomBarView.addSubview(separatorView)
         
+        
 
         separatorView.backgroundColor = self.brandColor
         separatorView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // MARK: - VARIANTS STACK
+        let variantsStack = UIView(frame: .zero)
+        bottomBarView.addSubview(variantsStack)
+        variantsStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            variantsStack.topAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.topAnchor),
+            variantsStack.bottomAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.bottomAnchor),
+            variantsStack.leftAnchor.constraint(equalTo: bottomBarView.leftAnchor, constant: 20),
+            variantsStack.rightAnchor.constraint(lessThanOrEqualTo: separatorView.safeAreaLayoutGuide.leftAnchor, constant: -20)
+        ])
+        
+        self.variantsStack = variantsStack
         
         NSLayoutConstraint.activate([
             separatorView.centerYAnchor.constraint(equalTo: bottomBarView.safeAreaLayoutGuide.centerYAnchor),
@@ -153,7 +171,12 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         }
         */
         
-        self.addAction(role: .caption, icon: InfoShape(), rightAnchor: separatorView.leftAnchor, constant: -15) {
+        self.addAction(
+            role: .caption,
+            icon: InfoShape(),
+            rightAnchor: separatorView.leftAnchor,
+            constant: -15
+        ) {
             self.throttler.send(.tappedToggleCaption)
         }
         
@@ -213,16 +236,86 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         return action
     }
     
-    public func switchVariants(_ to: [ImageVariantDescriptor], completion: ((Bool) -> Void)?) {
+    
+    @discardableResult internal final func addAction(
+        role: BottomBarActionRole,
+        icon: String,
+        isStateful: Bool = true,
+        leftAnchor: NSLayoutXAxisAnchor,
+        constant: CGFloat = 0,
+        action: @escaping () -> Void
+    ) -> UIView {
+        let action = SystemImageBottomBarAction(role: role, icon: icon, isStateful: isStateful, action: action)
         
+        self.variantsStack.addSubview(action)
+        action.translatesAutoresizingMaskIntoConstraints = false
+        action.setup()
+        
+        NSLayoutConstraint.activate([
+            action.centerYAnchor.constraint(equalTo: self.variantsStack.safeAreaLayoutGuide.centerYAnchor),
+            action.leftAnchor.constraint(equalTo: leftAnchor, constant: constant),
+        ])
+        
+
+        return action
+    }
+    
+    public func switchVariants(_ to: [ImageVariantDescriptor], completion: ((Bool) -> Void)?) {
+        self.clearVariantsStack()
+        
+        var variantButtons: [UIView] = .init()
+        
+        for (i, variantDescriptor) in to.enumerated() {
+            let variantButton = self.addAction(
+                role: .variant(variantDescriptor),
+                icon: variantDescriptor.getBottomBarIcon(),
+                leftAnchor: i > 0 ? variantButtons[i - 1].safeAreaLayoutGuide.rightAnchor : self.variantsStack.leftAnchor,
+                constant: i > 0 ? 20 : 0) {
+                    self.throttler.send(.tappedVariantChange(variantDescriptor))
+                    self.lastTappedVariantDescriptor = variantDescriptor
+                }
+            
+            variantButtons.append(variantButton)
+        }
+
+        if let lastVariant = variantButtons.last {
+            self.variantsStack.layoutIfNeeded()
+            self.variantsStackRightAnchor?.isActive = false
+            
+            self.variantsStackRightAnchor = self.variantsStack.rightAnchor.constraint(equalTo: lastVariant.safeAreaLayoutGuide.rightAnchor)
+            
+            self.variantsStackRightAnchor?.isActive = true
+            self.variantsStack.layoutIfNeeded()
+        }
     }
     
     public func appendGoBackVariant(icon: String?) {
+        self.variantsStack.layoutIfNeeded()
+        self.variantsStackRightAnchor?.isActive = false
+
+        let lastVariantAnchor = self.variantsStack.subviews.last?.safeAreaLayoutGuide.rightAnchor ?? self.variantsStack.safeAreaLayoutGuide.leftAnchor
         
+        self.addAction(
+            role: .backToPreviousVariant,
+            icon: icon ?? "arrow.uturn.left",
+            leftAnchor: lastVariantAnchor,
+            constant: self.variantsStack.subviews.count > 0 ? 20 : 0
+        ) {
+                self.throttler.send(.tappedGoBack)
+            }
+        
+        self.variantsStackRightAnchor?.isActive = false
+        self.variantsStack.layoutIfNeeded()
     }
     
-    public func clearVariantsStack(completion: ((Bool) -> Void)?) {
+    public func clearVariantsStack(completion: ((Bool) -> Void)? = nil) {
+        self.variantsStack.subviews.forEach { subview in
+            subview.removeFromSuperview()
+        }
         
+        self.variantsStackRightAnchor?.isActive = false
+        
+        completion?(true)
     }
     
     public func setCurrentImage(_ to: String) {
@@ -254,9 +347,23 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     
     
     private final func buttonForRole(_ role: BottomBarActionRole) -> (any ActiveTogglableView)? {
-        return self.subviews.first?.subviews.first {
-            return $0.accessibilityIdentifier == role.rawValue
-        } as? (any ActiveTogglableView)
+        func searchInVariantsStack(identifier: String) -> (any ActiveTogglableView)? {
+            return self.variantsStack.subviews.first {
+                return $0.accessibilityIdentifier == identifier
+            } as? (any ActiveTogglableView)
+        }
+        
+        if case .tappedVariantChange(let variant) = self.lastAction {
+            return searchInVariantsStack(identifier: variant.getSlave())
+        } else {
+            if self.lastAction == .tappedGoBack {
+                return searchInVariantsStack(identifier: String(describing: role))
+            } else {
+                return self.subviews.first?.subviews.first {
+                    return $0.accessibilityIdentifier == String(describing: role)
+                } as? (any ActiveTogglableView)
+            }
+        }
     }
     
     

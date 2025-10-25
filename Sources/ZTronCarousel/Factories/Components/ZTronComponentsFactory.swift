@@ -12,7 +12,18 @@ import ZTronSerializable
     /// - Pinned to left, top and right of this component
     /// - Height sized to fit its intrinsicContentSize
     /// - Disappears when `.orientation == .landscape`
+    @available(
+        *,
+         deprecated,
+         renamed: "makeTopbar(mediator:nestingLevel:maximumDepth:)",
+         message: "Consider switching to topbar factory that takes nesting level into account"
+    )
     func makeTopbar(mediator: MSAMediator) -> UIViewController?
+    
+    /// - Constraints will depend upon which topbar this is.
+    /// - Disappears when `.orientation == .landscape`
+    func makeTopbar(mediator: MSAMediator, nestingLevel: Int, maximumDepth: Int) -> UIViewController?
+    
     
     /// - Pinned to left and right of carousel
     /// - Pinned to the bottom of carousel

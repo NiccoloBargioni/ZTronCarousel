@@ -97,7 +97,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
         "branch" : "main",
-        "revision" : "76e2c769ae8e73827edb1c057de873838f9709c0"
+        "revision" : "ad03356e3aaeb5a5e6749b7432f83019a3d37ba5"
       }
     },
     {
@@ -106,7 +106,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
         "branch" : "main",
-        "revision" : "f7e35fe1c3a46853e9e982b4e8e5bce2847ff0fd"
+        "revision" : "b4ecd9059f64c689eec3fb9fadfba0a9e7448fb3"
       }
     },
     {
@@ -142,7 +142,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronTheme",
       "state" : {
         "branch" : "main",
-        "revision" : "92f314a9bac0d2be0c4496369b6b50f7a7d4ba5a"
+        "revision" : "784ccaad6f7f52060129855664bde94599468ea1"
       }
     },
     {

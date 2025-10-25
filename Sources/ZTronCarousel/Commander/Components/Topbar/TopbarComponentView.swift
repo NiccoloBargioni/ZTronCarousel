@@ -1,28 +1,28 @@
 import UIKit
-import SkeletonView
 import ZTronTheme
 
 public final class TopbarComponentView: UIView, AnyTopbarComponentView {
     private var component: any TopbarComponent
     private var action: UIAction
-    private let disabledColor: UIColor = UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 123.0/255.0, alpha: 1.0)
+    private let diameter: CGFloat
     private let theme: any ZTronTheme
     
     weak private var logoView: UIView? = nil
     weak private var titleView: UILabel? = nil
-    
+    weak private var itemContainer: UIView? = nil
     
     private var isActive: Bool = false
     
     public init(
         component: any TopbarComponent,
         action: UIAction,
+        diameter: CGFloat = 40.0,
         theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
         self.component = component
         self.action = action
+        self.diameter = diameter
         self.theme = theme
-        
         super.init(frame: .zero)
 
         setup()
@@ -32,6 +32,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         fatalError()
     }
     
+    
     public final func setup() {
         let topbarComponentContainer: UIButton = .init(type: .system)
         topbarComponentContainer.addAction(self.action, for: .touchUpInside)
@@ -39,6 +40,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         self.addSubview(topbarComponentContainer)
         topbarComponentContainer.translatesAutoresizingMaskIntoConstraints = false
         
+        self.itemContainer = topbarComponentContainer
         
         let topbarComponentImage: UIImageView = UIImageView(image: UIImage(named: self.component.getIcon()))
         topbarComponentImage.contentMode = .scaleAspectFit
@@ -49,15 +51,16 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         
         let title: UILabel = .init()
         title.text = self.component.getName().fromLocalized()
-        title.textColor = self.disabledColor // self.currentIndex != i ? disabledColor : .label
-        title.numberOfLines = 0
-        
+        title.textColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled)
+        title.numberOfLines = 2
         title.font = .systemFont(
             ofSize: 10,
             weight: .regular
-        ) // self.currentIndex != i ? .regular : .bold)
+        )
         
-        
+        title.adjustsFontSizeToFitWidth = false
+        title.lineBreakMode = .byTruncatingTail
+
         title.textAlignment = .center
         title.lineBreakMode = .byWordWrapping
                     
@@ -67,11 +70,11 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         
         NSLayoutConstraint.activate([
             topbarComponentImage.heightAnchor.constraint(equalTo: topbarComponentImage.widthAnchor),
-            topbarComponentImage.widthAnchor.constraint(equalToConstant: 40),
+            topbarComponentImage.widthAnchor.constraint(equalToConstant: self.diameter),
             topbarComponentImage.centerXAnchor.constraint(equalTo: topbarComponentContainer.safeAreaLayoutGuide.centerXAnchor),
             
             topbarComponentContainer.topAnchor.constraint(equalTo: topbarComponentImage.topAnchor),
-            topbarComponentContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 80),
+            topbarComponentContainer.widthAnchor.constraint(lessThanOrEqualToConstant: self.diameter * 2.0),
         ])
 
         
@@ -91,7 +94,6 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
             self.bottomAnchor.constraint(equalTo: topbarComponentContainer.bottomAnchor),
             self.leftAnchor.constraint(equalTo: topbarComponentContainer.leftAnchor),
         ])
-
         
         topbarComponentImage.layer.zPosition = 2.0
         topbarComponentContainer.layer.zPosition = 2.0
@@ -100,9 +102,6 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
                 
         self.logoView = topbarComponentImage
         self.titleView = title
-        
-        topbarComponentImage.isSkeletonable = true
-        self.titleView?.isSkeletonable = true
     }
     
     public final func viewForLogo() -> UIView? {
@@ -113,50 +112,74 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         return self.titleView
     }
     
-    public final func toggleActive() {
+    public final func makeActive() {
         guard let label = self.titleView else { return }
         
         label.animate(
-            font: self.isActive ?  .systemFont(ofSize: 10, weight: .regular) : .systemFont(ofSize: 12, weight: .bold),
-            textColor: self.isActive ? self.disabledColor : .label,
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiCaption2),
+            textColor: .label,
             duration: 0.25
         )
 
-        self.isActive.toggle()
+        self.isActive = true
     }
     
-    public func setIsActive(_ isActive: Bool) {
-        guard isActive != self.isActive else { return }
+    public final func makeVisited() {
+        guard let label = self.titleView else { return }
+
+        label.animate(
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSmaller),
+            textColor: UIColor.fromTheme(self.theme.colorSet, color: \.disabled),
+            duration: 0.25
+        )
         
-        titleView?.animate(
-            font: self.isActive ?  .systemFont(ofSize: 10, weight: .regular) : .systemFont(ofSize: 12, weight: .bold),
-            textColor: self.isActive ? self.disabledColor : .label,
+        self.isActive = false
+    }
+    
+    
+    public func makeUnvisited() {
+        guard let label = self.titleView else { return }
+
+        label.animate(
+            font: UIFont.from(ztron: self.theme.erasedToAnyTheme(), font: \.uiSmaller),
+            textColor: UIColor.fromTheme(self.theme.colorSet, color: \.disabled),
             duration: 0.25
         )
-
-        self.isActive = isActive
+        
+        self.isActive = false
     }
-
     
-    public final func setIsRedacted(_ isRedacted: Bool) {
-        if isRedacted {
-            self.logoView?.showGradientSkeleton()
-            self.titleView?.showGradientSkeleton()
+
+    public func replaceModel(with model: any TopbarComponent) {
+        self.viewForTitle()?.text = model.getName().fromLocalized()
+        
+        if let logoView = self.viewForLogo() as? UIImageView {
+            logoView.image = UIImage(named: model.getIcon())
+            logoView.contentMode = .scaleAspectFit
+            self.component = model
         } else {
-            self.logoView?.stopSkeletonAnimation()
-            self.logoView?.hideSkeleton()
-            
-            self.titleView?.stopSkeletonAnimation()
-            self.logoView?.hideSkeleton()
+            fatalError()
         }
+        
+        self.superview?.layoutIfNeeded()
     }
 }
 
 public protocol AnyTopbarComponentView: UIView {
     func viewForLogo() -> UIView?
     func viewForTitle() -> UILabel?
-    func toggleActive() -> Void
-    func setIsActive(_:Bool) -> Void
+    func makeActive() -> Void
+    func makeVisited() -> Void
+    func makeUnvisited() -> Void
+    func replaceModel(with model: any TopbarComponent) -> Void
+}
+
+public extension AnyTopbarComponentView {
+    func makeVisited() -> Void {
+        print("func \(#function) not implemented on type \(String(describing: self))")
+    }
     
-    func setIsRedacted(_: Bool)
+    func makeUnvisited() -> Void {
+        print("func \(#function) not implemented on type \(String(describing: self))")
+    }
 }

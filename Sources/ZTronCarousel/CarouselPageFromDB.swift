@@ -5,6 +5,7 @@ import ZTronSerializable
 import ZTronCarouselCore
 import ZTronObservation
 import ZTronTheme
+import ZTronDataModel
 
 @MainActor open class CarouselPageFromDB: IOS15LayoutLimitingViewController {
     public let mediator: MSAMediator = .init()
@@ -12,13 +13,14 @@ import ZTronTheme
     open var theme: (any ZTronTheme)
     private let pageFactory: any MediaFactory
     private let dbLoader: any AnyDBLoader
-    private let carouselModel: (any AnyViewModel)
+    public let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
-    public let topbarView: UIViewController?
+    private(set) public var topbarViews: [UIViewController] = []
     private(set) public var bottomBarView: (any AnyBottomBar)!
     private(set) public var captionView: (any AnyCaptionView)!
 
     private let requestedGalleryID: String?
+    private var gallerySubtreeLength: Int? = nil
     
     public let myContainerView: UIView = {
         let v = UIView()
@@ -31,6 +33,7 @@ import ZTronTheme
         let scrollView = UIScrollView()
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.delaysContentTouches = false
         
         return scrollView
     }()
@@ -81,15 +84,66 @@ import ZTronTheme
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
         self.thePageVC = .init(with: self.pageFactory, medias: [])
-                
-        self.topbarView = self.componentsFactory.makeTopbar(mediator: self.mediator)
-        self.bottomBarView = nil
         
         super.init(nibName: nil, bundle: nil)
         
+        do {
+            try DBMS.transaction { dbConnection in
+                if let gallery = gallery {
+                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfSubgalleryRootedInGallery(
+                        for: dbConnection,
+                        master: gallery,
+                        game: foreignKeys.getGame(),
+                        map: foreignKeys.getMap(),
+                        tab: foreignKeys.getTab(),
+                        tool: foreignKeys.getTool()
+                    ) {
+                        self.gallerySubtreeLength = maxDepth
+                    } else {
+                        fatalError("Unable to read maximum depth of \(gallery)")
+                    }
+                } else {
+                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfGalleryForTool(
+                        for: dbConnection,
+                        game: foreignKeys.getGame(),
+                        map: foreignKeys.getMap(),
+                        tab: foreignKeys.getTab(),
+                        tool: foreignKeys.getTool()
+                    ) {
+                        self.gallerySubtreeLength = maxDepth
+                    } else {
+                        fatalError("Unable to read maximum depth of gallery rooted in \(foreignKeys.getTool())")
+                    }
+                }
+                
+                return .commit
+            }
+        } catch {
+            fatalError(error.localizedDescription)
+        }
+        
+        if let gallerySubtreeLength = self.gallerySubtreeLength {
+            for nestingLevel in 0..<gallerySubtreeLength {
+                if let topbar = self.componentsFactory.makeTopbar(
+                    mediator: self.mediator,
+                    nestingLevel: nestingLevel,
+                    maximumDepth: gallerySubtreeLength
+                ) {
+                    self.topbarViews.append(topbar)
+                } else {
+                    fatalError("Unable to make topbar for level \(nestingLevel)")
+                }
+            }
+        }
+        
+        self.bottomBarView = nil
+        
+        
         self.makeConstraintsStrategy()
         
+        
         Task(priority: .userInitiated) {
+            
             self.carouselModel.viewModel = self
             
             self.carouselModel.setDelegate(
@@ -116,10 +170,9 @@ import ZTronTheme
                 self.searchController = nil
             }
             
+            
             Task(priority: .high) {
-                if gallery == nil {
-                    self.dbLoader.setCurrentDepth(-1)
-                }
+                self.dbLoader.setCurrentDepth(-1)
                 
                 try self.dbLoader.loadFirstLevelGalleries(gallery)
             }
@@ -163,17 +216,17 @@ import ZTronTheme
         
         self.scrollView.layer.zPosition = 2.0
         
-        if let topbarView = self.topbarView {
+        for topbarView in self.topbarViews {
             topbarView.willMove(toParent: self)
             self.addChild(topbarView)
             self.scrollView.addSubview(topbarView.view)
-        
+            
             if !self.isPortrait {
                 topbarView.view.isHidden = true
             } else {
                 topbarView.view.isHidden = false
             }
-                    
+            
             topbarView.view.setContentHuggingPriority(.defaultHigh, for: .vertical)
             topbarView.view.layer.zPosition = 3.0
         }
@@ -203,7 +256,17 @@ import ZTronTheme
         
         
         if let cs = self.constraintsStrategy as? any CarouselWithTopbarConstraintsStrategy {
-            cs.makeTopbarConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
+            if let gallerySubtreeLength = self.gallerySubtreeLength {
+                for nestingLevel in 0..<gallerySubtreeLength {
+                    cs.makeTopbarConstraints(
+                        for: self.isPortrait ? .portrait : .landscapeLeft,
+                        nestingLevel: nestingLevel,
+                        maxDepth: gallerySubtreeLength
+                    )
+                }
+            } else {
+                fatalError("Unable to acquire subtree length rooted in \(String(describing: self.requestedGalleryID))/\(self.dbLoader.fk.getTool())")
+            }
         }
         
         self.constraintsStrategy.makePageWrapperConstraints(for: self.isPortrait ? .portrait : .landscapeLeft)
@@ -272,7 +335,9 @@ import ZTronTheme
         )
         
         thePageVC.didMove(toParent: self)
-        self.topbarView?.didMove(toParent: self)
+        for topbar in self.topbarViews {
+            topbar.didMove(toParent: self)
+        }
         
         self.thePageVC.setDelegate(
             self.interactionsManagersFactory
@@ -311,7 +376,7 @@ import ZTronTheme
             
             curWidth = myContainerView.frame.width
             self.constraintsStrategy.updatePageWrapperConstraintsForTransition(
-                to: myContainerView.frame.width > myContainerView.frame.height ? .landscapeLeft : .portrait,
+                to: self.view.frame.size.width > self.view.frame.size.height ? .landscapeLeft : .portrait,
                 sizeAfterTransition: myContainerView.superview!.frame.size
             )
         }
@@ -337,7 +402,10 @@ import ZTronTheme
                 )
                 
                 if size.width < size.height {
-                    self.topbarView?.view.isHidden = false
+                    for topbarview in self.topbarViews {
+                        topbarview.view.isHidden = false
+                    }
+                    
                     self.bottomBarView.isHidden = false
                     self.captionView.isHidden = false
                     
@@ -347,7 +415,10 @@ import ZTronTheme
                     
                     self.updateScrollViewContentBottom(constraint: &self.scrollViewBottomContentGuide)
                 } else {
-                    self.topbarView?.view.isHidden = true
+                    for topbar in self.topbarViews {
+                        topbar.view.isHidden = true
+                    }
+                    
                     self.bottomBarView.isHidden = true
                     self.captionView.isHidden = true
                     
@@ -371,7 +442,10 @@ import ZTronTheme
                         self.limitViewDidLayoutCalls = Int.max
                     }
                     
-                    self.topbarView?.view.invalidateIntrinsicContentSize()
+                    for topbarView in self.topbarViews {
+                        topbarView.view.invalidateIntrinsicContentSize()
+                    }
+                    
                     super.onRotationCompletion()
                 }
             }
@@ -411,7 +485,7 @@ import ZTronTheme
     }
 
     open func makeConstraintsStrategy() {
-        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarView != nil)
+        self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarViews.count > 0)
     }
     
     public final func toggleCaptionOverlay() {

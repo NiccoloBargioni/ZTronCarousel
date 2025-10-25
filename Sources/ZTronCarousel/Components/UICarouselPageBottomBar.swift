@@ -211,7 +211,7 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             
             to.forEach { variantDescriptor in
                 let variantButton = UIButton(type: .system, primaryAction: .init(handler: { _ in
-                    self.lastAction = .tappedVariantChange
+                    self.lastAction = .tappedVariantChange(variantDescriptor)
                     self.lastTappedVariantDescriptor = variantDescriptor
                     self.pushNotification()
                 }))

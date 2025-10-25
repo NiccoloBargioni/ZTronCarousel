@@ -2,7 +2,7 @@ import Foundation
 import ZTronObservation
 
 
-public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
+public final class TopbarModel : ObservableObject, Component, AnyTopbarModel, AnyTopbarViewModel {
     public let id: String
     private var delegate: (any MSAInteractionsManager)? = nil {
         willSet {
@@ -20,7 +20,11 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     private let depth: Int
     
     public var selectedItemStrategy: TopbarItemStrategy {
-        return self.items[self.selectedItem].strategy
+        if self.selectedItem < self.items.count {
+            return self.items[self.selectedItem].strategy
+        } else {
+            return .passthrough(depth: depth)
+        }
     }
 
     @Published private var selectedItem: Int {
@@ -51,6 +55,9 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
     private var itemsChangedAction: (([any TopbarComponent]) -> Void)? = nil
     private var redactedChangedAction: ((Bool) -> Void)? = nil
     
+    private var onHideAction: (() -> Void)? = nil
+    private var onShowAction: (() -> Void)? = nil
+    
     public init(
         items: [TopbarItem],
         title: String,
@@ -60,7 +67,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.items = items
         self.title = title
         self.selectedItem = selectedItem
-        self.id = "\(title) topbar"
+        self.id = "\(title) topbar \(depth)"
         self.depth = depth
     }
     
@@ -194,6 +201,21 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel {
         self.itemsChangedAction = action
     }
     
+    public final func onHideRequest(_ action: @escaping () -> Void) {
+        self.onHideAction = action
+    }
+    
+    public final func onShowRequest(_ action: @escaping () -> Void) {
+        self.onShowAction = action
+    }
+    
+    public final func hide() {
+        self.onHideAction?()
+    }
+    
+    public final func show() {
+        self.onShowAction?()
+    }
 }
 
 public enum TopbarAction {
