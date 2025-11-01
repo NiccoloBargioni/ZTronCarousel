@@ -1,4 +1,5 @@
 import SwiftUI
+import ZTronCarouselCore
 
 public struct TopbarItemShopWindow: View {
     private let isActive: Bool
@@ -30,14 +31,21 @@ public struct TopbarItemShopWindow: View {
               radius: 1, x: 0, y: 0)
 
           Circle()
-            .fill(
-              .clear
-            )
+            .fill(.clear)
             .frame(width: Self.radius, height: Self.radius)
-            Image(self.icon)
-            .resizable()
-            .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
-            .clipShape(Circle())
+            
+            
+            if UIImage.exists(self.icon) {
+                Image(self.icon)
+                    .resizable()
+                    .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
+                    .clipShape(Circle())
+            } else {
+                Image(uiImage: UIImage(named: self.icon.appending(".png"))!)
+                    .resizable()
+                    .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
+                    .clipShape(Circle())
+            }
         }
     }
 }
