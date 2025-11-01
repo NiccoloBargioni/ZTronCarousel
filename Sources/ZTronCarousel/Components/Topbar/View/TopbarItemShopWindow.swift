@@ -35,17 +35,10 @@ public struct TopbarItemShopWindow: View {
             .frame(width: Self.radius, height: Self.radius)
             
             
-            if UIImage.exists(self.icon) {
-                Image(self.icon)
-                    .resizable()
-                    .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
-                    .clipShape(Circle())
-            } else {
-                Image(uiImage: UIImage(named: self.icon.appending(".png"))!)
-                    .resizable()
-                    .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
-                    .clipShape(Circle())
-            }
+            Image(uiImage: UIImage(named: self.icon.appending(".png"))!)
+                .resizable()
+                .frame(width: Self.radius * 0.65, height: Self.radius * 0.65)
+                .clipShape(Circle())
         }
     }
 }
