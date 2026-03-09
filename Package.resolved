@@ -1,5 +1,5 @@
 {
-  "originHash" : "6ad1217f12d0599c72c025c1fe001f6d694226c75c96d3a339de5b4ff7a5382d",
+  "originHash" : "4af2c19922caf266a2b9fc5df8bca84db9dbea4c809eddc61f451eaf4bea5ad5",
   "pins" : [
     {
       "identity" : "ifrit",
@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
-        "branch" : "main",
-        "revision" : "b4ecd9059f64c689eec3fb9fadfba0a9e7448fb3"
+        "branch" : "development/testing",
+        "revision" : "70992fbb254c306a1de7bf5dcb71b472d88af1b4"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronSerializable",
       "state" : {
-        "branch" : "main",
-        "revision" : "1916ef0f1bba48073e293c21b55fe9beb457638e"
+        "branch" : "development/updateToolsPositions",
+        "revision" : "467411efe7a9ef0c41844bdafce5368278795e72"
       }
     },
     {

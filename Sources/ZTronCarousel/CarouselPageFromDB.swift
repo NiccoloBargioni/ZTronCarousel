@@ -90,7 +90,7 @@ import ZTronDataModel
         do {
             try DBMS.transaction { dbConnection in
                 if let gallery = gallery {
-                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfSubgalleryRootedInGallery(
+                    if let maxDepth = try? CRUD.readMaxDepthOfSubgalleryRootedInGallery(
                         for: dbConnection,
                         master: gallery,
                         game: foreignKeys.getGame(),
@@ -103,7 +103,7 @@ import ZTronDataModel
                         fatalError("Unable to read maximum depth of \(gallery)")
                     }
                 } else {
-                    if let maxDepth = try? DBMS.CRUD.readMaxDepthOfGalleryForTool(
+                    if let maxDepth = try? CRUD.readMaxDepthOfGalleryForTool(
                         for: dbConnection,
                         game: foreignKeys.getGame(),
                         map: foreignKeys.getMap(),

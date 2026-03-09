@@ -140,7 +140,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         do {
                             try DBMS.transaction { dbConnection in
                                 do {
-                                    try DBMS.CRUD.updateOutlineColor(
+                                    try CRUD.updateOutlineColor(
                                         for: dbConnection,
                                         colorHex: colorHex,
                                         opacity: colorPicker.getSelectedColor().cgColor.alpha,
@@ -152,7 +152,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                         game: owner.fk.getGame()
                                     )
                                     
-                                    try DBMS.CRUD.updateBoundingCircleColor(
+                                    try CRUD.updateBoundingCircleColor(
                                         for: dbConnection,
                                         colorHex: colorHex,
                                         opacity: colorPicker.getSelectedColor().cgColor.alpha,
@@ -210,7 +210,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         try DBMS.transaction { dbConnection in
                             do {
                                 if pinnedBottomBar.lastAction == .toggleOutline {
-                                    try DBMS.CRUD.toggleOutlineActive(
+                                    try CRUD.toggleOutlineActive(
                                         for: dbConnection,
                                         image: currentImage,
                                         gallery: currentGallery,
@@ -221,7 +221,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                                     )
                                 } else {
                                     if pinnedBottomBar.lastAction == .toggleBoundingCircle {
-                                        try DBMS.CRUD.toggleBoundingCircleActive(
+                                        try CRUD.toggleBoundingCircleActive(
                                             for: dbConnection,
                                             image: currentImage,
                                             gallery: currentGallery,

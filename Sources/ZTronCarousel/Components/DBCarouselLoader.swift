@@ -21,7 +21,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         try DBMS.transaction { db in
             let firstLevel =
                 master != nil ?
-            try DBMS.CRUD.readFirstLevelOfSubgalleriesForGallery(
+            try CRUD.readFirstLevelOfSubgalleriesForGallery(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
@@ -30,7 +30,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 gallery: master!,
                 options: [.imagesCount, .subgalleriesCount, .nestingLevel]
             ) :
-            try DBMS.CRUD.readFirstLevelOfGalleriesForTool(
+            try CRUD.readFirstLevelOfGalleriesForTool(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
@@ -68,7 +68,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         
         try DBMS.transaction { db in
             let firstLevel = try
-                DBMS.CRUD.readFirstLevelMasterImagesForGallery(
+                CRUD.readFirstLevelMasterImagesForGallery(
                     for: db,
                     game: self.fk.getGame(),
                     map: self.fk.getMap(),
@@ -138,7 +138,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                 }
             }
             
-            let depth = theGallery != nil ? try DBMS.CRUD.readGalleryNestingDepth(
+            let depth = theGallery != nil ? try CRUD.readGalleryNestingDepth(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
@@ -176,7 +176,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         var outlineBoundingBox: CGRect? = nil
         
         try DBMS.transaction { dbConnection in
-            let read = try DBMS.CRUD.readImageByIDWithOptions(
+            let read = try CRUD.readImageByIDWithOptions(
                 for: dbConnection,
                 image: imageID,
                 gallery: gallery,
@@ -251,7 +251,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         var allGalleries: [ReadGalleryOption: [(any ReadGalleryOptional)?]] = [:]
         
         try DBMS.transaction { db in
-            allGalleries = try DBMS.CRUD.readAllGalleriesForTool(
+            allGalleries = try CRUD.readAllGalleriesForTool(
                 for: db,
                 tool: self.fk.getTool(),
                 tab: self.fk.getTab(),
@@ -333,7 +333,7 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
         
         try DBMS.transaction { db in
             
-            result = try DBMS.CRUD.readFirstLevelMasterImagesForGallery(
+            result = try CRUD.readFirstLevelMasterImagesForGallery(
                 for: db,
                 game: self.fk.getGame(),
                 map: self.fk.getMap(),
