@@ -32,6 +32,14 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         fatalError()
     }
     
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            self.updateLogoShadow()
+        }
+    }
+    
     
     public final func setup() {
         let topbarComponentContainer: UIButton = .init(type: .system)
@@ -102,6 +110,9 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
                 
         self.logoView = topbarComponentImage
         self.titleView = title
+        
+        // Initial shadow setup
+        updateLogoShadow()
     }
     
     public final func viewForLogo() -> UIView? {
@@ -157,11 +168,31 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
             logoView.image = UIImage(named: model.getIcon())
             logoView.contentMode = .scaleAspectFit
             self.component = model
+            self.updateLogoShadow()
         } else {
             fatalError()
         }
         
         self.superview?.layoutIfNeeded()
+    }
+    
+    
+    private func updateLogoShadow() {
+        guard let imageView = self.viewForLogo() as? UIImageView else { return }
+        
+        let isDarkMode = traitCollection.userInterfaceStyle == .dark
+        
+        if isDarkMode, let averageColor = imageView.image?.averageColor, averageColor.isLight() == true {
+            imageView.layer.shadowColor = UIColor.white.cgColor
+            imageView.layer.shadowRadius = 10
+            imageView.layer.shadowOpacity = 1.0
+            imageView.layer.shadowOffset = .zero
+            imageView.layer.masksToBounds = false
+        } else {
+            imageView.layer.shadowColor = UIColor.clear.cgColor
+            imageView.layer.shadowRadius = 0
+            imageView.layer.shadowOpacity = 0
+        }
     }
 }
 
