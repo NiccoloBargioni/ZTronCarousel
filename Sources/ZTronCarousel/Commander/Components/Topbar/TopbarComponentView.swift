@@ -182,12 +182,20 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         
         let isDarkMode = traitCollection.userInterfaceStyle == .dark
         
-        if isDarkMode, let averageColor = imageView.image?.averageColor, averageColor.isLight() == true {
-            imageView.layer.shadowColor = UIColor.white.cgColor
-            imageView.layer.shadowRadius = 10
-            imageView.layer.shadowOpacity = 1.0
-            imageView.layer.shadowOffset = .zero
-            imageView.layer.masksToBounds = false
+        if isDarkMode, let averageColor = imageView.image?.averageColor {
+            let shouldApplyShadow = averageColor.isLight() == false || averageColor.isLight() == nil
+            
+            if shouldApplyShadow {
+                imageView.layer.shadowColor = UIColor.white.cgColor
+                imageView.layer.shadowRadius = 10
+                imageView.layer.shadowOpacity = 0.8
+                imageView.layer.shadowOffset = .zero
+                imageView.layer.masksToBounds = false
+            } else {
+                imageView.layer.shadowColor = UIColor.clear.cgColor
+                imageView.layer.shadowRadius = 0
+                imageView.layer.shadowOpacity = 0
+            }
         } else {
             imageView.layer.shadowColor = UIColor.clear.cgColor
             imageView.layer.shadowRadius = 0
