@@ -7,8 +7,8 @@ public final class TopbarViewController: UIViewController {
     private var topbarView: TopbarRouterView!
     private var theme: any ZTronTheme
     private let diameter: CGFloat
-    
-    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+    private let shadowRadius: CGFloat
+    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView
     private var makeViewForLogo: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
 
     
@@ -16,13 +16,15 @@ public final class TopbarViewController: UIViewController {
         model: AnyTopbarViewModel,
         theme: any ZTronTheme = ZTronThemeProvider.default(),
         diameter: CGFloat = 40.0,
+        shadowRadius: CGFloat = 10.0,
         cornerRadius: CGFloat? = nil,
-        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter, shadow in
             
             return TopbarComponentView(
                 component: component,
                 action: action,
                 diameter: diameter,
+                shadowRadius: shadow
             )
         },
         makeViewForLogo: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
@@ -38,7 +40,7 @@ public final class TopbarViewController: UIViewController {
         self.topbarModel = model
         self.theme = theme
         self.diameter = diameter
-        
+        self.shadowRadius = shadowRadius
         self.makeViewForImage = makeViewForImage
         self.makeViewForLogo = makeViewForLogo
         
@@ -56,6 +58,7 @@ public final class TopbarViewController: UIViewController {
         self.topbarView = .init(
             model: self.topbarModel,
             diameter: self.diameter,
+            shadowRadius: self.shadowRadius,
             theme: self.theme,
             makeViewForImage: self.makeViewForImage,
             makeViewForLogo: self.makeViewForLogo

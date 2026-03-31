@@ -20,20 +20,23 @@ public final class TopbarRouterView: UIView {
 
     private var progressIndicatorRight: NSLayoutConstraint!
     private let diameter: CGFloat
+    private let shadowRadius: CGFloat
     
-    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+    private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView
     private var makeViewForLogo: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
     
     public init(
         model: AnyTopbarViewModel,
         diameter: CGFloat = 30.0,
+        shadowRadius: CGFloat = 10.0,
         theme: any ZTronTheme = ZTronThemeProvider.default(),
-        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
+        makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter, shadow in
             
             return TopbarComponentView(
                 component: component,
                 action: action,
                 diameter: diameter,
+                shadowRadius: shadow
             )
         },
         makeViewForLogo: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
@@ -47,6 +50,7 @@ public final class TopbarRouterView: UIView {
     ) {
         self.topbarModel = model
         self.diameter = diameter
+        self.shadowRadius = shadowRadius
         self.theme = theme
         self.makeViewForImage = makeViewForImage
         self.makeViewForLogo = makeViewForLogo
@@ -353,7 +357,7 @@ public final class TopbarRouterView: UIView {
         }
         
         let topbarComponentContainer: any AnyTopbarComponentView = UIImage.exists(topbarComponent.getIcon()) ?
-            self.makeViewForImage(topbarComponent, action, self.diameter):
+        self.makeViewForImage(topbarComponent, action, self.diameter, self.shadowRadius):
         self.makeViewForLogo(topbarComponent, action, self.diameter)
         
         

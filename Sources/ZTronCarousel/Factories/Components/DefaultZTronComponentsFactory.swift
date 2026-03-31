@@ -6,14 +6,18 @@ import ZTronTheme
 
 public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendable {
     private let topbarTitle: String?
+    private let topbarShadowRadius: CGFloat?
     private let theme: any ZTronTheme
+    
     
     public init(
         topbarTitle: String? = nil,
+        topbarShadowRadius: CGFloat? = nil,
         theme: (any ZTronTheme) = ZTronThemeProvider.default()
     ) {
         self.theme = theme
         self.topbarTitle = topbarTitle
+        self.topbarShadowRadius = topbarShadowRadius
     }
     
     public func makeViewModel() -> any AnyViewModel {
@@ -103,7 +107,7 @@ public final class DefaultZtronComponentsFactory: ZTronComponentsFactory, Sendab
     }
     
     private final func makeSubgalleriesRouter(mediator: MSAMediator, model: TopbarModel) -> UIViewController {
-        let topbar = TopbarViewController(model: model, theme: self.theme)
+        let topbar = TopbarViewController(model: model, theme: self.theme, shadowRadius: self.topbarShadowRadius ?? 10.0)
         
         model.setDelegate(TopbarInteractionsManager(owner: model, mediator: mediator))
         

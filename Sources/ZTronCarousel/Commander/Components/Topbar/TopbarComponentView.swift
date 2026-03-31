@@ -12,17 +12,21 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
     weak private var itemContainer: UIView? = nil
     
     private var isActive: Bool = false
+    private let shadowRadius: CGFloat
     
     public init(
         component: any TopbarComponent,
         action: UIAction,
         diameter: CGFloat = 40.0,
+        shadowRadius: CGFloat = 10.0,
         theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
         self.component = component
         self.action = action
         self.diameter = diameter
         self.theme = theme
+        self.shadowRadius = shadowRadius
+        
         super.init(frame: .zero)
 
         setup()
@@ -111,8 +115,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
         self.logoView = topbarComponentImage
         self.titleView = title
         
-        // Initial shadow setup
-        updateLogoShadow()
+        self.updateLogoShadow()
     }
     
     public final func viewForLogo() -> UIView? {
@@ -187,7 +190,7 @@ public final class TopbarComponentView: UIView, AnyTopbarComponentView {
             
             if shouldApplyShadow {
                 imageView.layer.shadowColor = UIColor.white.cgColor
-                imageView.layer.shadowRadius = 10
+                imageView.layer.shadowRadius = self.shadowRadius
                 imageView.layer.shadowOpacity = 0.8
                 imageView.layer.shadowOffset = .zero
                 imageView.layer.masksToBounds = false
