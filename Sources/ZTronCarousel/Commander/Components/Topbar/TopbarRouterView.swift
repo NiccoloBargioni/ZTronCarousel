@@ -10,6 +10,8 @@ public final class TopbarRouterView: UIView {
         sv.translatesAutoresizingMaskIntoConstraints = false
         sv.showsHorizontalScrollIndicator = false
         sv.showsVerticalScrollIndicator = false
+        sv.clipsToBounds = false // Allow shadows to overflow
+        sv.contentInset = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 5.0)
         
         return sv
     }()
