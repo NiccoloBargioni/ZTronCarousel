@@ -62,9 +62,7 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                         self.handlePageNotification(page)
                     } else {
                         if let router = args.getSource() as? (any AnyGalleryRouter) {
-                            Task(priority: .userInitiated) { @MainActor in
-                                self.handleGalleryRouterNotification(router)
-                            }
+                            self.handleGalleryRouterNotification(router)
                         }
                     }
                 }
@@ -88,9 +86,13 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
     
     private func handleColorPickerNotification(_ colorPicker: PlaceableColorPicker) {
         guard let owner = owner else { return }
+        
         Task(priority: .userInitiated) { @MainActor in
+            // Access the MainActor-isolated method inside the MainActor context
+            let hexString = colorPicker.getSelectedColor().hexString
+            
             if let currentMediaDescriptor = owner.currentMediaDescriptor as? ZTronCarouselImageDescriptor {
-                if let hexString = colorPicker.getSelectedColor().hexString {
+                if let hexString = hexString {
                     owner.replaceMedia(
                         with:
                             currentMediaDescriptor
@@ -101,8 +103,7 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                                 .replacingBoundingCircle{ boundingCircleDescriptor in
                                     boundingCircleDescriptor.withColorHex(hexString)
                                 }
-                                .getImmutableCopy()
-                        ,
+                                .getImmutableCopy(),
                         at: owner.currentPage,
                         shouldReplaceViewController: false
                     )
@@ -115,7 +116,10 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
         guard let owner = self.owner else { return }
         
         Task(priority: .userInitiated) { @MainActor in
-            switch bottomBar.lastAction {
+            // Access the MainActor-isolated property inside the MainActor context
+            let action = bottomBar.lastAction
+            
+            switch action {
                 case .toggleOutline:
                     if let currentMediaDescriptor = owner.currentMediaDescriptor as? ZTronCarouselImageDescriptor {
                         owner.replaceMedia(
@@ -147,7 +151,10 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
     private func handleDBLoaderNotification(_ dbLoader: any AnyDBLoader, args: BroadcastArgs) {
         guard let owner = owner else { return }
         
-        if dbLoader.lastAction == .variantLoadedForward || dbLoader.lastAction == .variantLoadedBackward {
+        // Extract the action before crossing concurrency boundary
+        let action = dbLoader.lastAction
+        
+        if action == .variantLoadedForward || action == .variantLoadedBackward {
             if let variantChangedEvent = ((args as? MSAArgs)?.getPayload() as? VariantLoadedEventMessage) {
                 Task { @MainActor in
                     owner.replaceMedia(
@@ -158,7 +165,7 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                 }
             }
         } else {
-            if dbLoader.lastAction == .galleriesLoaded && !self.acknowledgedTopbar {
+            if action == .galleriesLoaded && !self.acknowledgedTopbar {
                 Task(priority: .userInitiated) { @MainActor in
                     if owner.lastAction == .ready {
                         self.pushNotification(eventArgs: .init(source: owner), limitToNeighbours: true)
@@ -172,10 +179,13 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
         guard let owner = self.owner else { return }
         
         Task(priority: .userInitiated) { @MainActor in
-            if page.lastAction == .animationStarted {
+            // Access the MainActor-isolated property inside the MainActor context
+            let action = page.lastAction
+            
+            if action == .animationStarted {
                 owner.view.isUserInteractionEnabled = false
             } else {
-                if page.lastAction == .animationEnded {
+                if action == .animationEnded {
                     if let currentMediaDescriptor = owner.currentMediaDescriptor {
                         owner.replaceMedia(with: currentMediaDescriptor, at: owner.currentPage)
                         owner.view.isUserInteractionEnabled = true
@@ -185,25 +195,30 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
         }
     }
     
-    @MainActor private final func handleGalleryRouterNotification(_ router: any AnyGalleryRouter) {
+    private func handleGalleryRouterNotification(_ router: any AnyGalleryRouter) {
         guard let owner = self.owner else { return }
-        guard owner.numberOfPages > 0 else { return }
         
-        switch router.lastAction {
-            case .next:
-                owner.turnPage(to: (owner.currentPage + 1) % owner.numberOfPages)
-                
-            case .previous:
-                owner.turnPage(to: (owner.currentPage - 1 + owner.numberOfPages) % owner.numberOfPages)
-                
-            case .skip(let requestedPage):
-                if requestedPage >= 0 && requestedPage < owner.numberOfPages {
-                    owner.turnPage(to: requestedPage)
-                }
-                
-            default:
-                break
+        // Extract the action before crossing concurrency boundary
+        let action = router.lastAction
+        
+        Task(priority: .userInitiated) { @MainActor in
+            guard owner.numberOfPages > 0 else { return }
+            
+            switch action {
+                case .next:
+                    owner.turnPage(to: (owner.currentPage + 1) % owner.numberOfPages)
+                    
+                case .previous:
+                    owner.turnPage(to: (owner.currentPage - 1 + owner.numberOfPages) % owner.numberOfPages)
+                    
+                case .skip(let requestedPage):
+                    if requestedPage >= 0 && requestedPage < owner.numberOfPages {
+                        owner.turnPage(to: requestedPage)
+                    }
+                    
+                default:
+                    break
+            }
         }
-        
     }
 }

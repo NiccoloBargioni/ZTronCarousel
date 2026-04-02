@@ -27,12 +27,10 @@ public final class SearchControllerInteractionsManager: MSAInteractionsManager, 
         if let dbLoader = args.getSource() as? any AnyDBLoader {
             if let galleriesLoadedMessage = ((args as? MSAArgs)?.getPayload() as? GalleriesGraphLoadedEventMessage) {
                 if dbLoader.lastAction == .loadedGalleriesGraph {
-                    print("SEARCH CONTROLLER: GALLERIES LOADED")
                     owner.galleriesLoaded(galleriesLoadedMessage.galleries)
                 }
             } else {
                 if dbLoader.lastAction == .imagesLoadedForSearch {
-                    print("SEARCH CONTROLLER: IMAGES LOADED")
                     if let imagesLoadedMessage = ((args as? MSAArgs)?.getPayload() as? ImagesLoadedForSearchEventMessage) {
                         owner.imagesLoaded(imagesLoadedMessage.images.map {SearchableImage(from: $0) } )
                     }

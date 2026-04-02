@@ -90,7 +90,6 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
                 if let currentImageDescriptor = carousel.currentMediaDescriptor {
                     self.currentImage = currentImageDescriptor.getAssetName()
                     if let currentImageDescriptor = currentImageDescriptor as? ZTronCarouselImageDescriptor {
-                        
                         if let variantsMetadata = currentImageDescriptor.getVariantsDescriptor() {
                             owner.switchVariants(variantsMetadata) { _ in
                                 self.appendGoBack(currentImageDescriptor: currentImageDescriptor)
@@ -104,24 +103,24 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
                         }
                     }
                 }
-            } else {
-                guard let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor else { return }
-                guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias else { return }
-                
-                if let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline) {
-                    if let theOutline = outlineDescriptors.first {
-                        owner.setActive(theOutline.getIsActive(), for: .outline)
-                    }
+            }
+            
+            guard let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor else { return }
+            guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias else { return }
+            
+            if let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline) {
+                if let theOutline = outlineDescriptors.first {
+                    owner.setActive(theOutline.getIsActive(), for: .outline)
                 }
-                
-                if let boundingCircleDescriptors =
-                        currentMediaDescriptor.getPlaceableDescriptors(
-                            for: PlaceableDescriptorType.boundingCircle
-                        )
-                {
-                    if let theBoundingCircle = boundingCircleDescriptors.first {
-                        owner.setActive(theBoundingCircle.getIsActive(), for: .boundingCircle)
-                    }
+            }
+            
+            if let boundingCircleDescriptors =
+                    currentMediaDescriptor.getPlaceableDescriptors(
+                        for: PlaceableDescriptorType.boundingCircle
+                    )
+            {
+                if let theBoundingCircle = boundingCircleDescriptors.first {
+                    owner.setActive(theBoundingCircle.getIsActive(), for: .boundingCircle)
                 }
             }
         }

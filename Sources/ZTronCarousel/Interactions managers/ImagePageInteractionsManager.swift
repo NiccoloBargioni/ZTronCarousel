@@ -26,19 +26,21 @@ public final class ImagePageInteractionsManager: MSAInteractionsManager, @unchec
         guard let owner = self.owner else { return }
         
         if let loader = args.getSource() as? (any AnyDBLoader) {
-            if loader.lastAction == .variantLoadedForward || loader.lastAction == .variantLoadedBackward {
+            let action = loader.lastAction
+            
+            if action == .variantLoadedForward || action == .variantLoadedBackward {
                 if let variantLoadedMessage = ((args as? MSAArgs)?.getPayload() as? VariantLoadedEventMessage) {
                     Task(priority: .userInitiated) { @MainActor in
                         
                         if (
-                            loader.lastAction == .variantLoadedForward &&
+                            action == .variantLoadedForward &&
                             owner.imageName == variantLoadedMessage.getParentVariantDescriptor().getMaster()
                         ) || (
-                            loader.lastAction == .variantLoadedBackward && owner.imageName == variantLoadedMessage.getParentVariantDescriptor().getSlave()
+                            action == .variantLoadedBackward && owner.imageName == variantLoadedMessage.getParentVariantDescriptor().getSlave()
                         ) {
                             owner.attachAnimation(
                                 variantLoadedMessage.getParentVariantDescriptor(),
-                                forward: loader.lastAction == .variantLoadedForward
+                                forward: action == .variantLoadedForward
                             )
                         }
                     }
