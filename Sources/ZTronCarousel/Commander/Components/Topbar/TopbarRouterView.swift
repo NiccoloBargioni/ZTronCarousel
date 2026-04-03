@@ -11,6 +11,8 @@ public final class TopbarRouterView: UIView {
         sv.showsHorizontalScrollIndicator = false
         sv.showsVerticalScrollIndicator = false
         sv.clipsToBounds = false
+        sv.alwaysBounceVertical = false
+        sv.alwaysBounceHorizontal = false
         sv.contentInset = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 5.0)
         return sv
     }()
@@ -71,28 +73,26 @@ public final class TopbarRouterView: UIView {
         self.makeViewForImage = makeViewForImage
         self.makeViewForLogo = makeViewForLogo
         super.init(frame: .zero)
-        
+
         self.setContentHuggingPriority(.required, for: .vertical)
         self.setContentCompressionResistancePriority(.required, for: .vertical)
 
         self.backgroundColor = UIColor.clear
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
+        self.scrollView.delegate = self
         self.addSubview(self.scrollView)
 
-        let scrollBottom = scrollView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-        scrollBottom.priority = .defaultHigh
-
-        let noVerticalScroll = scrollView.frameLayoutGuide.heightAnchor.constraint(
-            equalTo: scrollView.contentLayoutGuide.heightAnchor
+        let scrollViewFixedHeight = scrollView.heightAnchor.constraint(
+            equalToConstant: diameter + scrollView.contentInset.top + scrollView.contentInset.bottom
         )
-        noVerticalScroll.priority = .defaultHigh
+        scrollViewFixedHeight.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             self.scrollView.widthAnchor.constraint(greaterThanOrEqualTo: self.widthAnchor, constant: -10),
             self.scrollView.leftAnchor.constraint(equalTo: self.leftAnchor),
             self.scrollView.topAnchor.constraint(equalTo: self.topAnchor),
-            scrollBottom,
-            noVerticalScroll,
+            scrollViewFixedHeight,
+            self.scrollView.frameLayoutGuide.heightAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.heightAnchor),
             self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: self.rightAnchor),
         ])
 
@@ -557,5 +557,12 @@ public final class TopbarRouterView: UIView {
                 subview.layer.opacity = 1
             }
         }
+    }
+}
+
+extension TopbarRouterView: UIScrollViewDelegate {
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView.contentOffset.y != 0 else { return }
+        scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x, y: 0)
     }
 }
