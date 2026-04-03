@@ -35,6 +35,13 @@ public final class TopbarRouterView: UIView {
     
     private var makeViewForImage: (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView
     private var makeViewForLogo: (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView
+
+    override public var intrinsicContentSize: CGSize {
+        CGSize(
+            width: UIView.noIntrinsicMetric,
+            height: diameter + scrollView.contentInset.top + scrollView.contentInset.bottom
+        )
+    }
     
     public init(
         model: AnyTopbarViewModel,
@@ -65,16 +72,27 @@ public final class TopbarRouterView: UIView {
         self.makeViewForLogo = makeViewForLogo
         super.init(frame: .zero)
         
+        self.setContentHuggingPriority(.required, for: .vertical)
+        self.setContentCompressionResistancePriority(.required, for: .vertical)
+
         self.backgroundColor = UIColor.clear
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(self.scrollView)
+
+        let scrollBottom = scrollView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        scrollBottom.priority = .defaultHigh
+
+        let noVerticalScroll = scrollView.frameLayoutGuide.heightAnchor.constraint(
+            equalTo: scrollView.contentLayoutGuide.heightAnchor
+        )
+        noVerticalScroll.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             self.scrollView.widthAnchor.constraint(greaterThanOrEqualTo: self.widthAnchor, constant: -10),
             self.scrollView.leftAnchor.constraint(equalTo: self.leftAnchor),
             self.scrollView.topAnchor.constraint(equalTo: self.topAnchor),
-            self.scrollView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            self.scrollView.frameLayoutGuide.heightAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.heightAnchor),
+            scrollBottom,
+            noVerticalScroll,
             self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: self.rightAnchor),
         ])
 
