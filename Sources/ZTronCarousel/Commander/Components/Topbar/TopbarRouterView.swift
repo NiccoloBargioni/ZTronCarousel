@@ -28,6 +28,7 @@ public final class TopbarRouterView: UIView {
     private var itemPositioningConstraints: [NSLayoutConstraint] = []
     private var contentEqualWidthConstraint: NSLayoutConstraint?
     private var contentLeftConstraint: NSLayoutConstraint?
+    private var evenDistributionSpacers: [UIView] = []
 
     private let diameter: CGFloat
     private let shadowRadius: CGFloat
@@ -159,6 +160,8 @@ public final class TopbarRouterView: UIView {
     private func updateItemPositioning() {
         NSLayoutConstraint.deactivate(itemPositioningConstraints)
         itemPositioningConstraints.removeAll()
+        evenDistributionSpacers.forEach { $0.removeFromSuperview() }
+        evenDistributionSpacers.removeAll()
         contentEqualWidthConstraint?.isActive = false
         contentEqualWidthConstraint = nil
         contentLeftConstraint?.isActive = false
@@ -179,19 +182,31 @@ public final class TopbarRouterView: UIView {
             lc.isActive = true
             contentLeftConstraint = lc
 
+            let spacers: [UIView] = (0..<count).map { _ in
+                let v = UIView()
+                v.translatesAutoresizingMaskIntoConstraints = false
+                v.isUserInteractionEnabled = false
+                scrollView.insertSubview(v, at: 0)
+                return v
+            }
+            evenDistributionSpacers = spacers
+
+            newConstraints.append(spacers[0].leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor))
+            newConstraints.append(spacers[count - 1].trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor))
+
+            for spacer in spacers {
+                newConstraints.append(spacer.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor))
+                newConstraints.append(spacer.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor))
+            }
+
+            for i in 1..<count {
+                newConstraints.append(spacers[i].leadingAnchor.constraint(equalTo: spacers[i - 1].trailingAnchor))
+                newConstraints.append(spacers[i].widthAnchor.constraint(equalTo: spacers[0].widthAnchor))
+            }
+
             for i in 0..<count {
                 guard let logoView = components[i].viewForLogo() else { continue }
-                let fraction = CGFloat(2 * i + 1) / CGFloat(2 * count)
-                let c = NSLayoutConstraint(
-                    item: logoView,
-                    attribute: .centerX,
-                    relatedBy: .equal,
-                    toItem: scrollView,
-                    attribute: .width,
-                    multiplier: fraction,
-                    constant: 0
-                )
-                newConstraints.append(c)
+                newConstraints.append(logoView.centerXAnchor.constraint(equalTo: spacers[i].centerXAnchor))
             }
         } else {
             if let firstComponent = components.first {
