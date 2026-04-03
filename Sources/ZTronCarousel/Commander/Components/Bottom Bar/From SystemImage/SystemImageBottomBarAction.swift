@@ -65,10 +65,10 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
         buttonIcon.isUserInteractionEnabled = false
         
         NSLayoutConstraint.activate([
-            buttonIcon.topAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.topAnchor),
-            buttonIcon.rightAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.rightAnchor),
-            buttonIcon.bottomAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.bottomAnchor),
-            buttonIcon.leftAnchor.constraint(equalTo: theButton.safeAreaLayoutGuide.leftAnchor),
+            buttonIcon.widthAnchor.constraint(equalToConstant: 18.0),
+            buttonIcon.heightAnchor.constraint(equalToConstant: 18.0),
+            buttonIcon.centerXAnchor.constraint(equalTo: theButton.centerXAnchor),
+            buttonIcon.centerYAnchor.constraint(equalTo: theButton.centerYAnchor),
         ])
         
         theButton.setContentHuggingPriority(.required, for: .horizontal)
@@ -85,9 +85,6 @@ public final class SystemImageBottomBarAction: UIView, ActiveTogglableView {
             theButton.rightAnchor.constraint(equalTo: self.safeAreaLayoutGuide.rightAnchor),
             theButton.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor),
             theButton.leftAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leftAnchor),
-            
-            self.widthAnchor.constraint(equalToConstant: 18.0),
-            self.heightAnchor.constraint(equalToConstant: 18.0)
         ])
         
         self.buttonView = theButton

@@ -254,68 +254,96 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         NSLayoutConstraint.activate([
             action.centerYAnchor.constraint(equalTo: self.variantsStack.safeAreaLayoutGuide.centerYAnchor),
             action.leftAnchor.constraint(equalTo: leftAnchor, constant: constant),
+            action.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            action.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
         ])
         
+        action.alpha = 0
+        action.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
 
         return action
     }
     
     public func switchVariants(_ to: [ImageVariantDescriptor], completion: ((Bool) -> Void)?) {
-        self.clearVariantsStack()
-        
-        var variantButtons: [UIView] = .init()
-        
-        for (i, variantDescriptor) in to.enumerated() {
-            let variantButton = self.addAction(
-                role: .variant(variantDescriptor),
-                icon: variantDescriptor.getBottomBarIcon(),
-                leftAnchor: i > 0 ? variantButtons[i - 1].safeAreaLayoutGuide.rightAnchor : self.variantsStack.leftAnchor,
-                constant: i > 0 ? 20 : 0) {
-                    self.throttler.send(.tappedVariantChange(variantDescriptor))
-                    self.lastTappedVariantDescriptor = variantDescriptor
-                }
+        self.clearVariantsStack { _ in
+            var variantButtons: [UIView] = []
             
-            variantButtons.append(variantButton)
-        }
+            for (i, variantDescriptor) in to.enumerated() {
+                let variantButton = self.addAction(
+                    role: .variant(variantDescriptor),
+                    icon: variantDescriptor.getBottomBarIcon(),
+                    leftAnchor: i > 0 ? variantButtons[i - 1].safeAreaLayoutGuide.rightAnchor : self.variantsStack.leftAnchor,
+                    constant: i > 0 ? 20 : 0) {
+                        self.lastTappedVariantDescriptor = variantDescriptor
+                        self.throttler.send(.tappedVariantChange(variantDescriptor))
+                    }
+                
+                variantButtons.append(variantButton)
+            }
 
-        if let lastVariant = variantButtons.last {
-            self.variantsStack.layoutIfNeeded()
-            self.variantsStackRightAnchor?.isActive = false
+            if let lastVariant = variantButtons.last {
+                self.variantsStackRightAnchor?.isActive = false
+                self.variantsStackRightAnchor = self.variantsStack.rightAnchor.constraint(equalTo: lastVariant.safeAreaLayoutGuide.rightAnchor)
+                self.variantsStackRightAnchor?.isActive = true
+            }
             
-            self.variantsStackRightAnchor = self.variantsStack.rightAnchor.constraint(equalTo: lastVariant.safeAreaLayoutGuide.rightAnchor)
-            
-            self.variantsStackRightAnchor?.isActive = true
             self.variantsStack.layoutIfNeeded()
+            
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [.curveEaseOut]) {
+                variantButtons.forEach { button in
+                    button.alpha = 1.0
+                    button.transform = .identity
+                }
+                self.variantsStack.layoutIfNeeded()
+            } completion: { finished in
+                completion?(finished)
+            }
         }
     }
     
     public func appendGoBackVariant(icon: String?) {
-        self.variantsStack.layoutIfNeeded()
         self.variantsStackRightAnchor?.isActive = false
 
         let lastVariantAnchor = self.variantsStack.subviews.last?.safeAreaLayoutGuide.rightAnchor ?? self.variantsStack.safeAreaLayoutGuide.leftAnchor
         
-        self.addAction(
+        let goBackButton = self.addAction(
             role: .backToPreviousVariant,
             icon: icon ?? "arrow.uturn.left",
             leftAnchor: lastVariantAnchor,
             constant: self.variantsStack.subviews.count > 0 ? 20 : 0
         ) {
-                self.throttler.send(.tappedGoBack)
-            }
+            self.throttler.send(.tappedGoBack)
+        }
         
-        self.variantsStackRightAnchor?.isActive = false
+        self.variantsStackRightAnchor = self.variantsStack.rightAnchor.constraint(equalTo: goBackButton.safeAreaLayoutGuide.rightAnchor)
+        self.variantsStackRightAnchor?.isActive = true
         self.variantsStack.layoutIfNeeded()
+        
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [.curveEaseOut]) {
+            goBackButton.alpha = 1.0
+            goBackButton.transform = .identity
+            self.variantsStack.layoutIfNeeded()
+        }
     }
     
     public func clearVariantsStack(completion: ((Bool) -> Void)? = nil) {
-        self.variantsStack.subviews.forEach { subview in
-            subview.removeFromSuperview()
+        guard !self.variantsStack.subviews.isEmpty else {
+            completion?(true)
+            return
         }
         
         self.variantsStackRightAnchor?.isActive = false
+        let subviewsToRemove = self.variantsStack.subviews
         
-        completion?(true)
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseIn]) {
+            subviewsToRemove.forEach { subview in
+                subview.alpha = 0
+                subview.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            }
+        } completion: { finished in
+            subviewsToRemove.forEach { $0.removeFromSuperview() }
+            completion?(finished)
+        }
     }
     
     public func setCurrentImage(_ to: String) {
@@ -384,6 +412,5 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     public final func setTheme(_ theme: any ZTronTheme) {
         self.theme = theme
     }
-
 }
 
