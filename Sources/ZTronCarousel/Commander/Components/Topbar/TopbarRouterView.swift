@@ -10,9 +10,8 @@ public final class TopbarRouterView: UIView {
         sv.translatesAutoresizingMaskIntoConstraints = false
         sv.showsHorizontalScrollIndicator = false
         sv.showsVerticalScrollIndicator = false
-        sv.clipsToBounds = false // Allow shadows to overflow
+        sv.clipsToBounds = false
         sv.contentInset = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 5.0)
-        
         return sv
     }()
         
@@ -21,6 +20,15 @@ public final class TopbarRouterView: UIView {
     private let theme: (any ZTronTheme)
 
     private var progressIndicatorRight: NSLayoutConstraint!
+    private var progressIndicatorLeft: NSLayoutConstraint!
+    private var progressIndicatorTotalLeft: NSLayoutConstraint!
+    private var progressIndicatorTotalCenterY: NSLayoutConstraint!
+    private var progressIndicatorCenterY: NSLayoutConstraint!
+
+    private var itemPositioningConstraints: [NSLayoutConstraint] = []
+    private var contentEqualWidthConstraint: NSLayoutConstraint?
+    private var contentLeftConstraint: NSLayoutConstraint?
+
     private let diameter: CGFloat
     private let shadowRadius: CGFloat
     
@@ -33,7 +41,6 @@ public final class TopbarRouterView: UIView {
         shadowRadius: CGFloat = 10.0,
         theme: any ZTronTheme = ZTronThemeProvider.default(),
         makeViewForImage: @escaping (any TopbarComponent, UIAction, CGFloat, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter, shadow in
-            
             return TopbarComponentView(
                 component: component,
                 action: action,
@@ -42,7 +49,6 @@ public final class TopbarRouterView: UIView {
             )
         },
         makeViewForLogo: @escaping (any TopbarComponent, UIAction, CGFloat) -> any AnyTopbarComponentView = { component, action, diameter in
-            
             return AnonymousTopbarComponentView(
                 component: component,
                 action: action,
@@ -59,46 +65,34 @@ public final class TopbarRouterView: UIView {
         super.init(frame: .zero)
         
         self.backgroundColor = UIColor.clear
-        
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(self.scrollView)
         
-        // MARK: - ROUTER
+        let equalBottom = scrollView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor)
+        equalBottom.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             self.scrollView.widthAnchor.constraint(greaterThanOrEqualTo: self.safeAreaLayoutGuide.widthAnchor, constant: -10),
             self.scrollView.leftAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leftAnchor),
-            self.scrollView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor),
             self.scrollView.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor),
+            self.scrollView.bottomAnchor.constraint(lessThanOrEqualTo: self.safeAreaLayoutGuide.bottomAnchor),
+            equalBottom,
             self.scrollView.frameLayoutGuide.heightAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.heightAnchor),
-            
-            self.scrollView.contentLayoutGuide.leftAnchor.constraint(lessThanOrEqualTo: self.safeAreaLayoutGuide.leftAnchor),
             self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: self.safeAreaLayoutGuide.rightAnchor),
         ])
 
-        
         for i in 0..<self.topbarModel.count() {
             self.makeTopbarItemForModel(ofIndex: i)
         }
         
-        
         self.scrollView.backgroundColor = .clear
-        
-        for i in 1..<self.scrollView.subviews.count {
-            guard let viewForLogoPrev = (self.scrollView.subviews[i-1] as? any AnyTopbarComponentView)?.viewForLogo() else { continue }
-            guard let viewForLogoCurrent = (self.scrollView.subviews[i] as? any AnyTopbarComponentView)?.viewForLogo() else { continue }
- 
-            NSLayoutConstraint.activate([
-                viewForLogoCurrent.leftAnchor.constraint(equalTo: viewForLogoPrev.safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
-            ])
-        }
-        
+
         NSLayoutConstraint.activate([
-            self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: self.scrollView.subviews.first!.leftAnchor, constant: -5),
             self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: self.scrollView.subviews.last!.rightAnchor)
         ])
 
-        
-        // MARK: - PROGRESS MARKERS
+        self.updateItemPositioning()
+
         let progressIndicatorTotal: UIView = .init()
         progressIndicatorTotal.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.disabled).withAlphaComponent(0.2)
         
@@ -107,12 +101,18 @@ public final class TopbarRouterView: UIView {
         
         if let viewForLogoFirst = (self.scrollView.subviews.first as? any AnyTopbarComponentView)?.viewForLogo() {
             if let viewForLogosLast = (self.scrollView.subviews[self.scrollView.subviews.count - 2] as? any AnyTopbarComponentView)?.viewForLogo() {
+                let totalLeft = progressIndicatorTotal.leftAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerXAnchor)
+                let totalCenterY = progressIndicatorTotal.centerYAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerYAnchor)
+
                 NSLayoutConstraint.activate([
-                    progressIndicatorTotal.leftAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerXAnchor),
-                    progressIndicatorTotal.centerYAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerYAnchor),
+                    totalLeft,
+                    totalCenterY,
                     progressIndicatorTotal.rightAnchor.constraint(equalTo: viewForLogosLast.safeAreaLayoutGuide.centerXAnchor),
                     progressIndicatorTotal.heightAnchor.constraint(equalToConstant: 1)
                 ])
+
+                self.progressIndicatorTotalLeft = totalLeft
+                self.progressIndicatorTotalCenterY = totalCenterY
             }
         }
         
@@ -120,26 +120,29 @@ public final class TopbarRouterView: UIView {
         
         let progressIndicatorCurrent: UIView = .init()
         progressIndicatorCurrent.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.brand)
-
         
         self.scrollView.addSubview(progressIndicatorCurrent)
         progressIndicatorCurrent.translatesAutoresizingMaskIntoConstraints = false
         
         if let viewForLogoFirst = (self.scrollView.subviews.first as? any AnyTopbarComponentView)?.viewForLogo() {
+            let currentLeft = progressIndicatorCurrent.leftAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerXAnchor)
+            let currentCenterY = progressIndicatorCurrent.centerYAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerYAnchor)
+
             NSLayoutConstraint.activate([
-                progressIndicatorCurrent.leftAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerXAnchor),
-                progressIndicatorCurrent.centerYAnchor.constraint(equalTo: viewForLogoFirst.safeAreaLayoutGuide.centerYAnchor),
+                currentLeft,
+                currentCenterY,
                 progressIndicatorCurrent.heightAnchor.constraint(equalToConstant: 1)
             ])
+
+            self.progressIndicatorLeft = currentLeft
+            self.progressIndicatorCenterY = currentCenterY
         }
         
         progressIndicatorCurrent.layer.zPosition = 1.0
-        
         self.progressIndicator = progressIndicatorCurrent
         
-        if let viewForLogoCurrent = (self.scrollView.subviews[self.topbarModel.getSelectedItem()] as? any AnyTopbarComponentView)?.viewForLogo()  {
+        if let viewForLogoCurrent = (self.scrollView.subviews[self.topbarModel.getSelectedItem()] as? any AnyTopbarComponentView)?.viewForLogo() {
             self.progressIndicatorRight = progressIndicatorCurrent.rightAnchor.constraint(equalTo: viewForLogoCurrent.safeAreaLayoutGuide.centerXAnchor)
-            
             self.progressIndicatorRight.isActive = true
         }
         
@@ -152,8 +155,66 @@ public final class TopbarRouterView: UIView {
     required public init?(coder: NSCoder) {
         fatalError()
     }
-    
-    
+
+    private func updateItemPositioning() {
+        NSLayoutConstraint.deactivate(itemPositioningConstraints)
+        itemPositioningConstraints.removeAll()
+        contentEqualWidthConstraint?.isActive = false
+        contentEqualWidthConstraint = nil
+        contentLeftConstraint?.isActive = false
+        contentLeftConstraint = nil
+
+        let components = allComponentSubviews()
+        let count = components.count
+        guard count > 0 else { return }
+
+        var newConstraints: [NSLayoutConstraint] = []
+
+        if count <= 4 {
+            let ewc = scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
+            ewc.isActive = true
+            contentEqualWidthConstraint = ewc
+
+            let lc = scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leftAnchor)
+            lc.isActive = true
+            contentLeftConstraint = lc
+
+            for i in 0..<count {
+                guard let logoView = components[i].viewForLogo() else { continue }
+                let fraction = CGFloat(2 * i + 1) / CGFloat(2 * count)
+                let c = NSLayoutConstraint(
+                    item: logoView,
+                    attribute: .centerX,
+                    relatedBy: .equal,
+                    toItem: scrollView,
+                    attribute: .width,
+                    multiplier: fraction,
+                    constant: 0
+                )
+                newConstraints.append(c)
+            }
+        } else {
+            if let firstComponent = components.first {
+                let lc = scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: firstComponent.leftAnchor, constant: -5)
+                lc.isActive = true
+                contentLeftConstraint = lc
+            }
+
+            for i in 1..<count {
+                guard let logoPrev = components[i - 1].viewForLogo(),
+                      let logoCurrent = components[i].viewForLogo() else { continue }
+                let c = logoCurrent.leftAnchor.constraint(
+                    equalTo: logoPrev.safeAreaLayoutGuide.centerXAnchor,
+                    constant: 60 + diameter / 2.0
+                )
+                newConstraints.append(c)
+            }
+        }
+
+        itemPositioningConstraints = newConstraints
+        NSLayoutConstraint.activate(itemPositioningConstraints)
+    }
+
     public final func updateCurrentSelection(_ index: Int) {
         assert(index >= 0 && index < self.scrollView.subviews.count)
         
@@ -189,7 +250,6 @@ public final class TopbarRouterView: UIView {
         self.scrollView.centerScrollContent(self.nthComponentView(self.topbarModel.getSelectedItem())!)
     }
     
-    
     public final func viewDidTransition(to size: CGSize) {
         self.scrollView.centerScrollContent(self.scrollView.subviews[self.topbarModel.getSelectedItem()])
     }
@@ -197,7 +257,6 @@ public final class TopbarRouterView: UIView {
     override public func layoutSubviews() {
         super.layoutSubviews()
     }
-    
     
     /// ```
     /// ScrollView
@@ -214,6 +273,9 @@ public final class TopbarRouterView: UIView {
     ///
     /// - Note: At this point it is assumed that `topbarModel.items == items`
     @MainActor internal final func onItemsChanged(_ items: [any TopbarComponent]) {
+        NSLayoutConstraint.deactivate(itemPositioningConstraints)
+        itemPositioningConstraints.removeAll()
+
         var itemSubviews = self.scrollView.subviews.compactMap { subview in
             return subview as? any AnyTopbarComponentView
         }
@@ -226,7 +288,7 @@ public final class TopbarRouterView: UIView {
         #endif
         
         if itemSubviews.count != items.count {
-            self.scrollView.constraints.compactMap { constraint in
+            self.scrollView.constraints.compactMap { constraint -> NSLayoutConstraint? in
                 if (constraint.firstItem as? UILayoutGuide) == scrollView.contentLayoutGuide ||
                     (constraint.secondItem as? UILayoutGuide) == scrollView.contentLayoutGuide {
                     if constraint.firstAnchor == scrollView.contentLayoutGuide.rightAnchor ||
@@ -238,10 +300,8 @@ public final class TopbarRouterView: UIView {
                 } else {
                     return nil
                 }
-            }.forEach {
-                itemSubviews.last?.removeConstraint($0)
-            }
-            
+            }.forEach { self.scrollView.removeConstraint($0) }
+
             self.progressIndicatorTotal.removeAllRightAnchorConstraints()
         }
         
@@ -277,18 +337,6 @@ public final class TopbarRouterView: UIView {
             
             for i in itemSubviews.count..<items.count {
                 self.makeTopbarItemForModel(ofIndex: i)
-            }
-            
-            let updatedItemSubviews = self.scrollView.subviews.compactMap { subview in
-                return subview as? any AnyTopbarComponentView
-            }
-        
-            
-            for i in itemSubviews.count..<items.count {
-                NSLayoutConstraint.activate([
-                    updatedItemSubviews[i].leftAnchor.constraint(equalTo: updatedItemSubviews[i-1].safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
-                ])
-                
                 self.layoutIfNeeded()
             }
         }
@@ -307,6 +355,7 @@ public final class TopbarRouterView: UIView {
         assert(self.allComponentSubviews().count == items.count)
         assert(self.allComponentSubviews().count == self.topbarModel.count())
         
+        self.updateItemPositioning()
         self.updateCurrentSelection(self.topbarModel.getSelectedItem())
     }
     
@@ -362,7 +411,6 @@ public final class TopbarRouterView: UIView {
         self.makeViewForImage(topbarComponent, action, self.diameter, self.shadowRadius):
         self.makeViewForLogo(topbarComponent, action, self.diameter)
         
-        
         topbarComponentContainer.accessibilityIdentifier = "\(self.topbarModel.get(i).getName())"
         
         if let atIndex = insertAtIndex {
@@ -392,7 +440,6 @@ public final class TopbarRouterView: UIView {
             self.scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: topbarComponentContainer.heightAnchor),
         ])
         
-        
         topbarComponentContainer.setContentHuggingPriority(.required, for: .vertical)
         topbarComponentContainer.setContentHuggingPriority(.required, for: .horizontal)
         
@@ -407,53 +454,36 @@ public final class TopbarRouterView: UIView {
             itemSubviews[n].removeFromSuperview()
             self.scrollView.layoutIfNeeded()
             
-            let previousSubview = n > 0 ? itemSubviews[n - 1] : nil
-            let nextSubview = n < itemSubviews.count - 1 ? itemSubviews[n + 1] : nil
-            
             let newViewForCurrent = self.makeTopbarItemForModel(ofIndex: n, insertAtIndex: indexOfItem)
             itemSubviews[n] = newViewForCurrent
             
-            
-            if let previousSubview = previousSubview {
-                self.scrollView.layoutIfNeeded()
-
-                NSLayoutConstraint.activate([
-                    newViewForCurrent.leftAnchor.constraint(equalTo: previousSubview.safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
-                ])
-                
-                self.scrollView.layoutIfNeeded()
-            }
-            
-            if let nextSubview = nextSubview {
-                self.scrollView.layoutIfNeeded()
-                
-                NSLayoutConstraint.activate([
-                    nextSubview.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor, constant: 60 + self.diameter / 2.0),
-                ])
-            }
-            
             if n == 0 {
-                NSLayoutConstraint.activate([
-                    self.scrollView.contentLayoutGuide.leftAnchor.constraint(equalTo: newViewForCurrent.leftAnchor, constant: -5),
-                    self.progressIndicatorTotal.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor),
-                ])
-                
+                NSLayoutConstraint.deactivate([
+                    self.progressIndicatorTotalLeft,
+                    self.progressIndicatorTotalCenterY,
+                    self.progressIndicatorLeft,
+                    self.progressIndicatorCenterY
+                ].compactMap { $0 })
+
                 if let logoView = newViewForCurrent.viewForLogo() {
-                    NSLayoutConstraint.activate([
-                        self.progressIndicatorTotal.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor),
-                        self.progressIndicator.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor),
-                        self.progressIndicator.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor),
-                    ])
+                    let newTotalCenterY = progressIndicatorTotal.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor)
+                    let newTotalLeft = progressIndicatorTotal.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor)
+                    let newCurrentLeft = progressIndicator.leftAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor)
+                    let newCurrentCenterY = progressIndicator.centerYAnchor.constraint(equalTo: logoView.safeAreaLayoutGuide.centerYAnchor)
+
+                    NSLayoutConstraint.activate([newTotalCenterY, newTotalLeft, newCurrentLeft, newCurrentCenterY])
+
+                    self.progressIndicatorTotalLeft = newTotalLeft
+                    self.progressIndicatorTotalCenterY = newTotalCenterY
+                    self.progressIndicatorLeft = newCurrentLeft
+                    self.progressIndicatorCenterY = newCurrentCenterY
                 }
-            } else {
-                if n == itemSubviews.count - 1 {
-                    NSLayoutConstraint.activate([
-                        self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: newViewForCurrent.rightAnchor),
-                        self.progressIndicatorTotal.rightAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor)
-                    ])
-                    
-                    self.scrollView.layoutIfNeeded()
-                }
+            } else if n == itemSubviews.count - 1 {
+                NSLayoutConstraint.activate([
+                    self.scrollView.contentLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: newViewForCurrent.rightAnchor),
+                    self.progressIndicatorTotal.rightAnchor.constraint(equalTo: newViewForCurrent.safeAreaLayoutGuide.centerXAnchor)
+                ])
+                self.scrollView.layoutIfNeeded()
             }
             
             return newViewForCurrent
