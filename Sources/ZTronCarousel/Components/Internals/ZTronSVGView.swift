@@ -14,67 +14,13 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     private var svgLayer: SVGLayer!
     private var colorPicker: UIColorPickerViewController!
     
-    private var overrideOffsetX: CGFloat? = nil {
-        didSet {
-            if let overrideOffsetX = self.overrideOffsetX {
-                if let lastContainerSize = self.lastContainerSize {
-                    self.svgView.frame = .init(
-                        origin: .init(
-                            x: overrideOffsetX * lastContainerSize.width,
-                            y: self.svgView.frame.origin.y
-                        ),
-                        size: .init(
-                            width: self.svgView.frame.size.width,
-                            height: self.svgView.frame.size.height
-                        )
-                    )
-                    
-                    self.svgLayer.resizeToFit(self.svgView.frame)
-                    self.superview?.setNeedsLayout()
-                    self.superview?.layoutIfNeeded()
-                }
-            }
-        }
-    }
-    private var overrideOffsetY: CGFloat? = nil {
-        didSet {
-            if let overrideOffsetY = self.overrideOffsetY {
-                if let lastContainerSize = self.lastContainerSize {
-                    self.svgView.frame = .init(
-                        origin: .init(
-                            x: self.svgView.frame.origin.x,
-                            y: overrideOffsetY * lastContainerSize.width
-                        ),
-                        size: .init(
-                            width: self.svgView.frame.size.width,
-                            height: self.svgView.frame.size.height
-                        )
-                    )
-                    
-                    self.svgLayer.resizeToFit(self.svgView.frame)
-                    self.superview?.setNeedsLayout()
-                    self.superview?.layoutIfNeeded()
-                }
-            }
-        }
-    }
-    
-    private var overrideWidth: CGFloat? = nil {
-        didSet {
-            if let lastContainerSize = self.lastContainerSize {
-                self.resize(for: lastContainerSize)
-            }
-        }
-    }
-    private var overrideHeight: CGFloat? = nil {
-        didSet {
-            if let lastContainerSize = self.lastContainerSize {
-                self.resize(for: lastContainerSize)
-            }
-        }
-    }
+    private var overrideOffsetX: CGFloat? = nil
+    private var overrideOffsetY: CGFloat? = nil
+    private var overrideWidth: CGFloat? = nil
+    private var overrideHeight: CGFloat? = nil
     
     private var lastContainerSize: CGSize? = nil
+    private var needsInitialLayout: Bool = true
     
     private static let MIN_LINE_WIDTH: CGFloat = 5
     private var maxLineWidth: CGFloat {
@@ -141,12 +87,11 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         }
         
         svgView.translatesAutoresizingMaskIntoConstraints = false
+        svgView.layer.anchorPoint = CGPoint(x: 0, y: 0)
         
         if let parentView = svgView.superview {
             NSLayoutConstraint.activate([
                 svgView.topAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.topAnchor),
-                svgView.rightAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.rightAnchor),
-                svgView.bottomAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.bottomAnchor),
                 svgView.leftAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.leftAnchor),
             ])
         }
@@ -160,15 +105,28 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         guard let svgView = self.svgView else { return }
         guard let svgLayer = self.svgLayer else { return }
         
-        let newRect = CGRect(
-            x: self.getOrigin(for: containerSize).x,
-            y: self.getOrigin(for: containerSize).y,
-            width: self.getSize(for: containerSize).width,
-            height: self.getSize(for: containerSize).height
-        )
+        let newSize = self.getSize(for: containerSize)
+        let newOrigin = self.getOrigin(for: containerSize)
         
-        svgLayer.resizeToFit(newRect)
-        svgView.bounds = CGRect(origin: .zero, size: newRect.size)
+        let newRect = CGRect(origin: newOrigin, size: newSize)
+        
+        if self.hasAnyOverride() {
+            let naturalSize = CGSize(
+                width: containerSize.width * self.normalizedAABB.width,
+                height: containerSize.height * self.normalizedAABB.height
+            )
+            
+            svgLayer.resizeToFit(CGRect(origin: newOrigin, size: naturalSize))
+            svgView.bounds = CGRect(origin: .zero, size: naturalSize)
+            
+            let scaleX = newSize.width / naturalSize.width
+            let scaleY = newSize.height / naturalSize.height
+            svgView.transform = CGAffineTransform(scaleX: scaleX, y: scaleY)
+        } else {
+            svgLayer.resizeToFit(newRect)
+            svgView.bounds = CGRect(origin: .zero, size: newSize)
+            svgView.transform = .identity
+        }
         
         self.lastContainerSize = containerSize
         self.layoutIfNeeded()
@@ -255,6 +213,13 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     public func viewDidAppear() {
         self.delegate?.setup(or: .replace)
+        if self.needsInitialLayout {
+            self.needsInitialLayout = false
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.notifyPageToUpdateLayout()
+            }
+        }
     }
     
     public func viewWillDisappear() {
@@ -268,32 +233,40 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     internal func overrideOffsetX(_ x: CGFloat) -> Void {
         assert(x >= 0 && x <= 1)
         self.overrideOffsetX = x
-        
-        if let lastContainerSize = self.lastContainerSize {
-            self.resize(for: lastContainerSize)
-        }
+        self.notifyPageToUpdateLayout()
     }
     
     internal func overrideOffsetY(_ y: CGFloat) -> Void {
         assert(y >= 0 && y <= 1)
         self.overrideOffsetY = y
-
-        if let lastContainerSize = self.lastContainerSize {
-            self.resize(for: lastContainerSize)
-        }
+        self.notifyPageToUpdateLayout()
     }
     
     internal func overrideSizeWidth(_ width: CGFloat) -> Void {
         assert(width >= 0 && width <= 1)
         self.overrideWidth = width
-
-        if let lastContainerSize = self.lastContainerSize {
-            self.resize(for: lastContainerSize)
-        }
+        self.notifyPageToUpdateLayout()
     }
     
     internal func overrideSizeHeight(_ height: CGFloat) -> Void {
         assert(height >= 0 && height <= 1)
         self.overrideHeight = height
+        self.notifyPageToUpdateLayout()
+    }
+    
+    private func notifyPageToUpdateLayout() {
+        var currentView: UIView? = self.superview
+        while let view = currentView {
+            if let viewController = view.next as? ZTronImagePage {
+                viewController.updatePlaceablesLayout()
+                return
+            }
+            currentView = view.superview
+        }
+    }
+    
+    private func hasAnyOverride() -> Bool {
+        return overrideOffsetX != nil || overrideOffsetY != nil ||
+               overrideWidth != nil || overrideHeight != nil
     }
 }

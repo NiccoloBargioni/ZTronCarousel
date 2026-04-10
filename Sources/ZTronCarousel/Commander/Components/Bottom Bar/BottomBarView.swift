@@ -317,12 +317,14 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         self.variantsStackRightAnchor = self.variantsStack.rightAnchor.constraint(equalTo: goBackButton.safeAreaLayoutGuide.rightAnchor)
         self.variantsStackRightAnchor?.isActive = true
-        self.variantsStack.layoutIfNeeded()
+        
+        UIView.performWithoutAnimation {
+            self.variantsStack.layoutIfNeeded()
+        }
         
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [.curveEaseOut]) {
             goBackButton.alpha = 1.0
             goBackButton.transform = .identity
-            self.variantsStack.layoutIfNeeded()
         }
     }
     

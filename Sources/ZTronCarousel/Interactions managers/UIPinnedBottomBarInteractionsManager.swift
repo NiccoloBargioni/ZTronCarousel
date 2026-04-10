@@ -106,7 +106,7 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
             }
             
             guard let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor else { return }
-            guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias else { return }
+            guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias || carousel.lastAction == .pageChanged else { return }
             
             if let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline) {
                 if let theOutline = outlineDescriptors.first {

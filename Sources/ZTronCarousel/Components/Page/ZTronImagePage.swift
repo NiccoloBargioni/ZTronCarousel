@@ -177,6 +177,10 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     }
         
     
+    public final func updatePlaceablesLayout() {
+        self.makePlaceablesConstraintsIfNeeded()
+    }
+    
     private final func makePlaceablesConstraintsIfNeeded() {
         let sizeThatFits = CGSize.sizeThatFits(containerSize: super.scrollView.bounds.size, containedAR: 16.0/9.0)
         
@@ -214,7 +218,10 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         self.view.layoutIfNeeded()
     }
     
-    public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+    
+    override public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        super.scrollViewDidZoom(scrollView)
+        
         self.placeables.forEach {
             $0.updateForZoom(scrollView)
         }
