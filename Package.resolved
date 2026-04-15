@@ -1,5 +1,5 @@
 {
-  "originHash" : "4af2c19922caf266a2b9fc5df8bca84db9dbea4c809eddc61f451eaf4bea5ad5",
+  "originHash" : "6ad1217f12d0599c72c025c1fe001f6d694226c75c96d3a339de5b4ff7a5382d",
   "pins" : [
     {
       "identity" : "ifrit",
@@ -70,7 +70,7 @@
       "location" : "https://github.com/NickTheFreak97/SwiftGraph",
       "state" : {
         "branch" : "msa",
-        "revision" : "615085465d81f7a7ff176f13029b19f873773409"
+        "revision" : "25905e48370a4cf991f7fb3d55dee74bd5334951"
       }
     },
     {
@@ -97,7 +97,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronCarouselCore",
       "state" : {
         "branch" : "main",
-        "revision" : "4a4456bd63f4c238f32868a13fef171b249c5e87"
+        "revision" : "e7e5949ddc433369034fd2b9452f720b28c4db64"
       }
     },
     {
@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
-        "branch" : "development/testing",
-        "revision" : "70992fbb254c306a1de7bf5dcb71b472d88af1b4"
+        "branch" : "main",
+        "revision" : "a044cd783a597a2c939d3692b760173520b81367"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NiccoloBargioni/ZTronSerializable",
       "state" : {
-        "branch" : "development/updateToolsPositions",
-        "revision" : "467411efe7a9ef0c41844bdafce5368278795e72"
+        "branch" : "main",
+        "revision" : "6043758dc53916bf1c5e14157480390cd404da5e"
       }
     },
     {

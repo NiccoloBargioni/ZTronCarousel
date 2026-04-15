@@ -305,7 +305,6 @@ public final class DBCarouselLoader: ObservableObject, Component, @unchecked Sen
                                         v: indexOfGallery,
                                         directed: true
                                     ),
-                                    directed: true
                                 )
                             }
                         }
