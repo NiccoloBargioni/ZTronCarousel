@@ -70,17 +70,24 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         
         self.strokeColor = strokeColor.cgColor
         
-        self.svgView = SVGView(svgURL: url) { [weak self] svgLayer in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                self.svgLayer = svgLayer
-                svgLayer.lineWidth = self.lineWidth
-                svgLayer.strokeColor = self.strokeColor
-                svgLayer.fillColor = .none
-                CATransaction.begin()
-                CATransaction.setDisableActions(true)
-                self.svgLayer.resizeToFit(self.bounds)
-                CATransaction.commit()
+        // Plain host view: unlike `SVGView(svgURL:)`, nothing gets attached to it
+        // until the layer is fully configured (see `attach(_:)` below).
+        self.svgView = UIView()
+        
+        // `CALayer(svgURL:)` parses without attaching the result to any layer that is
+        // on screen: the throwaway receiver never enters the render tree, so nothing
+        // is displayed until `attach(_:)` adds the configured layer ourselves.
+        CALayer(svgURL: url) { [weak self] svgLayer in
+            // SwiftSVG (master) invokes this on the main thread, in which case attaching
+            // immediately keeps everything in the current CATransaction. The async branch
+            // only exists as a safety net for SwiftSVG versions whose asynchronous path
+            // parser completes on a background queue.
+            if Thread.isMainThread {
+                self?.attach(svgLayer)
+            } else {
+                DispatchQueue.main.async { [weak self] in
+                    self?.attach(svgLayer)
+                }
             }
         }
         
@@ -107,7 +114,68 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         fatalError("Cannot instantiate from Storyboard. Aborting")
     }
     
+    /// Styles and sizes the parsed layer, then adds it to the layer tree in the same
+    /// `CATransaction`. Because the layer's first on-screen commit already carries its
+    /// final `path`/`transform`/`fillColor`/`strokeColor`, Core Animation has no previous
+    /// state to animate from: the outline appears directly in its final configuration.
+    /// - Warning: Must be called on the main thread.
+    private func attach(_ svgLayer: SVGLayer) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        self.svgLayer = svgLayer
+        Self.disableImplicitAnimations(on: svgLayer)
+        
+        svgLayer.lineWidth = self.lineWidth
+        svgLayer.strokeColor = self.strokeColor
+        svgLayer.fillColor = nil
+        svgLayer.resizeToFit(self.bounds)
+        
+        self.svgView.layer.addSublayer(svgLayer)
+        
+        CATransaction.commit()
+        
+        // If the page already laid out while the SVG was still parsing, bring the
+        // layer up to date with the last known container size right away instead of
+        // waiting for the next layout pass.
+        if let containerSize = self.lastContainerSize {
+            self.resize(for: containerSize)
+        }
+    }
+    
+    /// Installs a `nil` action for every property this view ever mutates on the SVG
+    /// layer tree, on the container and recursively on every sublayer (SwiftSVG keeps
+    /// one `CAShapeLayer` per path). Standalone `CALayer`s implicitly animate all such
+    /// changes over 0.25s; this makes them apply instantly instead, for this initial
+    /// attachment as well as every later `resize(for:)`, zoom and color update.
+    /// Explicit `CAAnimation`s (and `UIView.animate` on the hosting views) still work.
+    private static func disableImplicitAnimations(on layer: CALayer) {
+        let disabled: [String: CAAction] = [
+            "position": NSNull(),
+            "bounds": NSNull(),
+            "path": NSNull(),
+            "transform": NSNull(),
+            "sublayerTransform": NSNull(),
+            "fillColor": NSNull(),
+            "strokeColor": NSNull(),
+            "lineWidth": NSNull(),
+            "opacity": NSNull(),
+            "hidden": NSNull(),
+            "contents": NSNull(),
+            "sublayers": NSNull(),
+            "onOrderIn": NSNull(),
+            "onOrderOut": NSNull()
+        ]
+        
+        layer.actions = disabled
+        layer.sublayers?.forEach { sublayer in
+            Self.disableImplicitAnimations(on: sublayer)
+        }
+    }
+    
     public final func resize(for containerSize: CGSize) {
+        self.lastContainerSize = containerSize
+        
         guard let svgView = self.svgView else { return }
         guard let svgLayer = self.svgLayer else { return }
         
@@ -115,6 +183,9 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         let newOrigin = self.getOrigin(for: containerSize)
         
         let newRect = CGRect(origin: newOrigin, size: newSize)
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         
         if self.hasAnyOverride() {
             let naturalSize = CGSize(
@@ -134,7 +205,8 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
             svgView.transform = .identity
         }
         
-        self.lastContainerSize = containerSize
+        CATransaction.commit()
+        
         self.layoutIfNeeded()
     }
     
