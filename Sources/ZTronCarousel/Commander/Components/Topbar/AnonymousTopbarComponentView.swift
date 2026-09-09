@@ -75,7 +75,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         
         topbarComponentAvatarWrapper.translatesAutoresizingMaskIntoConstraints = false
         topbarComponentAvatarWrapper.addSubview(topbarComponentAvatar)
-        topbarComponentAvatarWrapper.backgroundColor = .clear
+        topbarComponentAvatarWrapper.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
         topbarComponentAvatarWrapper.isUserInteractionEnabled = false
         
         topbarComponentAvatar.layer.masksToBounds = true
@@ -168,7 +168,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             }
 
             let eyeLayer = UIHostingController(rootView: EyeShape().fill(Color(self.highlightColor)))
-            eyeLayer.view.backgroundColor = .clear
+            eyeLayer.view.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
             
             logoView.subviews.first?.addSubview(eyeLayer.view)
             eyeLayer.view.translatesAutoresizingMaskIntoConstraints = false
@@ -208,7 +208,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             }
             
             let checkmarkLayer = UIHostingController(rootView: CheckmarkView().fill(Color(self.theme.erasedToAnyTheme(), value: \.brand)))
-            checkmarkLayer.view.backgroundColor = UIColor.clear
+            checkmarkLayer.view.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
             
             logoView.subviews.first?.addSubview(checkmarkLayer.view)
             checkmarkLayer.view.translatesAutoresizingMaskIntoConstraints = false
