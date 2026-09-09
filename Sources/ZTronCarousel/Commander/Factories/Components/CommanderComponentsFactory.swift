@@ -5,17 +5,14 @@ import ZTronSerializable
 import ZTronTheme
 
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
-    private let topbarTitle: String?
     private let topbarShadowRadius: CGFloat?
     private let theme: (any ZTronTheme)
-    
+
     public init(
-        topbarTitle: String? = nil,
         topbarShadowRadius: CGFloat? = nil,
         theme: any ZTronTheme = ZTronThemeProvider.default()
     ) {
         self.theme = theme
-        self.topbarTitle = topbarTitle
         self.topbarShadowRadius = topbarShadowRadius
     }
 
@@ -64,8 +61,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
     private final func makeTopbarCommon(mediator: MSAMediator, depth: Int = 0, maxDepth: Int) -> UIViewController? {
         guard maxDepth >= depth else { return nil }
         guard maxDepth > 0 else { return nil }
-        guard let title = self.topbarTitle else { return nil }
-        
+
         let model = TopbarModel(
             items: [
                 .init(icon: "arrowHeadIcon", name: "Punta di freccia"),
@@ -79,7 +75,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
                 .init(icon: "ringIcon", name: "Anello"),
                 .init(icon: "shovelIcon", name: "Pala"),
             ],
-            title: title,
+            title: "",
             depth: depth
         )
                 
