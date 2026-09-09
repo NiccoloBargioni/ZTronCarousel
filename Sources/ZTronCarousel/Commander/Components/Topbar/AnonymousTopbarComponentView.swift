@@ -75,7 +75,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         
         topbarComponentAvatarWrapper.translatesAutoresizingMaskIntoConstraints = false
         topbarComponentAvatarWrapper.addSubview(topbarComponentAvatar)
-        topbarComponentAvatarWrapper.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+        topbarComponentAvatarWrapper.backgroundColor = .clear
         topbarComponentAvatarWrapper.isUserInteractionEnabled = false
         
         topbarComponentAvatar.layer.masksToBounds = true
