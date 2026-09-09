@@ -28,7 +28,7 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
                     self.topbarDiscovered = true
                 } else {
                     if let bottomBar = (eventArgs.getSource() as? any AnyBottomBar) {
-                        self.mediator?.signalInterest(owner, to: bottomBar)
+                        self.mediator?.signalInterest(owner, to: bottomBar, or: .ignore)
                     }
                 }
             }

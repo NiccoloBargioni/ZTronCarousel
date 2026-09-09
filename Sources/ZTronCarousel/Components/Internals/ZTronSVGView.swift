@@ -70,12 +70,15 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         
         self.strokeColor = strokeColor.cgColor
         
-        self.svgView = SVGView(svgURL: url) { svgLayer in
-            self.svgLayer = svgLayer
-            svgLayer.lineWidth = self.lineWidth
-            svgLayer.strokeColor = self.strokeColor
-            svgLayer.fillColor = .none
-            self.svgLayer.resizeToFit(self.bounds)
+        self.svgView = SVGView(svgURL: url) { [weak self] svgLayer in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.svgLayer = svgLayer
+                svgLayer.lineWidth = self.lineWidth
+                svgLayer.strokeColor = self.strokeColor
+                svgLayer.fillColor = .none
+                self.svgLayer.resizeToFit(self.bounds)
+            }
         }
         
         self.addSubview(svgView)

@@ -76,14 +76,16 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
         topbarComponentAvatarWrapper.translatesAutoresizingMaskIntoConstraints = false
         topbarComponentAvatarWrapper.addSubview(topbarComponentAvatar)
         topbarComponentAvatarWrapper.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+        topbarComponentAvatarWrapper.layer.cornerRadius = self.diameter / 2.0
+        topbarComponentAvatarWrapper.layer.masksToBounds = true
         topbarComponentAvatarWrapper.isUserInteractionEnabled = false
-        
+
         topbarComponentAvatar.layer.masksToBounds = true
 
         topbarComponentContainer.addSubview(topbarComponentAvatarWrapper)
         topbarComponentAvatar.translatesAutoresizingMaskIntoConstraints = false
         topbarComponentAvatar.layer.cornerRadius = self.cornerRadius
-        topbarComponentAvatar.layer.backgroundColor = self.disabledColor.withAlphaComponent(0.1).cgColor
+        topbarComponentAvatar.layer.backgroundColor = UIColor.clear.cgColor
         
         let title: UILabel = .init()
         title.text = self.component.getName().fromLocalized()
@@ -168,7 +170,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             }
 
             let eyeLayer = UIHostingController(rootView: EyeShape().fill(Color(self.highlightColor)))
-            eyeLayer.view.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+            eyeLayer.view.backgroundColor = .clear
             
             logoView.subviews.first?.addSubview(eyeLayer.view)
             eyeLayer.view.translatesAutoresizingMaskIntoConstraints = false
@@ -208,7 +210,7 @@ public final class AnonymousTopbarComponentView: UIView, AnyTopbarComponentView 
             }
             
             let checkmarkLayer = UIHostingController(rootView: CheckmarkView().fill(Color(self.theme.erasedToAnyTheme(), value: \.brand)))
-            checkmarkLayer.view.backgroundColor = UIColor.fromTheme(self.theme.colorSet, color: \.appBackground)
+            checkmarkLayer.view.backgroundColor = .clear
             
             logoView.subviews.first?.addSubview(checkmarkLayer.view)
             checkmarkLayer.view.translatesAutoresizingMaskIntoConstraints = false

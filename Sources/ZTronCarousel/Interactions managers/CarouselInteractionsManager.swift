@@ -29,11 +29,11 @@ public final class CarouselInteractionsManger: MSAInteractionsManager, @unchecke
                         self.mediator?.signalInterest(owner, to: page, or: .ignore)
                     } else {
                         if let topbar = eventArgs.getSource() as? (any AnyTopbarModel) {
-                            self.mediator?.signalInterest(owner, to: topbar)
+                            self.mediator?.signalInterest(owner, to: topbar, or: .ignore)
                             self.acknowledgedTopbar = true
                         } else {
                             if let router = eventArgs.getSource() as? (any AnyGalleryRouter) {
-                                self.mediator?.signalInterest(owner, to: router)
+                                self.mediator?.signalInterest(owner, to: router, or: .ignore)
                             }
                         }
                     }

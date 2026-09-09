@@ -36,7 +36,7 @@ public final class DBLoaderInteractionsManager: MSAInteractionsManager, @uncheck
                         self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
                     } else {
                         if let carouselComponent = eventArgs.getSource() as? CarouselComponent {
-                            self.mediator?.signalInterest(owner, to: carouselComponent)
+                            self.mediator?.signalInterest(owner, to: carouselComponent, or: .ignore)
                         }
                     }
                 }

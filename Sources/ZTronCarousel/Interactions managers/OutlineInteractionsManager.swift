@@ -21,7 +21,7 @@ public final class OutlineInteractionsManager: MSAInteractionsManager, @unchecke
             }
         } else {
             if let carouselModel = eventArgs.getSource() as? (any AnyViewModel) {
-                self.mediator?.signalInterest(owner, to: carouselModel)
+                self.mediator?.signalInterest(owner, to: carouselModel, or: .ignore)
             } else {
                 Task(priority: .userInitiated) { @MainActor in
                     if let pinnedBottomBar = eventArgs.getSource() as? (any AnyBottomBar) {
