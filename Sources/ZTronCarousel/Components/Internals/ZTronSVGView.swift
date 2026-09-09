@@ -77,7 +77,10 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
                 svgLayer.lineWidth = self.lineWidth
                 svgLayer.strokeColor = self.strokeColor
                 svgLayer.fillColor = .none
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
                 self.svgLayer.resizeToFit(self.bounds)
+                CATransaction.commit()
             }
         }
         
