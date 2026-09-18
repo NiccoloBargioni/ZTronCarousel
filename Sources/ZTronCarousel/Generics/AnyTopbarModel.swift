@@ -38,6 +38,11 @@ public protocol AnyTopbarModel: Component, AnyObject, ObservableObject {
     
     func onHideRequest(_ action: @escaping () -> Void)
     func onShowRequest(_ action: @escaping () -> Void)
+    
+    // MARK: - TO SUPPORT FILTERING
+    func setDisabledItems(_ names: Set<String>)
+    func isItemEnabled(_ name: String) -> Bool
+    func onDisabledItemsChanged(_ action: @escaping (Set<String>) -> Void)
 }
 
 public extension AnyTopbarModel {
@@ -50,6 +55,20 @@ public extension AnyTopbarModel {
     }
     
     func onItemsReplaced(_ action: @escaping ([any TopbarComponent]) -> Void) -> Void {
+        print("\(#function) NOT IMPLEMENTED")
+    }
+    
+    /// Models that don't support filtering can ignore disabled items: with the defaults below every
+    /// item stays enabled and selection is never gated.
+    func setDisabledItems(_ names: Set<String>) {
+        print("\(#function) NOT IMPLEMENTED")
+    }
+    
+    func isItemEnabled(_ name: String) -> Bool {
+        return true
+    }
+    
+    func onDisabledItemsChanged(_ action: @escaping (Set<String>) -> Void) {
         print("\(#function) NOT IMPLEMENTED")
     }
 }

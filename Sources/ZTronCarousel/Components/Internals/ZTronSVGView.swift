@@ -3,13 +3,14 @@ import SwiftSVG
 import SnapKit
 
 import ZTronObservation
+import ZTronCarouselCore
 
 public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency Component, Sendable {
     private(set) public var id: String = "outline"
     private(set) public var parentImage: String
     
     private var svgView: UIView!
-    private let svgURL: URL
+    private let outlineAssetName: String
     private let normalizedAABB: CGRect
     private var svgLayer: SVGLayer!
     private var colorPicker: UIColorPickerViewController!
@@ -21,6 +22,11 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     private var lastContainerSize: CGSize? = nil
     private var needsInitialLayout: Bool = true
+    
+    /// Set while a CDN network fetch for this outline has failed and is waiting for connectivity
+    /// to come back — see `resolveSVGViaCDN`/`registerConnectivityRetry`. `nil` whenever nothing
+    /// is pending, including once the outline has resolved successfully.
+    private var pendingConnectivityRetryToken: UUID? = nil
     
     private static let MIN_LINE_WIDTH: CGFloat = 5
     private var maxLineWidth: CGFloat {
@@ -48,18 +54,15 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     }
     
     public init(descriptor: PlaceableOutlineDescriptor) {
-        guard let url = Bundle.main.url(
-            forResource: descriptor.getOutlineAssetName(),
-            withExtension: "svg"
-        ) else { fatalError("No resource named \(descriptor.getOutlineAssetName()).svg. Aborting.") }
-
         self.id = "\(descriptor.getParentImage()) outline"
+        self.outlineAssetName = descriptor.getOutlineAssetName()
         
-        self.svgURL = url
         self.normalizedAABB = descriptor.getOutlineBoundingBox()
         
         self.lineWidth = .zero
         self.parentImage = descriptor.getParentImage()
+        
+        let svgURL = Self.resolveSVGURL(assetName: descriptor.getOutlineAssetName())
         
         super.init(frame: .zero)
         
@@ -74,21 +77,15 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         // until the layer is fully configured (see `attach(_:)` below).
         self.svgView = UIView()
         
-        // `CALayer(svgURL:)` parses without attaching the result to any layer that is
-        // on screen: the throwaway receiver never enters the render tree, so nothing
-        // is displayed until `attach(_:)` adds the configured layer ourselves.
-        CALayer(svgURL: url) { [weak self] svgLayer in
-            // SwiftSVG (master) invokes this on the main thread, in which case attaching
-            // immediately keeps everything in the current CATransaction. The async branch
-            // only exists as a safety net for SwiftSVG versions whose asynchronous path
-            // parser completes on a background queue.
-            if Thread.isMainThread {
-                self?.attach(svgLayer)
-            } else {
-                DispatchQueue.main.async { [weak self] in
-                    self?.attach(svgLayer)
-                }
-            }
+        if let svgURL {
+            Self.parseAndAttach(svgURL, into: self)
+        } else {
+            // Neither the bundle nor the local CDN cache had it (see `resolveSVGURL`). In a
+            // correctly functioning app this is a dead path — the bulk sync already placed it
+            // locally before this view was ever constructed — so this exists purely as a
+            // safeguard for when that first network call didn't happen or didn't finish: a
+            // genuinely missing outline still just doesn't render, gracefully, no crash.
+            self.resolveSVGViaCDN()
         }
         
         self.addSubview(svgView)
@@ -112,6 +109,97 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     required init(coder: NSCoder) {
         fatalError("Cannot instantiate from Storyboard. Aborting")
+    }
+    
+    /// First two steps of the fallback chain, both synchronous and both fully local: the app
+    /// bundle (unchanged from before this feature existed — this used to be a `fatalError` when it
+    /// missed), then the local CDN cache directory, itself just a filesystem check.
+    private static func resolveSVGURL(assetName: String) -> URL? {
+        if let bundleURL = Bundle.main.url(forResource: assetName, withExtension: "svg") {
+            return bundleURL
+        }
+        
+        return CDNLocalStore.shared.existingLocalURL(identifier: assetName, candidateExtensions: ["svg"])
+    }
+    
+    /// Third and last step: an on-demand network fetch, reached only when the outline's SVG was in
+    /// neither the bundle nor the local CDN cache. A no-op if no `CDNAssetResolver` was installed,
+    /// so this costs nothing for an app that doesn't use the CDN feature.
+    ///
+    /// This intentionally lives here rather than in `BasicImagePage`, even though the earlier
+    /// version of this fallback was framed as living alongside the image's own network call:
+    /// `BasicImagePage` only ever receives a plain `ZTronImageDescriptor`, and has no access to
+    /// `PlaceableOutlineDescriptor.getOutlineAssetName()` — which, reading its definition, is an
+    /// independently-supplied identifier with no guaranteed relationship to the parent image's own
+    /// `getAssetName()` (they're separate constructor parameters, not derived from one another).
+    /// `BasicImagePage` genuinely cannot look up the right identifier for an outline it has no
+    /// reference to; `ZTronSVGView` already has the correct one, since it's constructed directly
+    /// from the `PlaceableOutlineDescriptor` that owns it.
+    private func resolveSVGViaCDN() {
+        guard let resolver = CDNAssetResolver.installed else { return }
+        self.attemptNetworkResolve(resolver: resolver)
+    }
+    
+    private func attemptNetworkResolve(resolver: CDNAssetResolver) {
+        let assetName = self.outlineAssetName
+        
+        Task { [weak self] in
+            guard let url = await resolver.resolveViaNetwork(identifier: assetName, candidateExtensions: ["svg"]) else {
+                guard let self else { return }
+                await MainActor.run {
+                    self.registerConnectivityRetry(resolver: resolver)
+                }
+                return
+            }
+            
+            guard let self else { return }
+            
+            await MainActor.run {
+                Self.parseAndAttach(url, into: self)
+            }
+        }
+    }
+    
+    /// Registers a retry for the next time `NetworkAvailabilityMonitor` reports connectivity
+    /// available — "just in case" this particular failure was the device having no connectivity
+    /// at that instant rather than the CDN genuinely lacking the asset. At most one retry is ever
+    /// pending per instance; a retry that itself fails re-registers for the next connectivity
+    /// event, so this keeps trying until it succeeds or the view is deallocated.
+    private func registerConnectivityRetry(resolver: CDNAssetResolver) {
+        guard self.pendingConnectivityRetryToken == nil else { return }
+        
+        self.pendingConnectivityRetryToken = NetworkAvailabilityMonitor.shared.retryWhenAvailable { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                
+                self.pendingConnectivityRetryToken = nil
+                
+                // Only worth trying again if nothing else has already resolved this in the
+                // meantime (a later sync, or a different retry path).
+                guard self.svgLayer == nil else { return }
+                
+                self.attemptNetworkResolve(resolver: resolver)
+            }
+        }
+    }
+    
+    /// `CALayer(svgURL:)` parses without attaching the result to any layer that is
+    /// on screen: the throwaway receiver never enters the render tree, so nothing
+    /// is displayed until `attach(_:)` adds the configured layer ourselves.
+    private static func parseAndAttach(_ url: URL, into view: ZTronSVGView) {
+        CALayer(svgURL: url) { [weak view] svgLayer in
+            // SwiftSVG (master) invokes this on the main thread, in which case attaching
+            // immediately keeps everything in the current CATransaction. The async branch
+            // only exists as a safety net for SwiftSVG versions whose asynchronous path
+            // parser completes on a background queue.
+            if Thread.isMainThread {
+                view?.attach(svgLayer)
+            } else {
+                DispatchQueue.main.async { [weak view] in
+                    view?.attach(svgLayer)
+                }
+            }
+        }
     }
     
     /// Styles and sizes the parsed layer, then adds it to the layer tree in the same
@@ -268,6 +356,10 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     
     deinit {
         self.delegate?.detach()
+        
+        if let token = self.pendingConnectivityRetryToken {
+            NetworkAvailabilityMonitor.shared.cancelRetry(token)
+        }
     }
     
     public final func setStrokeColor(_ color: CGColor) {

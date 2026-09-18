@@ -49,11 +49,21 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel, An
         }
     }
     
+    /// The names of the items that are currently not selectable (galleries with no media matching
+    /// the active filters). SwiftUI topbars react through `@Published`; UIKit topbars through
+    /// `onDisabledItemsChanged(_:)`. Names not appearing among the current items are harmless.
+    @Published private(set) public var disabledItems: Set<String> = [] {
+        didSet {
+            self.disabledItemsChangedAction?(self.disabledItems)
+        }
+    }
+    
     private(set) public var lastAction: TopbarAction = .selectedItemChanged
     
     private var selectedItemChangedAction: ((Int) -> Void)? = nil
     private var itemsChangedAction: (([any TopbarComponent]) -> Void)? = nil
     private var redactedChangedAction: ((Bool) -> Void)? = nil
+    private var disabledItemsChangedAction: ((Set<String>) -> Void)? = nil
     
     private var onHideAction: (() -> Void)? = nil
     private var onShowAction: (() -> Void)? = nil
@@ -82,6 +92,7 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel, An
     
     public func setSelectedItem(item: Int) {
         assert(item >= 0 && item < self.items.count)
+        guard self.isItemEnabled(self.items[item].getName()) else { return }
         self.selectedItem = item
         if self.selectedItemStrategy == .leaf {
             self.lastAction = .selectedItemChanged
@@ -105,10 +116,28 @@ public final class TopbarModel : ObservableObject, Component, AnyTopbarModel, An
         return self.items[self.selectedItem].getName()
     }
     
+    // MARK: - TO SUPPORT FILTERING
+    
+    /// Replaces the set of items that cannot be selected. Selection attempts targeting a disabled
+    /// item — from taps, from search, or from `switchTo(itemNamed:)` — are silently ignored.
+    public func setDisabledItems(_ names: Set<String>) {
+        guard names != self.disabledItems else { return }
+        self.disabledItems = names
+    }
+    
+    public func isItemEnabled(_ name: String) -> Bool {
+        return !self.disabledItems.contains(name)
+    }
+    
+    public func onDisabledItemsChanged(_ action: @escaping (Set<String>) -> Void) {
+        self.disabledItemsChangedAction = action
+    }
+    
     public func switchTo(itemNamed: String) {
         if let requestedItemIndex = (self.items.firstIndex {
             return $0.getName() == itemNamed
         }) {
+            guard self.isItemEnabled(itemNamed) else { return }
             self.selectedItem = requestedItemIndex
             
             if self.selectedItemStrategy == .leaf {

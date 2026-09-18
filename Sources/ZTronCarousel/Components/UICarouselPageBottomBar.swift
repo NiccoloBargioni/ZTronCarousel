@@ -33,6 +33,18 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
     private var variantsStack: UIStackView?
     private let throttler: PassthroughSubject<BottomBarLastAction, Never> = .init()
     private var cancellables: Set<AnyCancellable> = .init()
+    private let paywallGate: PaywallGate = .init()
+    
+    /// Every role-bearing button this bar created, for lock-badge (re)application. Entries whose
+    /// view left the hierarchy (variants stack rebuilds) are pruned lazily.
+    private var managedActions: [(role: BottomBarActionRole, view: UIView)] = []
+    
+    // MARK: - TO SUPPORT MUTING UNAVAILABLE CONTENTS
+    /// Retained so `setEnabled(_:for:)` can rebuild each button's image with a different baked-in
+    /// tint: both buttons use `.alwaysOriginal` rendering, so `tintColor` alone has no effect on
+    /// them — the color has to be re-applied to a freshly-tinted image.
+    private weak var outlineButton: UIButton?
+    private weak var boundingCircleButton: UIButton?
     
     private(set) public var lastTappedVariantDescriptor: ImageVariantDescriptor? = nil
     
@@ -93,6 +105,9 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             make.height.equalTo(44)
         }
         
+        self.registerManagedAction(.outline, view: outlineButton)
+        self.outlineButton = outlineButton
+        
         let boundingCircleButton = UIButton(type: .system, primaryAction: .init(handler: { _ in
             self.throttler.send(.toggleBoundingCircle)
         }))
@@ -109,6 +124,9 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             make.width.equalTo(boundingCircleButton.snp.height)
             make.height.equalTo(44)
         }
+        
+        self.registerManagedAction(.boundingCircle, view: boundingCircleButton)
+        self.boundingCircleButton = boundingCircleButton
         
         
         let variantsStackView = UIStackView(frame: frame)
@@ -128,6 +146,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         self.variantsStack = variantsStackView
         
         self.throttler.throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: true).sink { action in
+            guard !self.paywallGate.intercept(action, from: self) else { return }
+            
             self.lastAction = action
             self.pushNotification()
         }
@@ -182,6 +202,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         guard let theIcon = icon else { return }
         
         let goBack = UIButton(type: .system, primaryAction: .init(handler: { _ in
+            guard !self.paywallGate.intercept(.tappedGoBack, from: self) else { return }
+            
             self.lastAction = .tappedGoBack
             self.pushNotification()
         }))
@@ -198,6 +220,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             make.width.equalTo(goBack.snp.height)
             make.height.equalTo(44)
         }
+        
+        self.registerManagedAction(.backToPreviousVariant, view: goBack)
     }
     
     @MainActor public final func switchVariants(_ to: [ImageVariantDescriptor], completion: ((_ completed: Bool) -> Void)? = nil) {
@@ -211,6 +235,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
             
             to.forEach { variantDescriptor in
                 let variantButton = UIButton(type: .system, primaryAction: .init(handler: { _ in
+                    guard !self.paywallGate.intercept(.tappedVariantChange(variantDescriptor), from: self) else { return }
+                    
                     self.lastAction = .tappedVariantChange(variantDescriptor)
                     self.lastTappedVariantDescriptor = variantDescriptor
                     self.pushNotification()
@@ -229,6 +255,8 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
                     make.width.equalTo(variantButton.snp.height)
                     make.height.equalTo(44)
                 }
+                
+                self.registerManagedAction(.variant(variantDescriptor), view: variantButton)
             }
 
             if let variantsStack = self.variantsStack {
@@ -261,9 +289,86 @@ public final class UICarouselPageBottomBar: UIView, Sendable, Component, AnyBott
         
     }
     
+    // MARK: - TO SUPPORT MUTING UNAVAILABLE CONTENTS
+    public func setEnabled(_ isEnabled: Bool, for role: BottomBarActionRole) {
+        let color = isEnabled ? self.labelColor : self.mutedColor()
+        let configuration = UIImage.SymbolConfiguration(font: .systemFont(ofSize: 16), scale: .large)
+        
+        switch role {
+            case .outline:
+                self.outlineButton?.isUserInteractionEnabled = isEnabled
+                self.outlineButton?.setImage(
+                    UIImage(systemName: "pencil.and.outline")!
+                        .withRenderingMode(.alwaysOriginal)
+                        .withTintColor(color)
+                        .withConfiguration(configuration),
+                    for: .normal
+                )
+                
+            case .boundingCircle:
+                self.boundingCircleButton?.isUserInteractionEnabled = isEnabled
+                self.boundingCircleButton?.setImage(
+                    UIImage(systemName: "circle.dashed")!
+                        .withRenderingMode(.alwaysOriginal)
+                        .withTintColor(color)
+                        .withConfiguration(configuration),
+                    for: .normal
+                )
+                
+            default:
+                // This bar has no .colorPicker button (see DESIGN.md); nothing else is ever muted.
+                break
+        }
+    }
+    
+    private final func mutedColor() -> UIColor {
+        let theTheme = self.theme ?? ZTronThemeProvider.default()
+        
+        return UIColor.fromTheme(theTheme.colorSet, color: \.disabled)
+    }
+    
     
     public func setTheme(_ theme: any ZTronTheme) {
         self.theme = theme
+        self.applyPaywallBadges()
+    }
+    
+    // MARK: - Paywalling
+    
+    /// Installs the paywall that gates this bar's contents and refreshes the lock badges. Gated
+    /// actions are intercepted before `lastAction` is mutated and before any notification is
+    /// pushed — in the throttler's sink for the stateful buttons, and directly in the tap handlers
+    /// for variant and go-back buttons, which bypass the throttler in this bar.
+    public final func setPaywall(_ paywall: (any CarouselPaywalling)?, presentingFrom host: UIViewController?) {
+        self.paywallGate.paywall = paywall
+        self.paywallGate.host = host
+        self.applyPaywallBadges()
+    }
+    
+    /// Records a role-bearing button and immediately decorates it according to the current gating,
+    /// so buttons created after `setPaywall` (variants, go-back) come out already badged.
+    private final func registerManagedAction(_ role: BottomBarActionRole, view: UIView) {
+        self.managedActions.append((role: role, view: view))
+        view.setPaywallLockBadge(
+            self.paywallGate.paywall?.shouldGate(role) ?? false,
+            color: self.paywallBadgeColor()
+        )
+    }
+    
+    private final func applyPaywallBadges() {
+        self.managedActions.removeAll { $0.view.superview == nil }
+        
+        for entry in self.managedActions {
+            entry.view.setPaywallLockBadge(
+                self.paywallGate.paywall?.shouldGate(entry.role) ?? false,
+                color: self.paywallBadgeColor()
+            )
+        }
+    }
+    
+    private final func paywallBadgeColor() -> UIColor {
+        let theTheme = self.theme ?? ZTronThemeProvider.default()
+        
+        return UIColor.fromTheme(theTheme.colorSet, color: \.sunsetSky)
     }
 }
-

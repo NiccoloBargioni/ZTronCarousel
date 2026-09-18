@@ -12,11 +12,25 @@ import ZTronDataModel
     
     open var theme: (any ZTronTheme)
     private let pageFactory: any MediaFactory
-    private let dbLoader: any AnyDBLoader
+    /// The loader created by the components factory. Exposed so that subclasses (e.g.
+    /// `FilteredCarouselPageFromDB`) can attach collaborators that need read access to the same
+    /// database scope, such as `GalleryMediaReading`.
+    public let dbLoader: any AnyDBLoader
     public let carouselModel: (any AnyViewModel)
     private var searchController: (any AnySearchController)?
     private(set) public var topbarViews: [UIViewController] = []
     private(set) public var bottomBarView: (any AnyBottomBar)!
+    
+    /// The paywall gating this page's bottom bar contents, if any. Resolution order: the instance
+    /// passed to `init(paywall:)` (or later via `setPaywall(_:)`), falling back to
+    /// `componentsFactory.makePaywall()`.
+    private(set) public var paywall: (any CarouselPaywalling)? = nil
+    
+    /// External component registrations (see `registerComponents(lifecycle:_:)`). Marked
+    /// `nonisolated(unsafe)` so the deinit safety net can tear them down; mutated on the main
+    /// actor only.
+    nonisolated(unsafe) private var externalRegistrations: [ExternalMediatorRegistration] = []
+    nonisolated(unsafe) private var externalComponentsObserver: ExternalComponentsLifecycleObserver? = nil
     private(set) public var captionView: (any AnyCaptionView)!
 
     private let requestedGalleryID: String?
@@ -71,7 +85,9 @@ import ZTronDataModel
         with pageFactory: (any MediaFactory)? = nil,
         componentsFactory: (any ZTronComponentsFactory),
         interactionsManagersFactory: (any ZTronInteractionsManagersFactory)? = nil,
-        theme: any ZTronTheme = ZTronThemeProvider.default()
+        theme: any ZTronTheme = ZTronThemeProvider.default(),
+        carousel: CarouselComponent? = nil,
+        paywall: (any CarouselPaywalling)? = nil
     ) {
         self.theme = theme
         self.requestedGalleryID = gallery
@@ -83,7 +99,8 @@ import ZTronDataModel
         self.dbLoader = self.componentsFactory.makeDBLoader(with: foreignKeys)
         
         self.pageFactory = pageFactory ?? BasicMediaFactory()
-        self.thePageVC = .init(with: self.pageFactory, medias: [])
+        self.thePageVC = carousel ?? .init(with: self.pageFactory, medias: [])
+        self.paywall = paywall ?? componentsFactory.makePaywall()
         
         super.init(nibName: nil, bundle: nil)
         
@@ -142,8 +159,9 @@ import ZTronDataModel
         self.makeConstraintsStrategy()
         
         
-        Task(priority: .userInitiated) {
-            
+        Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
+
             self.carouselModel.viewModel = self
             
             self.carouselModel.setDelegate(
@@ -158,6 +176,10 @@ import ZTronDataModel
             
             if let pgFactory = pageFactory as? any Notifiable {
                 pgFactory.setMediator(self.mediator)
+            }
+            
+            if let pgFactory = pageFactory as? any PaywallInjectable {
+                pgFactory.setPaywallProvider { [weak self] in self?.paywall }
             }
             
             if let searchController = self.componentsFactory.makeSearchController() {
@@ -287,6 +309,8 @@ import ZTronDataModel
             self.interactionsManagersFactory
                 .makeBottomBarInteractionsManager(owner: self.bottomBarView, mediator: self.mediator)
         )
+        
+        self.bottomBarView.setPaywall(self.paywall, presentingFrom: self)
     
         self.captionView = componentsFactory.makeCaptionView()
         
@@ -488,6 +512,27 @@ import ZTronDataModel
         self.constraintsStrategy = self.componentsFactory.makeConstraintsStrategy(owner: self, self.topbarViews.count > 0)
     }
     
+    /// Replaces the paywall at runtime and propagates it to the bottom bar. `ZTronCarouselView`
+    /// invokes this from `updateUIViewController` when the accumulated `.paywalled` rules change
+    /// shape; pass `nil` to remove any gating.
+    public final func setPaywall(_ paywall: (any CarouselPaywalling)?) {
+        self.paywall = paywall
+        
+        if self.isViewLoaded && self.bottomBarView != nil {
+            self.bottomBarView.setPaywall(paywall, presentingFrom: self)
+        }
+        
+        // Placeables (outline, bounding circle) are baked into the page's view controller at
+        // construction time by the page factory, unlike the bar's contents, which are gated at tap
+        // time. Re-presenting the currently visible descriptor at its own index forces
+        // CarouselComponent to rebuild that one view controller through the (paywall-aware) page
+        // factory, so a gating change is reflected without waiting for the user to swipe away and
+        // back. A no-op when no media is currently displayed (empty/placeholder state).
+        if let currentDescriptor = self.thePageVC.currentVisibleMediaDescriptor {
+            self.thePageVC.replaceMedia(with: currentDescriptor, at: self.thePageVC.currentPage, shouldReplaceViewController: true)
+        }
+    }
+    
     public final func toggleCaptionOverlay() {
         if self.captionView.isHidden {
             self.captionView.isHidden = false
@@ -504,8 +549,120 @@ import ZTronDataModel
         }
     }
     
+    /// Registers `component` in this page's mediator, with no lifecycle management: the caller
+    /// owns retention and teardown. The component's delegate **must already be set** (the mediator
+    /// traps on delegate-less components). Prefer `registerComponents(lifecycle:_:)`, which
+    /// manages retention, teardown and — with `.media` — re-attachment for you.
     public final func registerAlongsideCarousel(_ component: any Component) {
         self.mediator.register(component)
+    }
+    
+    // MARK: - Managed external components
+    
+    /// Registers client components in this page's mediator, alongside the built-in ones (carousel,
+    /// DB loader, topbars, bottom bar, caption, search), with a managed lifecycle.
+    ///
+    /// The setup closure receives the page's mediator; it must create the components, wire each
+    /// one's interactions manager via `setDelegate(_:)` — which registers it, following the same
+    /// pattern every built-in component uses — and return what it registered. The page retains the
+    /// returned components and tears them down (`setDelegate(nil)`, then a defensive
+    /// `unregister`) according to `lifecycle`:
+    ///
+    /// - ``MediatorRegistrationLifecycle/media``: the closure runs when an image appears and its
+    ///   components are torn down when that image leaves the screen (swipe, gallery change,
+    ///   variant change), then the closure runs again for the new image. While no media is
+    ///   displayed, nothing stays attached.
+    /// - ``MediatorRegistrationLifecycle/page``: the closure runs once, immediately; its
+    ///   components persist across image and gallery changes and are torn down when the page is
+    ///   popped or dismissed (with deallocation as a safety net).
+    ///
+    /// ```swift
+    /// page.registerComponents(lifecycle: .media) { mediator in
+    ///     let heatmap = HeatmapOverlayComponent()
+    ///     heatmap.setDelegate(HeatmapInteractionsManager(owner: heatmap, mediator: mediator))
+    ///     return [heatmap]
+    /// }
+    /// ```
+    @discardableResult
+    public final func registerComponents(
+        lifecycle: MediatorRegistrationLifecycle = .page,
+        _ setup: @escaping @MainActor (MSAMediator) -> [any Component]
+    ) -> Self {
+        let registration = ExternalMediatorRegistration(lifecycle: lifecycle, setup: setup)
+        self.externalRegistrations.append(registration)
+        
+        switch lifecycle {
+            case .page:
+                registration.live = setup(self.mediator)
+                
+            case .media:
+                self.makeExternalComponentsObserverIfNeeded()
+                
+                if self.thePageVC.currentVisibleMediaDescriptor != nil {
+                    registration.live = setup(self.mediator)
+                }
+        }
+        
+        return self
+    }
+    
+    private final func makeExternalComponentsObserverIfNeeded() {
+        guard self.externalComponentsObserver == nil else { return }
+        
+        let observer = ExternalComponentsLifecycleObserver { [weak self] in
+            self?.externalMediaDidChange()
+        }
+        
+        observer.setDelegate(observer.makeInteractionsManager(mediator: self.mediator))
+        self.externalComponentsObserver = observer
+    }
+    
+    /// Cycles every `.media` registration: tears the previous components down and, if a media is
+    /// actually on display (the empty-results placeholder doesn't count), runs the setup again so
+    /// the fresh components attach to the new image.
+    private final func externalMediaDidChange() {
+        guard !self.externalRegistrations.isEmpty else { return }
+        
+        let isMediaOnDisplay = self.thePageVC.currentVisibleMediaDescriptor != nil
+        
+        for registration in self.externalRegistrations where registration.lifecycle == .media {
+            Self.teardown(registration, mediator: self.mediator)
+            
+            if isMediaOnDisplay {
+                registration.live = registration.setup(self.mediator)
+            }
+        }
+    }
+    
+    nonisolated private static func teardown(_ registration: ExternalMediatorRegistration, mediator: MSAMediator) {
+        registration.live.forEach { component in
+            component.setDelegate(nil)
+            mediator.unregister(component, or: .ignore)
+        }
+        
+        registration.live = []
+    }
+    
+    nonisolated private final func teardownAllExternalComponents() {
+        self.externalRegistrations.forEach { Self.teardown($0, mediator: self.mediator) }
+        
+        if let observer = self.externalComponentsObserver {
+            observer.setDelegate(nil)
+            self.mediator.unregister(observer, or: .ignore)
+            self.externalComponentsObserver = nil
+        }
+    }
+    
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        if self.isMovingFromParent || self.isBeingDismissed {
+            self.teardownAllExternalComponents()
+        }
+    }
+    
+    deinit {
+        self.teardownAllExternalComponents()
     }
 }
 

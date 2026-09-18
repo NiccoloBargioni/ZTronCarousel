@@ -108,20 +108,30 @@ public final class PinnedBottomBarInteractionsManager: MSAInteractionsManager, @
             guard let currentMediaDescriptor = carousel.currentMediaDescriptor as? ZTronCarouselImageDescriptor else { return }
             guard carousel.lastAction == .replacedCurrentDescriptor || carousel.lastAction == .replacedAllMedias || carousel.lastAction == .pageChanged else { return }
             
-            if let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline) {
-                if let theOutline = outlineDescriptors.first {
-                    owner.setActive(theOutline.getIsActive(), for: .outline)
-                }
+            // MARK: - TO SUPPORT MUTING UNAVAILABLE CONTENTS
+            // Existence (does the current image have this content at all) is distinct from active
+            // state (is that content currently toggled on) — the block below reads both from the
+            // same two descriptor lookups. `setEnabled` runs unconditionally on every qualifying
+            // page change, so a button correctly reverts to muted when the new image lacks what the
+            // previous one had; the original `setActive` calls stay exactly as they were, still
+            // gated on `.first` existing, since a content that doesn't exist has no meaningful
+            // active state to sync.
+            let outlineDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.outline)
+            let boundingCircleDescriptors = currentMediaDescriptor.getPlaceableDescriptors(for: PlaceableDescriptorType.boundingCircle)
+            
+            let outlineExists = !(outlineDescriptors?.isEmpty ?? true)
+            let boundingCircleExists = !(boundingCircleDescriptors?.isEmpty ?? true)
+            
+            owner.setEnabled(outlineExists, for: .outline)
+            owner.setEnabled(boundingCircleExists, for: .boundingCircle)
+            owner.setEnabled(outlineExists || boundingCircleExists, for: .colorPicker)
+            
+            if let theOutline = outlineDescriptors?.first {
+                owner.setActive(theOutline.getIsActive(), for: .outline)
             }
             
-            if let boundingCircleDescriptors =
-                    currentMediaDescriptor.getPlaceableDescriptors(
-                        for: PlaceableDescriptorType.boundingCircle
-                    )
-            {
-                if let theBoundingCircle = boundingCircleDescriptors.first {
-                    owner.setActive(theBoundingCircle.getIsActive(), for: .boundingCircle)
-                }
+            if let theBoundingCircle = boundingCircleDescriptors?.first {
+                owner.setActive(theBoundingCircle.getIsActive(), for: .boundingCircle)
             }
         }
     }

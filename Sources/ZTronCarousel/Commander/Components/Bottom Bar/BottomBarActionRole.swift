@@ -21,6 +21,9 @@ public enum BottomBarActionRole: Hashable, Sendable {
             case .tappedToggleCaption:
                 return .caption
                 
+            case .tappedColorPicker:
+                return .colorPicker
+                
             case .tappedVariantChange(let variant):
                 return .variant(variant)
             

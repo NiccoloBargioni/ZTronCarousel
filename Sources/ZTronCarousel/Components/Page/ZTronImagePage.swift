@@ -20,6 +20,12 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
     private var animation: (any VariantAnimation)? = nil
     
     private var currentWidth: CGFloat = .zero
+    
+    /// Non-nil whenever this image has an outline: presents and tracks the bottom-bar-triggered
+    /// color picker for that outline. Not a `PlaceableView` — it must not zoom with the image, so
+    /// it isn't added to `self.placeables` and its lifecycle is driven explicitly below, alongside
+    /// (not instead of) the placeables' own `viewDidAppear`/`viewWillDisappear` calls.
+    private var colorPickerPopoverController: ColorPickerPopoverController? = nil
         
     init(
         imageDescriptor: ImageWithPlaceablesAndOverlaysDescriptor,
@@ -51,6 +57,26 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         
         self.placeables.forEach {
             self.imageView.addSubview($0)
+        }
+        
+        // The color picker popover only makes sense when there's an outline to track; when the
+        // outline placeable wasn't built at all (no outline configured for this image, or its
+        // rendering is currently paywall-gated — see `PaywallAwarePlaceableFactory`), this simply
+        // stays nil and the bottom bar's own `.colorPicker` tap handling for this image is inert.
+        if let svgView = self.placeables.first(where: { $0 is ZTronSVGView }) as? ZTronSVGView {
+            let popoverController = ColorPickerPopoverController(
+                svgView: svgView,
+                scrollView: super.scrollView,
+                presentingViewController: self
+            )
+            
+            if let mediator = mediator {
+                popoverController.setDelegate(
+                    ColorPickerPopoverInteractionsManager(owner: popoverController, mediator: mediator)
+                )
+            }
+            
+            self.colorPickerPopoverController = popoverController
         }
         
         overlaysDescriptors.forEach {
@@ -136,6 +162,8 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
             thePlaceable.viewDidAppear()
         }
         
+        self.colorPickerPopoverController?.viewDidAppear()
+        
         if let mediator = self.mediator {
             self.setDelegate(ImagePageInteractionsManager(owner: self, mediator: mediator))
         }
@@ -147,6 +175,8 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
         self.placeables.forEach { thePlaceable in
             thePlaceable.viewWillDisappear()
         }
+        
+        self.colorPickerPopoverController?.viewWillDisappear()
         
         self.setDelegate(nil)
     }

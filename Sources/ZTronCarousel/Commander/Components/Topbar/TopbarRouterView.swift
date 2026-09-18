@@ -454,17 +454,22 @@ public final class TopbarRouterView: UIView {
         
         topbarComponentContainer.translatesAutoresizingMaskIntoConstraints = false
         
-        if self.topbarModel.getSelectedItem() == i {
+        let selectedIndex = self.topbarModel.getSelectedItem()
+        if selectedIndex == i {
             topbarComponentContainer.makeActive()
-            
+
             let allComponents = self.allComponentSubviews()
             for j in 0..<i {
                 allComponents[j].makeVisited()
             }
-            
+
             for j in (i + 1)..<allComponents.count {
                 allComponents[j].makeUnvisited()
             }
+        } else if i < selectedIndex {
+            topbarComponentContainer.makeVisited()
+        } else {
+            topbarComponentContainer.makeUnvisited()
         }
         
         NSLayoutConstraint.activate([

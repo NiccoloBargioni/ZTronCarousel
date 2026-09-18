@@ -17,6 +17,10 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
         } else {
             if let searchController = (eventArgs.getSource() as? (any AnySearchController)) {
                 self.mediator?.signalInterest(owner, to: searchController, or: .ignore)
+            } else {
+                if let filterCoordinator = (eventArgs.getSource() as? (any AnyGalleryFilterCoordinator)) {
+                    self.mediator?.signalInterest(owner, to: filterCoordinator, or: .ignore)
+                }
             }
         }
     }
@@ -75,6 +79,28 @@ internal final class TopbarInteractionsManager: MSAInteractionsManager, @uncheck
                     if let imageSelectedMessage = (args as? MSAArgs)?.getPayload() as? ImageSelectedFromSearchEventMessage {
                         if let leafGallery = imageSelectedMessage.getGalleryPath().last {
                             owner.switchTo(itemNamed: leafGallery.getName())
+                        }
+                    }
+                }
+            } else {
+                if (args.getSource() as? (any AnyGalleryFilterCoordinator)) != nil {
+                    if let gatingMessage = (args as? MSAArgs)?.getPayload() as? GalleryFilterStateEventMessage {
+                        if gatingMessage.depth == owner.getDepth() {
+                            let disabledGalleries = gatingMessage.disabledGalleries
+                            
+                            Task(priority: .userInitiated) { @MainActor in
+                                owner.setDisabledItems(disabledGalleries)
+                            }
+                        }
+                    } else {
+                        if let redirectMessage = (args as? MSAArgs)?.getPayload() as? GalleryRedirectRequestEventMessage {
+                            if redirectMessage.depth == owner.getDepth() {
+                                let targetGallery = redirectMessage.gallery
+                                
+                                Task(priority: .userInitiated) { @MainActor in
+                                    owner.switchTo(itemNamed: targetGallery)
+                                }
+                            }
                         }
                     }
                 }

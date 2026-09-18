@@ -7,13 +7,23 @@ import ZTronTheme
 public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable {
     private let topbarShadowRadius: CGFloat?
     private let theme: (any ZTronTheme)
+    private let paywall: (any CarouselPaywalling)?
 
+    /// - Parameter paywall: The paywall injected by default into every `CarouselPageFromDB` built
+    ///   through this factory (see `ZTronComponentsFactory.makePaywall()`). Defaults to `nil`,
+    ///   i.e. no gating.
     public init(
         topbarShadowRadius: CGFloat? = nil,
-        theme: any ZTronTheme = ZTronThemeProvider.default()
+        theme: any ZTronTheme = ZTronThemeProvider.default(),
+        paywall: (any CarouselPaywalling)? = nil
     ) {
         self.theme = theme
         self.topbarShadowRadius = topbarShadowRadius
+        self.paywall = paywall
+    }
+    
+    public func makePaywall() -> (any CarouselPaywalling)? {
+        return self.paywall
     }
 
     public func makeViewModel() -> any AnyViewModel {
@@ -54,7 +64,7 @@ public final class CommanderComponentsFactory: ZTronComponentsFactory, Sendable 
         if includesTopbar {
             return CommanderWithTopbarConstraintsStrategy(owner: owner)
         } else {
-            return DefaultZtronComponentsFactory().makeConstraintsStrategy(owner: owner, false)
+            return CarouselPageFromDBTopbarlessConstraintsStrategy(owner: owner)
         }
     }
 

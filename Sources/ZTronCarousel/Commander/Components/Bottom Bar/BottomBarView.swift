@@ -36,12 +36,19 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
     
     private let throttler: PassthroughSubject<BottomBarLastAction, Never> = .init()
     nonisolated(unsafe) private var cancellables: Set<AnyCancellable> = .init()
+    private let paywallGate: PaywallGate = .init()
+    
+    /// Every role-bearing action view this bar created, for lock-badge (re)application. Entries
+    /// whose view left the hierarchy (variants stack rebuilds) are pruned lazily.
+    private var managedActions: [(role: BottomBarActionRole, view: UIView)] = []
 
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
         
         self.throttler.throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: true).sink { action in
+            guard !self.paywallGate.intercept(action, from: self) else { return }
+            
             self.lastAction = action
             
             if let role = BottomBarActionRole.fromBottomBarAction(action) {
@@ -171,13 +178,22 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         }
         */
         
-        self.addAction(
+        let captionButton = self.addAction(
             role: .caption,
             icon: InfoShape(),
             rightAnchor: separatorView.leftAnchor,
             constant: -15
         ) {
             self.throttler.send(.tappedToggleCaption)
+        }
+        
+        self.addAction(
+            role: .colorPicker,
+            icon: ColorPickerIcon(),
+            rightAnchor: captionButton.leftAnchor,
+            constant: -15
+        ) {
+            self.throttler.send(.tappedColorPicker)
         }
         
         NSLayoutConstraint.activate([
@@ -233,6 +249,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
             ])
         }
 
+        self.registerManagedAction(role, view: action)
+        
         return action
     }
     
@@ -260,6 +278,8 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         
         action.alpha = 0
         action.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        
+        self.registerManagedAction(role, view: action)
 
         return action
     }
@@ -411,8 +431,74 @@ public final class BottomBarView: UIView, Sendable, Component, AnyBottomBar {
         self.subviews.first?.layoutIfNeeded()
     }
     
+    // MARK: - TO SUPPORT MUTING UNAVAILABLE CONTENTS
+    
+    /// A lookup independent of `self.lastAction`, unlike `buttonForRole(_:)`. `setEnabled(_:for:)`
+    /// is called from the carousel's page-change sync, not immediately after a tap on the role
+    /// being queried, so `lastAction` can legitimately be stale (e.g. still `.tappedVariantChange`
+    /// from an earlier tap) at the moment it runs — `buttonForRole` would then search the variants
+    /// stack instead of the fixed area and silently miss. `.outline`, `.boundingCircle` and
+    /// `.colorPicker` — the only roles this bar ever mutes — all live in the fixed area, so a
+    /// direct, unconditional search there is both simpler and correct for this call site.
+    private final func fixedActionView(for role: BottomBarActionRole) -> (any ActiveTogglableView)? {
+        return self.subviews.first?.subviews.first {
+            return $0.accessibilityIdentifier == String(describing: role)
+        } as? (any ActiveTogglableView)
+    }
+    
+    public final func setEnabled(_ isEnabled: Bool, for role: BottomBarActionRole) {
+        guard let actionView = self.fixedActionView(for: role) else { return }
+        
+        actionView.setEnabled(isEnabled, mutedColor: self.mutedColor())
+        self.subviews.first?.layoutIfNeeded()
+    }
+    
+    private final func mutedColor() -> UIColor {
+        let theTheme = self.theme ?? ZTronThemeProvider.default()
+        
+        return UIColor.fromTheme(theTheme.colorSet, color: \.disabled)
+    }
+    
+    /// Installs the paywall that gates this bar's contents. Gated actions are intercepted in the
+    /// throttler's sink, before `lastAction` is mutated, before the button toggles its active
+    /// state, and before any notification is pushed: their only observable effect is the paywall
+    /// prompt appearing in a bottom sheet.
+    public final func setPaywall(_ paywall: (any CarouselPaywalling)?, presentingFrom host: UIViewController?) {
+        self.paywallGate.paywall = paywall
+        self.paywallGate.host = host
+        self.applyPaywallBadges()
+    }
+    
+    /// Records a role-bearing action view and immediately decorates it according to the current
+    /// gating, so buttons created after `setPaywall` (variants, go-back) come out already badged.
+    private final func registerManagedAction(_ role: BottomBarActionRole, view: UIView) {
+        self.managedActions.append((role: role, view: view))
+        view.setPaywallLockBadge(
+            self.paywallGate.paywall?.shouldGate(role) ?? false,
+            color: self.paywallBadgeColor()
+        )
+    }
+    
+    private final func applyPaywallBadges() {
+        self.managedActions.removeAll { $0.view.superview == nil }
+        
+        for entry in self.managedActions {
+            entry.view.setPaywallLockBadge(
+                self.paywallGate.paywall?.shouldGate(entry.role) ?? false,
+                color: self.paywallBadgeColor()
+            )
+        }
+    }
+    
+    private final func paywallBadgeColor() -> UIColor {
+        let theTheme = self.theme ?? ZTronThemeProvider.default()
+        
+        return UIColor.fromTheme(theTheme.colorSet, color: \.sunsetSky)
+    }
+    
     public final func setTheme(_ theme: any ZTronTheme) {
         self.theme = theme
+        self.applyPaywallBadges()
     }
 }
 

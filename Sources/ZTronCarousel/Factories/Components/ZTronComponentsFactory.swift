@@ -4,7 +4,7 @@ import ZTronObservation
 import ZTronSerializable
 
 @MainActor public protocol ZTronComponentsFactory: AnyObject, Sendable {
-    func makeViewModel() -> any AnyViewModel 
+    func makeViewModel() -> any AnyViewModel
     
     func makeDBLoader(with foreignKeys: SerializableGalleryForeignKeys) -> any AnyDBLoader
     func makeSearchController() -> (any AnySearchController)?
@@ -41,4 +41,18 @@ import ZTronSerializable
     /// Use this to customize the way views are arranged in the carousel
     /// - Parameter includesTopbar: Specifies whether or not the carousel should be built to include a topbar
     func makeConstraintsStrategy(owner: CarouselPageFromDB, _:Bool) -> any ConstraintsStrategy
+    
+    /// The paywall injected by default into every `CarouselPageFromDB` built through this factory.
+    /// A paywall passed explicitly to `CarouselPageFromDB.init(paywall:)` — including the composite
+    /// one accumulated by the SwiftUI `.paywalled` modifiers — takes precedence; when the explicit
+    /// paywall is a `CompositeCarouselPaywall`, this one still acts as its fallback for the
+    /// contents no explicit rule mentions.
+    func makePaywall() -> (any CarouselPaywalling)?
+}
+
+public extension ZTronComponentsFactory {
+    /// By default no paywall is injected: every content stays free.
+    func makePaywall() -> (any CarouselPaywalling)? {
+        return nil
+    }
 }

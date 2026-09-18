@@ -10,6 +10,10 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
     private var iconViewController: UIViewController!
     private let isStateful: Bool
     
+    /// Retained (beyond the local variable `setup()` originally used) so that `setEnabled(_:mutedColor:)`
+    /// can toggle its `isUserInteractionEnabled` after construction.
+    private var theButton: UIDimmingBackgroundButton!
+    
     public init(role: BottomBarActionRole, icon: S, isStateful: Bool = true, action: @escaping () -> Void) {
         self.icon = icon
         self.action = action
@@ -74,6 +78,7 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         ])
         
         self.iconView = buttonIcon.rootView
+        self.theButton = theButton
     }
     
     public required init?(coder: NSCoder) {
@@ -96,6 +101,17 @@ public final class BottomBarAction<S: SwiftUI.Shape>: UIView, ActiveTogglableVie
         self.iconView.setActive(isActive)
         self.iconViewController.view.invalidateIntrinsicContentSize()
 
+        self.layoutIfNeeded()
+    }
+    
+    // MARK: - TO SUPPORT MUTING UNAVAILABLE CONTENTS
+    /// Unlike `toggleActive`/`setActive`, this isn't gated on `isStateful`: a non-stateful action
+    /// (e.g. a future one-shot button) can still be muted when its content doesn't exist.
+    public final func setEnabled(_ isEnabled: Bool, mutedColor: UIColor) {
+        self.theButton?.isUserInteractionEnabled = isEnabled
+        self.iconView.setEnabled(isEnabled, mutedColor: mutedColor)
+        self.iconViewController.view.invalidateIntrinsicContentSize()
+        
         self.layoutIfNeeded()
     }
 }
