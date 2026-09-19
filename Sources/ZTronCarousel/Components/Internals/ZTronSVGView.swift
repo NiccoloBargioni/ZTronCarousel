@@ -366,6 +366,13 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         self.strokeColor = color
     }
     
+    /// The outline's current live stroke color: the DB-loaded `(colorHex, opacity)` composited at
+    /// construction, or whatever `setStrokeColor`/`colorChanged` last applied since. Lets a picker
+    /// seed itself with the outline's real current color instead of an arbitrary default.
+    public final func getStrokeColor() -> CGColor {
+        return self.strokeColor
+    }
+    
     public final func toggle() {
         UIView.animate(withDuration: 0.25) {
             if self.alpha <= 0 {

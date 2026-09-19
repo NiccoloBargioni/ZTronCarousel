@@ -1,3 +1,11 @@
+//
+//  ColorPickerPopoverController.swift
+//  ZTronCarousel
+//
+//  Created by Niccolo Della Rocca on 19/09/2026.
+//
+
+
 import UIKit
 import ZTronObservation
 
@@ -5,14 +13,24 @@ import ZTronObservation
 /// bottom bar's `.colorPicker` action, anchored to — and continuously tracking — the outline's
 /// `ZTronSVGView`.
 ///
-/// This is deliberately a separate mechanism from the long-press-triggered picker already
+/// This is deliberately a separate *presentation* from the long-press-triggered picker already
 /// available directly on the outline (`PlaceableColorPicker`): that one is itself a placeable,
 /// living inside the zoomed `imageView` and anchored via `sourceView = self`, which is the right
 /// behavior for a marker that's part of the image content. This controller's popover must do the
 /// opposite — stay outside the zoomed content and track the outline's on-screen position without
 /// being affected by zoom itself — which calls for a different anchoring strategy entirely (see
-/// `currentAnchorRect()`). Both ultimately call `ZTronSVGView.setStrokeColor(_:)`, so a color
-/// picked from either stays consistent with the other; there's no shared state to reconcile.
+/// `currentAnchorRect()`).
+///
+/// It is not, however, a separate *color pipeline*. A color picked here is applied through
+/// `placeableColorPicker.applyColorFromExternalPicker(_:continuously:)` — the same state update
+/// and the same `ZTronObservation` broadcast the long-press picker fires itself — so every
+/// observer that already reacts to a `PlaceableColorPicker` broadcast picks this up identically
+/// and for free: `OutlineInteractionsManager` and `BoundingCircleInteractionsManager` live-update
+/// both the outline *and* the bounding circle's stroke color (this controller never touches
+/// `CircleView` directly), and `DBLoaderInteractionsManager` persists the color to both DB rows
+/// once the pick is final. There is exactly one place that mutates color state and one place that
+/// persists it; this controller only decides *when* to ask for a color and *where* to point the
+/// popover.
 ///
 /// One instance is created per page that has an outline (`ZTronImagePage.init`, alongside the
 /// outline's own `ZTronSVGView`), registers in the same mediator, and — via
@@ -24,6 +42,14 @@ import ZTronObservation
     internal let parentImage: String
     
     private weak var svgView: ZTronSVGView?
+    /// The long-press picker for this same outline, built alongside it by
+    /// `ZTronBasicPlaceableFactory.make(placeable: PlaceableOutlineDescriptor)`. This is the actual
+    /// color pipeline (state + broadcast) this controller drives — see the type-level doc comment.
+    /// `nil` when the factory didn't build one at all (no mediator) or the paywall stripped just
+    /// the color picker while leaving the outline visible (`PaywallAwarePlaceableFactory`); either
+    /// way `ZTronImagePage` then never constructs this controller in the first place, so in
+    /// practice this is never nil for an instance that exists — see `viewDidAppear`.
+    private weak var placeableColorPicker: PlaceableColorPicker?
     private weak var scrollView: UIScrollView?
     private weak var presentingViewController: UIViewController?
     
@@ -34,10 +60,16 @@ import ZTronObservation
     
     private(set) internal var isPresented: Bool = false
     
-    internal init(svgView: ZTronSVGView, scrollView: UIScrollView, presentingViewController: UIViewController) {
+    internal init(
+        svgView: ZTronSVGView,
+        placeableColorPicker: PlaceableColorPicker?,
+        scrollView: UIScrollView,
+        presentingViewController: UIViewController
+    ) {
         self.parentImage = svgView.parentImage
         self.id = "\(svgView.parentImage) bottom bar color picker"
         self.svgView = svgView
+        self.placeableColorPicker = placeableColorPicker
         self.scrollView = scrollView
         self.presentingViewController = presentingViewController
         super.init()
@@ -58,6 +90,15 @@ import ZTronObservation
         guard let presentingViewController = self.presentingViewController else { return }
         guard let scrollView = self.scrollView, scrollView.bounds.width > 0, scrollView.bounds.height > 0 else { return }
         guard !self.colorPickerViewController.isBeingPresented else { return }
+        
+        // Seeds the picker with the outline's actual current color — the DB-loaded color if
+        // nothing has changed it yet this session, or the last applied color otherwise — every
+        // time it opens, rather than whatever `UIColorPickerViewController` defaults to. Read from
+        // the live view rather than re-deriving from the descriptor: the view is the single source
+        // that both a DB load and either picker's own edits already keep current.
+        if let svgView = self.svgView {
+            self.colorPickerViewController.selectedColor = UIColor(cgColor: svgView.getStrokeColor())
+        }
         
         self.colorPickerViewController.delegate = self
         self.colorPickerViewController.modalPresentationStyle = .popover
@@ -204,12 +245,20 @@ import ZTronObservation
 
 extension ColorPickerPopoverController: UIColorPickerViewControllerDelegate {
     internal func colorPickerViewController(_ viewController: UIColorPickerViewController, didSelect color: UIColor, continuously: Bool) {
-        self.svgView?.setStrokeColor(color.cgColor)
+        // Routed through the long-press picker's own entry point rather than
+        // `svgView?.setStrokeColor(_:)` directly — see the type-level doc comment for why: this is
+        // what makes the bounding circle track too and what makes the final pick persist to DB.
+        self.placeableColorPicker?.applyColorFromExternalPicker(color, continuously: continuously)
     }
     
     internal func colorPickerViewControllerDidFinish(_ viewController: UIColorPickerViewController) {
-        // Covers dismissal the user initiated directly (swipe down / tap outside / Done), which
-        // never goes through `togglePopover()`. Harmless no-op if we already dismissed it ourselves.
+        // In this app's configuration the picker is always presented as `.popover` (see
+        // `adaptivePresentationStyle` below), and `UIColorPickerViewControllerDelegate`'s own
+        // documentation is explicit that this method is not called for a popover dismissed by
+        // tapping outside it — only for a Done-button dismissal of a non-popover presentation.
+        // `popoverPresentationControllerDidDismissPopover(_:)` below is the hook that actually
+        // fires for this app's case; this one stays as a harmless safety net (idempotent via
+        // `dismissPopover`'s own guard) in case that ever changes.
         self.dismissPopover(animated: false)
     }
 }
@@ -221,6 +270,17 @@ extension ColorPickerPopoverController: UIPopoverPresentationControllerDelegate 
     /// adaptation," i.e. keep the `.popover` style on both idioms, not "no presentation."
     internal func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
         return UIDevice.current.userInterfaceIdiom == .pad ? .popover : .none
+    }
+    
+    /// The hook that actually fires when the user dismisses the popover by tapping outside it —
+    /// `PlaceableColorPicker` already relies on this same method for the identical reason (see its
+    /// own `popoverPresentationControllerDidDismissPopover(_:)`). Without it, `isPresented` was
+    /// left stuck at `true` after an outside tap: the next bar tap would read the state as "still
+    /// open" and dismiss-toggle a picker that wasn't showing instead of reopening it, and the bar
+    /// button's own highlight — driven by `syncBottomBar(isPresented:)` below — never got told the
+    /// picker had closed, so it kept showing the "active" color instead of "closed."
+    internal func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
+        self.dismissPopover(animated: false)
     }
 }
 

@@ -59,13 +59,18 @@ open class ZTronImagePage: BasicImagePage, Component, AnyPage {
             self.imageView.addSubview($0)
         }
         
-        // The color picker popover only makes sense when there's an outline to track; when the
-        // outline placeable wasn't built at all (no outline configured for this image, or its
-        // rendering is currently paywall-gated — see `PaywallAwarePlaceableFactory`), this simply
-        // stays nil and the bottom bar's own `.colorPicker` tap handling for this image is inert.
-        if let svgView = self.placeables.first(where: { $0 is ZTronSVGView }) as? ZTronSVGView {
+        // The color picker popover only makes sense when both the outline and its long-press color
+        // picker were actually built: the popover's own color pipeline *is* the long-press
+        // picker's (see `ColorPickerPopoverController`'s doc comment), so without one there is
+        // nothing for it to drive. Either can be missing independently — no outline configured for
+        // this image at all, no mediator, or `PaywallAwarePlaceableFactory` stripping just the
+        // color picker while leaving the outline visible — and in every such case this simply
+        // stays nil, leaving the bottom bar's own `.colorPicker` tap handling for this image inert.
+        if let svgView = self.placeables.first(where: { $0 is ZTronSVGView }) as? ZTronSVGView,
+           let placeableColorPicker = self.placeables.first(where: { $0 is PlaceableColorPicker }) as? PlaceableColorPicker {
             let popoverController = ColorPickerPopoverController(
                 svgView: svgView,
+                placeableColorPicker: placeableColorPicker,
                 scrollView: super.scrollView,
                 presentingViewController: self
             )

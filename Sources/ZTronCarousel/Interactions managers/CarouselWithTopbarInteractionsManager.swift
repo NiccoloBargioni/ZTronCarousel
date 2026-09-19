@@ -57,7 +57,11 @@ public final class CarouselWithTopbarInteractionsManager: MSAInteractionsManager
             } else {
                 if loader.lastAction == .galleriesLoaded && !self.topbarDiscovered && !didLoadInitialImages {
                     Task(priority: .userInitiated) { @MainActor in
-                        try owner.loadImages()
+                        do {
+                            try owner.loadImages()
+                        } catch {
+                            fatalError(error.localizedDescription)
+                        }
                     }
                     
                     self.didLoadInitialImages = true

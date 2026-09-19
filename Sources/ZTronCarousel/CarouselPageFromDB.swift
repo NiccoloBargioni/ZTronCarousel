@@ -195,8 +195,12 @@ import ZTronDataModel
             
             Task(priority: .high) {
                 self.dbLoader.setCurrentDepth(-1)
-                
-                try self.dbLoader.loadFirstLevelGalleries(gallery)
+
+                do {
+                    try self.dbLoader.loadFirstLevelGalleries(gallery)
+                } catch {
+                    fatalError(error.localizedDescription)
+                }
             }
         }
     }

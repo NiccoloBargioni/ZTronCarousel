@@ -52,7 +52,11 @@ public final class CarouselFromDBViewModel: AnyViewModel, @unchecked Sendable {
     public func loadImages() throws {
         guard let owner = self.viewModel else { return }
         Task(priority: .userInitiated) {
-            try owner.reloadImages()
+            do {
+                try owner.reloadImages()
+            } catch {
+                fatalError(error.localizedDescription)
+            }
         }
     }
 

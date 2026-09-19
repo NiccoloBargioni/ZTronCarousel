@@ -183,6 +183,20 @@ internal final class PlaceableColorPicker: UIView, PlaceableView, @preconcurrenc
         return self.selectedColor
     }
     
+    /// Applies a color chosen through another entry point — currently the bottom bar's own
+    /// `.colorPicker` action, via `ColorPickerPopoverController` — as if the user had picked it
+    /// directly on this marker: same state update, same broadcast. Every observer already
+    /// reacting to this instance (`OutlineInteractionsManager` and `BoundingCircleInteractionsManager`
+    /// live-tracking the color, `DBLoaderInteractionsManager` persisting it on release) picks this
+    /// up identically, so the two pickers never need a second, separate path to keep in sync.
+    /// `internal`, not `public`: only this module's other color-picker entry point calls it.
+    internal func applyColorFromExternalPicker(_ color: UIColor, continuously: Bool) {
+        self.selectedColor = color
+        self.lastAction = continuously ? .colorChangedContinuously : .colorDidChange
+        
+        self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self))
+    }
+    
     public func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
         return UIDevice.current.userInterfaceIdiom == .pad ? .popover : .none
     }
@@ -230,5 +244,3 @@ extension PlaceableColorPicker: UIColorPickerViewControllerDelegate {
         self.delegate?.pushNotification(eventArgs: BroadcastArgs(source: self))
     }
 }
- 
-
