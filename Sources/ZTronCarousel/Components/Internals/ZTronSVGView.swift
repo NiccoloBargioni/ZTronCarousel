@@ -28,12 +28,12 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     /// is pending, including once the outline has resolved successfully.
     private var pendingConnectivityRetryToken: UUID? = nil
     
-    private static let MIN_LINE_WIDTH: CGFloat = 5
+    private static let MIN_LINE_WIDTH: CGFloat = 0.1
     private var maxLineWidth: CGFloat {
         if sqrt(self.normalizedAABB.height * self.normalizedAABB.height + self.normalizedAABB.width * self.normalizedAABB.width) >= 0.07 {
-            return 7.5
+            return 0.5
         } else {
-            return 37.0
+            return 0.5
         }
     }
     
@@ -42,7 +42,7 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
     public var lineWidth: CGFloat {
         didSet {
             guard let svgLayer = self.svgLayer else { return }
-            svgLayer.lineWidth = self.lineWidth
+            svgLayer.setDisplayLineWidth(self.lineWidth)
         }
     }
     
@@ -214,11 +214,12 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
         self.svgLayer = svgLayer
         Self.disableImplicitAnimations(on: svgLayer)
         
-        svgLayer.lineWidth = self.lineWidth
         svgLayer.strokeColor = self.strokeColor
         svgLayer.fillColor = nil
         svgLayer.resizeToFit(self.bounds)
-        
+        // Must follow resizeToFit: the display width is derived from the layer's scale.
+        svgLayer.setDisplayLineWidth(self.lineWidth)
+
         self.svgView.layer.addSublayer(svgLayer)
         
         CATransaction.commit()
@@ -292,7 +293,10 @@ public final class ZTronSVGView: UIView, PlaceableColoredView, @preconcurrency C
             svgView.bounds = CGRect(origin: .zero, size: newSize)
             svgView.transform = .identity
         }
-        
+
+        // resizeToFit changed the layer's scale, so re-derive the on-screen stroke width.
+        svgLayer.setDisplayLineWidth(self.lineWidth)
+
         CATransaction.commit()
         
         self.layoutIfNeeded()

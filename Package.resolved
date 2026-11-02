@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
-        "revision" : "96a2f8a0fa41e9e09af4585e2724c4e825410b91",
-        "version" : "1.6.2"
+        "revision" : "c9c6bb9d275ec0d95c3ad16391f3f045dc623104",
+        "version" : "1.16.2"
       }
     },
     {
@@ -88,7 +88,7 @@
       "location" : "https://github.com/NickTheFreak97/ztron-routing-kit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "b2806b68f199c6a5f51572da90c6357f5a09dd3f"
+        "revision" : "928d353726e6f7b3ce5a06433aecd3779e5e09db"
       }
     },
     {
@@ -106,7 +106,7 @@
       "location" : "https://github.com/NiccoloBargioni/ZTronDataModel",
       "state" : {
         "branch" : "main",
-        "revision" : "12845b524bc575dbe08934b432933ac0a547258a"
+        "revision" : "4d2d3c11a5d0e75021ea668564915ba8931bd93c"
       }
     },
     {

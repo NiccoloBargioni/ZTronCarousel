@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'">
+  <title>Outline Calibrator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <main id="viewport" aria-label="Canvas">
+      <svg id="overlay" xmlns="http://www.w3.org/2000/svg">
+        <g id="world">
+          <rect id="page-background"></rect>
+          <image id="photo" preserveAspectRatio="none"></image>
+          <g id="outline"></g>
+        </g>
+        <path id="outside-mask" fill-rule="evenodd"></path>
+        <rect id="page-frame"></rect>
+        <rect id="container-frame"></rect>
+        <g id="chrome">
+          <rect id="outline-hit" class="move-target"></rect>
+          <rect id="aabb" class="move-target"></rect>
+          <g id="thumbs"></g>
+        </g>
+      </svg>
+      <div id="empty-hint">
+        <p><strong>Open an image</strong> (⌘O) and <strong>an outline SVG</strong> (⇧⌘O), or drop them here.</p>
+        <p class="muted">Drag the box to move the outline, its thumbs to resize. Space-drag or scroll to pan, pinch or ⌘-scroll to zoom.</p>
+      </div>
+      <div id="zoom-controls">
+        <button id="zoom-out" title="Zoom out (⌘−)">−</button>
+        <button id="zoom-label" title="Reset view (⌘0)">100%</button>
+        <button id="zoom-in" title="Zoom in (⌘=)">+</button>
+      </div>
+    </main>
+
+    <aside id="sidebar">
+      <section>
+        <h2>Files</h2>
+        <div class="file-row">
+          <button id="open-image">Image…</button>
+          <div class="file-meta"><span id="image-name" class="muted">No image</span><span id="image-info" class="muted"></span></div>
+        </div>
+        <div class="file-row">
+          <button id="open-outline">Outline…</button>
+          <div class="file-meta"><span id="outline-name" class="muted">No outline</span><span id="outline-info" class="muted"></span></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-header">
+          <h2 id="box-title">Normalized bounding box</h2>
+          <label class="check" title="Edit and paste the box in image pixels; it is normalized by dividing by the matching dimension">
+            <input id="pixel-units" type="checkbox"> Pixels
+          </label>
+        </div>
+        <div class="grid-2">
+          <label>x <input id="input-x" type="text" inputmode="decimal" spellcheck="false"></label>
+          <label>y <input id="input-y" type="text" inputmode="decimal" spellcheck="false"></label>
+          <label>width <input id="input-width" type="text" inputmode="decimal" spellcheck="false"></label>
+          <label>height <input id="input-height" type="text" inputmode="decimal" spellcheck="false"></label>
+        </div>
+        <p id="units-hint" class="muted" hidden></p>
+        <textarea id="paste-box" rows="4" spellcheck="false" placeholder="Paste .init(x: 1939.0 / 3840.0, …), a CGRect, or x, y, w, h. ↩ applies, ⇧↩ adds a line."></textarea>
+        <p id="paste-status" class="muted" hidden></p>
+        <div class="button-row">
+          <button id="fit-box" title="Shrink the box to the outline's scaled bounding box (keeps the scale)">Fit box to outline</button>
+          <button id="undo" title="Undo (⌘Z)">Undo</button>
+          <button id="redo" title="Redo (⇧⌘Z)">Redo</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Stroke</h2>
+        <div class="grid-2">
+          <label>color <input id="input-color" type="color"></label>
+          <label>opacity <input id="input-opacity" type="range" min="0" max="1" step="0.01"></label>
+        </div>
+        <label class="check"><input id="show-box" type="checkbox"> Show bounding box</label>
+        <dl id="render-info"></dl>
+      </section>
+
+      <section id="notes-section" hidden>
+        <h2>Notes</h2>
+        <ul id="notes"></ul>
+      </section>
+
+      <section class="help muted">
+        <p><kbd>←↑→↓</kbd> nudge 1 px (<kbd>⇧</kbd> ×10) · <kbd>⌥</kbd>+arrows resize</p>
+        <p>Thumbs: <kbd>⇧</kbd> keep aspect · <kbd>⌥</kbd> from center · move with <kbd>⇧</kbd> locks an axis</p>
+      </section>
+    </aside>
+
+    <footer id="log-panel">
+      <div id="readout">
+        <span id="readout-text"></span>
+        <span class="spacer"></span>
+        <button id="copy-init" title="Copy as boundingBox: .init(x: … / …, …) using the current size">Copy</button>
+        <button id="clear-log">Clear log</button>
+      </div>
+      <ol id="log"></ol>
+    </footer>
+  </div>
+
+  <input id="file-image" type="file" accept=".png,.jpg,.jpeg,.heic,.heif" hidden>
+  <input id="file-outline" type="file" accept=".svg" hidden>
+
+  <script src="swiftsvg.js"></script>
+  <script src="boxtext.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

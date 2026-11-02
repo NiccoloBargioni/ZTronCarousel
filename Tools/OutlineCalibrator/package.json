@@ -1,0 +1,14 @@
+{
+  "name": "ztron-outline-calibrator",
+  "productName": "Outline Calibrator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Place a ZTronCarousel outline SVG on top of an image and read back its normalized bounding box.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "44.4.5"
+  }
+}
